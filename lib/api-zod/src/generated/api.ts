@@ -704,6 +704,117 @@ export const SaveSandboxFeedbackResponse = zod.object({
 
 
 /**
+ * @summary Get (or start) the AI-guided business profile interview
+ */
+export const GetProfileInterviewResponse = zod.object({
+  "id": zod.number(),
+  "status": zod.enum(['in_progress', 'confirmed']),
+  "messages": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string()
+})),
+  "captured": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "value": zod.string()
+})),
+  "stillMissing": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "required": zod.boolean()
+})),
+  "readyToConfirm": zod.boolean()
+})
+
+
+/**
+ * @summary Send an owner message in the business profile interview
+ */
+
+
+
+export const SendProfileInterviewMessageBody = zod.object({
+  "message": zod.string().min(1)
+})
+
+export const SendProfileInterviewMessageResponse = zod.object({
+  "id": zod.number(),
+  "status": zod.enum(['in_progress', 'confirmed']),
+  "messages": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string()
+})),
+  "captured": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "value": zod.string()
+})),
+  "stillMissing": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "required": zod.boolean()
+})),
+  "readyToConfirm": zod.boolean()
+})
+
+
+/**
+ * @summary Confirm the captured business profile and complete the step
+ */
+export const ConfirmProfileInterviewResponse = zod.object({
+  "id": zod.number(),
+  "status": zod.enum(['in_progress', 'confirmed']),
+  "messages": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string()
+})),
+  "captured": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "value": zod.string()
+})),
+  "stillMissing": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "required": zod.boolean()
+})),
+  "readyToConfirm": zod.boolean()
+})
+
+
+/**
+ * @summary Restart the business profile interview from scratch
+ */
+export const ResetProfileInterviewResponse = zod.object({
+  "id": zod.number(),
+  "status": zod.enum(['in_progress', 'confirmed']),
+  "messages": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string()
+})),
+  "captured": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "value": zod.string()
+})),
+  "stillMissing": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "required": zod.boolean()
+})),
+  "readyToConfirm": zod.boolean()
+})
+
+
+/**
  * @summary List leads
  */
 export const ListLeadsResponseItem = zod.object({

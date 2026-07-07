@@ -40,6 +40,8 @@ import type {
   LeadUpdate,
   PricingRules,
   PricingRulesInput,
+  ProfileInterview,
+  ProfileInterviewMessageInput,
   Requirement,
   RequirementUpdate,
   SandboxFeedbackInput,
@@ -2050,6 +2052,293 @@ export const useSaveSandboxFeedback = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getSaveSandboxFeedbackMutationOptions(options));
+    }
+
+export const getGetProfileInterviewUrl = () => {
+
+
+
+
+  return `/api/business-profile-interview`
+}
+
+/**
+ * @summary Get (or start) the AI-guided business profile interview
+ */
+export const getProfileInterview = async ( options?: RequestInit): Promise<ProfileInterview> => {
+
+  return customFetch<ProfileInterview>(getGetProfileInterviewUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProfileInterviewQueryKey = () => {
+    return [
+    `/api/business-profile-interview`
+    ] as const;
+    }
+
+
+export const getGetProfileInterviewQueryOptions = <TData = Awaited<ReturnType<typeof getProfileInterview>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProfileInterview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProfileInterviewQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProfileInterview>>> = ({ signal }) => getProfileInterview({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProfileInterview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetProfileInterviewQueryResult = NonNullable<Awaited<ReturnType<typeof getProfileInterview>>>
+export type GetProfileInterviewQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get (or start) the AI-guided business profile interview
+ */
+
+export function useGetProfileInterview<TData = Awaited<ReturnType<typeof getProfileInterview>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProfileInterview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetProfileInterviewQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSendProfileInterviewMessageUrl = () => {
+
+
+
+
+  return `/api/business-profile-interview/message`
+}
+
+/**
+ * @summary Send an owner message in the business profile interview
+ */
+export const sendProfileInterviewMessage = async (profileInterviewMessageInput: ProfileInterviewMessageInput, options?: RequestInit): Promise<ProfileInterview> => {
+
+  return customFetch<ProfileInterview>(getSendProfileInterviewMessageUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(profileInterviewMessageInput)
+  }
+);}
+
+
+
+
+export const getSendProfileInterviewMessageMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendProfileInterviewMessage>>, TError,{data: BodyType<ProfileInterviewMessageInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendProfileInterviewMessage>>, TError,{data: BodyType<ProfileInterviewMessageInput>}, TContext> => {
+
+const mutationKey = ['sendProfileInterviewMessage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendProfileInterviewMessage>>, {data: BodyType<ProfileInterviewMessageInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendProfileInterviewMessage(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendProfileInterviewMessageMutationResult = NonNullable<Awaited<ReturnType<typeof sendProfileInterviewMessage>>>
+    export type SendProfileInterviewMessageMutationBody = BodyType<ProfileInterviewMessageInput>
+    export type SendProfileInterviewMessageMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Send an owner message in the business profile interview
+ */
+export const useSendProfileInterviewMessage = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendProfileInterviewMessage>>, TError,{data: BodyType<ProfileInterviewMessageInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendProfileInterviewMessage>>,
+        TError,
+        {data: BodyType<ProfileInterviewMessageInput>},
+        TContext
+      > => {
+      return useMutation(getSendProfileInterviewMessageMutationOptions(options));
+    }
+
+export const getConfirmProfileInterviewUrl = () => {
+
+
+
+
+  return `/api/business-profile-interview/confirm`
+}
+
+/**
+ * @summary Confirm the captured business profile and complete the step
+ */
+export const confirmProfileInterview = async ( options?: RequestInit): Promise<ProfileInterview> => {
+
+  return customFetch<ProfileInterview>(getConfirmProfileInterviewUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getConfirmProfileInterviewMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmProfileInterview>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmProfileInterview>>, TError,void, TContext> => {
+
+const mutationKey = ['confirmProfileInterview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmProfileInterview>>, void> = () => {
+
+
+          return  confirmProfileInterview(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmProfileInterviewMutationResult = NonNullable<Awaited<ReturnType<typeof confirmProfileInterview>>>
+
+    export type ConfirmProfileInterviewMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Confirm the captured business profile and complete the step
+ */
+export const useConfirmProfileInterview = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmProfileInterview>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof confirmProfileInterview>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getConfirmProfileInterviewMutationOptions(options));
+    }
+
+export const getResetProfileInterviewUrl = () => {
+
+
+
+
+  return `/api/business-profile-interview/reset`
+}
+
+/**
+ * @summary Restart the business profile interview from scratch
+ */
+export const resetProfileInterview = async ( options?: RequestInit): Promise<ProfileInterview> => {
+
+  return customFetch<ProfileInterview>(getResetProfileInterviewUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getResetProfileInterviewMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetProfileInterview>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resetProfileInterview>>, TError,void, TContext> => {
+
+const mutationKey = ['resetProfileInterview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetProfileInterview>>, void> = () => {
+
+
+          return  resetProfileInterview(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResetProfileInterviewMutationResult = NonNullable<Awaited<ReturnType<typeof resetProfileInterview>>>
+
+    export type ResetProfileInterviewMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Restart the business profile interview from scratch
+ */
+export const useResetProfileInterview = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetProfileInterview>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof resetProfileInterview>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getResetProfileInterviewMutationOptions(options));
     }
 
 export const getListLeadsUrl = () => {

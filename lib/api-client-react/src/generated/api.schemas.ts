@@ -391,6 +391,55 @@ export interface SandboxMessageInput {
   message: string;
 }
 
+export type ProfileInterviewMessageRole = typeof ProfileInterviewMessageRole[keyof typeof ProfileInterviewMessageRole];
+
+
+export const ProfileInterviewMessageRole = {
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export interface ProfileInterviewMessage {
+  role: ProfileInterviewMessageRole;
+  content: string;
+}
+
+export interface ProfileCapturedField {
+  key: string;
+  label: string;
+  group: string;
+  value: string;
+}
+
+export interface ProfileMissingField {
+  key: string;
+  label: string;
+  group: string;
+  required: boolean;
+}
+
+export type ProfileInterviewStatus = typeof ProfileInterviewStatus[keyof typeof ProfileInterviewStatus];
+
+
+export const ProfileInterviewStatus = {
+  in_progress: 'in_progress',
+  confirmed: 'confirmed',
+} as const;
+
+export interface ProfileInterview {
+  id: number;
+  status: ProfileInterviewStatus;
+  messages: ProfileInterviewMessage[];
+  captured: ProfileCapturedField[];
+  stillMissing: ProfileMissingField[];
+  readyToConfirm: boolean;
+}
+
+export interface ProfileInterviewMessageInput {
+  /** @minLength 1 */
+  message: string;
+}
+
 export interface SendEmailResult {
   sent: boolean;
   message: string;

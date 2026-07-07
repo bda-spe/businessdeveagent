@@ -139,6 +139,23 @@ export const invoiceSettingsTable = pgTable("invoice_settings", {
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
+export const businessProfileInterviewsTable = pgTable(
+  "business_profile_interviews",
+  {
+    id: serial("id").primaryKey(),
+    businessId: integer("business_id")
+      .notNull()
+      .references(() => businessesTable.id)
+      .unique(),
+    messages: jsonb("messages"),
+    profileData: jsonb("profile_data"),
+    status: text("status").notNull().default("in_progress"),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+);
+
 export const sandboxTestsTable = pgTable("sandbox_tests", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")

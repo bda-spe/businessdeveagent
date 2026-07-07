@@ -24,6 +24,8 @@ tags:
     description: AI-extracted requirement values
   - name: sandbox
     description: Sandbox training tests
+  - name: profileInterview
+    description: AI-guided business profile interview
   - name: leads
     description: Lead inbox
   - name: widget
@@ -494,6 +496,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SandboxTest"
+
+  /business-profile-interview:
+    get:
+      operationId: getProfileInterview
+      tags: [profileInterview]
+      summary: Get (or start) the AI-guided business profile interview
+      responses:
+        "200":
+          description: Interview state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileInterview"
+
+  /business-profile-interview/message:
+    post:
+      operationId: sendProfileInterviewMessage
+      tags: [profileInterview]
+      summary: Send an owner message in the business profile interview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileInterviewMessageInput"
+      responses:
+        "200":
+          description: Updated interview state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileInterview"
+
+  /business-profile-interview/confirm:
+    post:
+      operationId: confirmProfileInterview
+      tags: [profileInterview]
+      summary: Confirm the captured business profile and complete the step
+      responses:
+        "200":
+          description: Confirmed interview state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileInterview"
+
+  /business-profile-interview/reset:
+    post:
+      operationId: resetProfileInterview
+      tags: [profileInterview]
+      summary: Restart the business profile interview from scratch
+      responses:
+        "200":
+          description: Reset interview state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileInterview"
 
   /leads:
     get:
@@ -1205,6 +1265,74 @@ components:
           minLength: 1
 
     SandboxMessageInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          minLength: 1
+
+    ProfileInterviewMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+
+    ProfileCapturedField:
+      type: object
+      required: [key, label, group, value]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        group:
+          type: string
+        value:
+          type: string
+
+    ProfileMissingField:
+      type: object
+      required: [key, label, group, required]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        group:
+          type: string
+        required:
+          type: boolean
+
+    ProfileInterview:
+      type: object
+      required: [id, status, messages, captured, stillMissing, readyToConfirm]
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [in_progress, confirmed]
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileInterviewMessage"
+        captured:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileCapturedField"
+        stillMissing:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileMissingField"
+        readyToConfirm:
+          type: boolean
+
+    ProfileInterviewMessageInput:
       type: object
       required: [message]
       properties:

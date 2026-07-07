@@ -67,7 +67,7 @@ router.get("/me", async (req, res): Promise<void> => {
     ]);
     const eventTypes = new Set(savedEvents.map((e) => e.type));
     setupProgress = {
-      businessProfile: !!(business.industry && business.serviceArea),
+      businessProfile: business.profileApproved,
       services: services.length > 0,
       pricing: eventTypes.has("pricing_updated"),
       invoiceFormatting: eventTypes.has("invoice_settings_updated"),
