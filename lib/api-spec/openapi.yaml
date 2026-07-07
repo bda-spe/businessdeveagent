@@ -222,6 +222,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/PricingRules"
 
+  /invoice-settings:
+    get:
+      operationId: getInvoiceSettings
+      tags: [invoiceSettings]
+      summary: Get invoice formatting settings
+      responses:
+        "200":
+          description: Invoice settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceSettings"
+    put:
+      operationId: saveInvoiceSettings
+      tags: [invoiceSettings]
+      summary: Create or update invoice formatting settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceSettingsInput"
+      responses:
+        "200":
+          description: Saved invoice settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceSettings"
+
   /requirements:
     get:
       operationId: listRequirements
@@ -648,13 +678,15 @@ components:
 
     SetupProgress:
       type: object
-      required: [businessProfile, services, pricing, widget, testAgent]
+      required: [businessProfile, services, pricing, invoiceFormatting, widget, testAgent]
       properties:
         businessProfile:
           type: boolean
         services:
           type: boolean
         pricing:
+          type: boolean
+        invoiceFormatting:
           type: boolean
         widget:
           type: boolean
@@ -841,6 +873,51 @@ components:
         minimumJobCost:
           type: ["number", "null"]
         customNotes:
+          type: ["string", "null"]
+
+    InvoiceSettings:
+      type: object
+      required: [id, selectedTemplate]
+      properties:
+        id:
+          type: integer
+        selectedTemplate:
+          type: string
+          enum: [simple_summary, modern_estimate_card, detailed_agreement, professional_proposal]
+        cancellationPolicy:
+          type: ["string", "null"]
+        paymentTerms:
+          type: ["string", "null"]
+        estimateDisclaimer:
+          type: ["string", "null"]
+        termsConditions:
+          type: ["string", "null"]
+        acceptanceLanguage:
+          type: ["string", "null"]
+        depositRequirements:
+          type: ["string", "null"]
+        footerNote:
+          type: ["string", "null"]
+
+    InvoiceSettingsInput:
+      type: object
+      properties:
+        selectedTemplate:
+          type: string
+          enum: [simple_summary, modern_estimate_card, detailed_agreement, professional_proposal]
+        cancellationPolicy:
+          type: ["string", "null"]
+        paymentTerms:
+          type: ["string", "null"]
+        estimateDisclaimer:
+          type: ["string", "null"]
+        termsConditions:
+          type: ["string", "null"]
+        acceptanceLanguage:
+          type: ["string", "null"]
+        depositRequirements:
+          type: ["string", "null"]
+        footerNote:
           type: ["string", "null"]
 
     Requirement:

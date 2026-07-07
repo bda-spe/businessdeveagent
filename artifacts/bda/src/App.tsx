@@ -20,6 +20,7 @@ import DashboardPage from "./pages/dashboard";
 import BusinessPage from "./pages/business";
 import ServicesPage from "./pages/services";
 import PricingPage from "./pages/pricing";
+import InvoiceFormattingPage from "./pages/invoice-formatting";
 import TrainingPage from "./pages/training";
 import LeadsPage from "./pages/leads";
 import WidgetPage from "./pages/widget";
@@ -203,6 +204,7 @@ function ClerkProviderWithRoutes() {
             <Route path="/business"><ProtectedApp><BusinessPage /></ProtectedApp></Route>
             <Route path="/services"><ProtectedApp><ServicesPage /></ProtectedApp></Route>
             <Route path="/pricing"><ProtectedApp><PricingPage /></ProtectedApp></Route>
+            <Route path="/invoice-formatting"><ProtectedApp><InvoiceFormattingPage /></ProtectedApp></Route>
             <Route path="/training"><ProtectedApp><TrainingPage /></ProtectedApp></Route>
             <Route path="/leads"><ProtectedApp><LeadsPage /></ProtectedApp></Route>
             <Route path="/widget"><ProtectedApp><WidgetPage /></ProtectedApp></Route>

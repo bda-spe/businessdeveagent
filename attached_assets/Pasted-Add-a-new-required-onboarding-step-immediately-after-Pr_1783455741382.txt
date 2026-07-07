@@ -1,0 +1,210 @@
+Add a new required onboarding step immediately after “Pricing Rules” called “Invoice Formatting.”
+
+This step must appear above the divider in the Agent Management sidebar, before Widget Settings, Test Agent, Dashboard, Leads Inbox, and Billing unlock. Users must complete Business Profile, Services, Pricing Rules, and Invoice Formatting before anything below the divider becomes available.
+
+Purpose:
+The business owner chooses how their BDA will format customer-facing invoice/estimate previews. The invoice must dynamically adapt to each business using that business’s profile, company name, industry, services, pricing rules, policies, terms, cancellation policy, and customer/project details.
+
+Create 4 selectable invoice templates:
+
+1. Simple Summary Invoice
+- Shorter format
+- Clean itemized pricing
+- Brief policy agreement sentence at the bottom
+
+2. Modern Estimate Card
+- Shorter format
+- Slightly more visual/card-style layout
+- Brief policy agreement sentence at the bottom
+
+3. Detailed Service Agreement Invoice
+- Same general structure as Template 1
+- Includes full written terms, cancellation policy, payment terms, estimate disclaimer, and customer acceptance language
+
+4. Detailed Professional Proposal
+- Same general structure as Template 2
+- More polished proposal-style layout
+- Includes full written terms, cancellation policy, payment terms, estimate disclaimer, and customer acceptance language
+
+Requirements:
+- Show all 4 templates as preview cards
+- Allow the user to select one default invoice format
+- Store selected_invoice_template on the business record or invoice_settings table
+- Add an invoice_settings table if needed
+- Include editable fields for:
+  - Cancellation policy
+  - Payment terms
+  - Estimate disclaimer
+  - Terms and conditions
+  - Acceptance language
+  - Deposit requirements
+  - Invoice footer note
+- Pre-fill reasonable default language based on local service businesses
+- Use the actual business name from Business Profile
+- Use actual services from the Services step
+- Use actual pricing rules from Pricing Rules
+- Make previews look like real invoices, not placeholders
+- The preview should update when company name, service, price, tax, cancellation policy, or terms change
+- Add “Save Invoice Format & Continue”
+- Once saved, mark Invoice Formatting as completed in onboarding progress
+
+AI integration:
+When the BDA generates an estimate, it should use the selected invoice template to structure the invoice preview. The AI should return structured invoice data, but the frontend should render it using the selected template.
+
+Do not hardcode company names like ABC Services except as fallback demo data. All invoice previews should adapt dynamically to the logged-in business profile.
+2) Four invoice formats
+Template 1: Simple Summary Invoice
+[Business Name]
+Estimate / Invoice Preview
+
+Customer: [Customer Name]
+Project: [Project Description]
+Date: [Date]
+
+Services Provided:
+1. [Service Name] — [Brief Description] — $[Amount]
+2. [Service Name] — [Brief Description] — $[Amount]
+
+Subtotal: $[Subtotal]
+Travel Fee: $[Travel Fee]
+Tax: $[Tax]
+Estimated Total: $[Total]
+
+Estimated Range:
+$[Low Estimate] – $[High Estimate]
+
+Notes:
+This estimate is based on the information provided and may change after final review or on-site verification.
+
+By accepting service, the customer agrees to [Business Name]’s cancellation policy, payment terms, and standard terms and conditions.
+Template 2: Modern Estimate Card
+[Business Name]
+Service Estimate
+
+Estimated Total:
+$[Total]
+
+Estimated Range:
+$[Low Estimate] – $[High Estimate]
+
+Project Summary:
+[Customer Summary]
+
+Included Services:
+✓ [Service Name] — $[Amount]
+✓ [Service Name] — $[Amount]
+✓ Travel / Mobilization — $[Amount]
+✓ Taxes & Fees — $[Amount]
+
+Assumptions:
+- [Assumption 1]
+- [Assumption 2]
+- [Assumption 3]
+
+Final pricing may vary based on site conditions, customer changes, or additional work requested. Proceeding with service confirms agreement to [Business Name]’s cancellation policy, payment terms, and service conditions.
+Template 3: Detailed Service Agreement Invoice
+[Business Name]
+Detailed Service Estimate & Agreement
+
+Customer Information:
+Customer Name: [Customer Name]
+Email: [Customer Email]
+Phone: [Customer Phone]
+Project Address: [Project Address]
+
+Project Description:
+[Project Description]
+
+Services Provided:
+1. [Service Name]
+   Description: [Service Description]
+   Quantity / Hours: [Qty or Hours]
+   Rate: $[Rate]
+   Amount: $[Amount]
+
+2. [Service Name]
+   Description: [Service Description]
+   Quantity / Hours: [Qty or Hours]
+   Rate: $[Rate]
+   Amount: $[Amount]
+
+Pricing Summary:
+Subtotal: $[Subtotal]
+Travel / Mobilization Fee: $[Travel Fee]
+Emergency / After-Hours Fee: $[Emergency Fee]
+Discounts: $[Discount]
+Tax: $[Tax]
+Estimated Total: $[Total]
+
+Estimated Range:
+$[Low Estimate] – $[High Estimate]
+
+Payment Terms:
+[Full payment terms from business profile]
+
+Cancellation Policy:
+[Full cancellation policy from business profile]
+
+Terms and Conditions:
+[Full terms and conditions from business profile]
+
+Estimate Disclaimer:
+This estimate is based on the information provided by the customer and is intended as preliminary pricing. Final pricing may change after inspection, measurement, material review, or changes to project scope.
+
+Customer Acceptance:
+By approving this estimate or scheduling service, the customer acknowledges and agrees to [Business Name]’s payment terms, cancellation policy, service conditions, and terms and conditions.
+Template 4: Detailed Professional Proposal
+[Business Name]
+Professional Service Proposal
+
+Prepared For:
+[Customer Name]
+[Customer Email]
+[Customer Phone]
+
+Prepared On:
+[Date]
+
+Project Overview:
+[Customer Summary]
+
+Recommended Service Plan:
+[Brief AI-generated explanation of recommended service]
+
+Scope of Work:
+- [Service / Task 1]
+- [Service / Task 2]
+- [Service / Task 3]
+
+Investment Summary:
+Service Labor: $[Labor]
+Materials / Supplies: $[Materials]
+Travel / Mobilization: $[Travel Fee]
+Additional Fees: $[Additional Fees]
+Tax: $[Tax]
+
+Estimated Investment:
+$[Total]
+
+Expected Price Range:
+$[Low Estimate] – $[High Estimate]
+
+Assumptions:
+- [Assumption 1]
+- [Assumption 2]
+- [Assumption 3]
+
+Payment Terms:
+[Full payment terms]
+
+Cancellation & Rescheduling:
+[Full cancellation policy]
+
+Terms and Conditions:
+[Full terms and conditions]
+
+Final Review Notice:
+This proposal is generated based on customer-provided information and business-approved pricing rules. Final pricing may be adjusted if site conditions, material needs, labor requirements, or project scope differ from the original request.
+
+Acceptance:
+By moving forward with this proposal, the customer agrees to the scope of work, pricing assumptions

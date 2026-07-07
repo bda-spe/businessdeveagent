@@ -34,6 +34,7 @@ router.get("/me", async (req, res): Promise<void> => {
     businessProfile: false,
     services: false,
     pricing: false,
+    invoiceFormatting: false,
     widget: false,
     testAgent: false,
   };
@@ -58,6 +59,7 @@ router.get("/me", async (req, res): Promise<void> => {
             eq(activityEventsTable.businessId, business.id),
             inArray(activityEventsTable.type, [
               "pricing_updated",
+              "invoice_settings_updated",
               "widget_updated",
             ]),
           ),
@@ -68,6 +70,7 @@ router.get("/me", async (req, res): Promise<void> => {
       businessProfile: !!(business.industry && business.serviceArea),
       services: services.length > 0,
       pricing: eventTypes.has("pricing_updated"),
+      invoiceFormatting: eventTypes.has("invoice_settings_updated"),
       widget: eventTypes.has("widget_updated"),
       testAgent: sandboxTests.length > 0,
     };

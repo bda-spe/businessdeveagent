@@ -34,6 +34,7 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
     { href: "/business", label: "Business Profile", icon: Building2, done: !!sp?.businessProfile },
     { href: "/services", label: "Services", icon: Wrench, done: !!sp?.services },
     { href: "/pricing", label: "Pricing Rules", icon: DollarSign, done: !!sp?.pricing },
+    { href: "/invoice-formatting", label: "Invoice Formatting", icon: FileText, done: !!sp?.invoiceFormatting },
     { href: "/widget", label: "Widget Settings", icon: Puzzle, done: !!sp?.widget },
     { href: "/training", label: "Test Agent", icon: BrainCircuit, done: !!sp?.testAgent },
   ];

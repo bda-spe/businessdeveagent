@@ -10,6 +10,7 @@ export interface SetupProgress {
   businessProfile: boolean;
   services: boolean;
   pricing: boolean;
+  invoiceFormatting: boolean;
   widget: boolean;
   testAgent: boolean;
 }

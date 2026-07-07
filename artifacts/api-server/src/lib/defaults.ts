@@ -9,6 +9,22 @@ export const DEFAULT_REQUIREMENTS: { key: string; label: string }[] = [
   { key: "faqs", label: "Common customer questions" },
 ];
 
+export const DEFAULT_INVOICE_LANGUAGE = {
+  cancellationPolicy:
+    "Appointments may be cancelled or rescheduled up to 24 hours in advance at no charge. Cancellations with less than 24 hours notice may incur a cancellation fee of up to 50% of the scheduled service cost.",
+  paymentTerms:
+    "Payment is due upon completion of service unless otherwise agreed in writing. We accept cash, check, and major credit cards. Invoices unpaid after 15 days may be subject to a late fee.",
+  estimateDisclaimer:
+    "This estimate is based on the information provided by the customer and is intended as preliminary pricing. Final pricing may change after inspection, measurement, material review, or changes to project scope.",
+  termsConditions:
+    "All work is performed by trained professionals in accordance with applicable local codes and standards. Workmanship is guaranteed for 90 days from the date of service. Materials are covered by their respective manufacturer warranties. Any additional work outside the agreed scope will be quoted separately before proceeding.",
+  acceptanceLanguage:
+    "By approving this estimate or scheduling service, the customer acknowledges and agrees to the payment terms, cancellation policy, service conditions, and terms and conditions stated herein.",
+  depositRequirements:
+    "Projects over $1,000 may require a deposit of up to 30% before work is scheduled. Deposits are applied to the final invoice.",
+  footerNote: "Thank you for your business. We look forward to serving you.",
+};
+
 export const BILLING_PLANS: {
   id: string;
   name: string;

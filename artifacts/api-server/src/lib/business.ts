@@ -6,9 +6,10 @@ import {
   pricingRulesTable,
   widgetSettingsTable,
   billingSubscriptionsTable,
+  invoiceSettingsTable,
   activityEventsTable,
 } from "@workspace/db";
-import { DEFAULT_REQUIREMENTS } from "./defaults";
+import { DEFAULT_REQUIREMENTS, DEFAULT_INVOICE_LANGUAGE } from "./defaults";
 
 type Business = typeof businessesTable.$inferSelect;
 type Pricing = typeof pricingRulesTable.$inferSelect;
@@ -36,6 +37,9 @@ export async function seedBusinessDefaults(businessId: number): Promise<void> {
   await db.insert(pricingRulesTable).values({ businessId });
   await db.insert(widgetSettingsTable).values({ businessId });
   await db.insert(billingSubscriptionsTable).values({ businessId });
+  await db
+    .insert(invoiceSettingsTable)
+    .values({ businessId, ...DEFAULT_INVOICE_LANGUAGE });
 }
 
 export function computeRequirementStatus(

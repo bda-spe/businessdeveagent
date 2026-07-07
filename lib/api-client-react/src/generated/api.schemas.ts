@@ -43,6 +43,7 @@ export interface SetupProgress {
   businessProfile: boolean;
   services: boolean;
   pricing: boolean;
+  invoiceFormatting: boolean;
   widget: boolean;
   testAgent: boolean;
 }
@@ -156,6 +157,63 @@ export interface PricingRulesInput {
   minimumJobCost?: number | null;
   /** @nullable */
   customNotes?: string | null;
+}
+
+export type InvoiceSettingsSelectedTemplate = typeof InvoiceSettingsSelectedTemplate[keyof typeof InvoiceSettingsSelectedTemplate];
+
+
+export const InvoiceSettingsSelectedTemplate = {
+  simple_summary: 'simple_summary',
+  modern_estimate_card: 'modern_estimate_card',
+  detailed_agreement: 'detailed_agreement',
+  professional_proposal: 'professional_proposal',
+} as const;
+
+export interface InvoiceSettings {
+  id: number;
+  selectedTemplate: InvoiceSettingsSelectedTemplate;
+  /** @nullable */
+  cancellationPolicy?: string | null;
+  /** @nullable */
+  paymentTerms?: string | null;
+  /** @nullable */
+  estimateDisclaimer?: string | null;
+  /** @nullable */
+  termsConditions?: string | null;
+  /** @nullable */
+  acceptanceLanguage?: string | null;
+  /** @nullable */
+  depositRequirements?: string | null;
+  /** @nullable */
+  footerNote?: string | null;
+}
+
+export type InvoiceSettingsInputSelectedTemplate = typeof InvoiceSettingsInputSelectedTemplate[keyof typeof InvoiceSettingsInputSelectedTemplate];
+
+
+export const InvoiceSettingsInputSelectedTemplate = {
+  simple_summary: 'simple_summary',
+  modern_estimate_card: 'modern_estimate_card',
+  detailed_agreement: 'detailed_agreement',
+  professional_proposal: 'professional_proposal',
+} as const;
+
+export interface InvoiceSettingsInput {
+  selectedTemplate?: InvoiceSettingsInputSelectedTemplate;
+  /** @nullable */
+  cancellationPolicy?: string | null;
+  /** @nullable */
+  paymentTerms?: string | null;
+  /** @nullable */
+  estimateDisclaimer?: string | null;
+  /** @nullable */
+  termsConditions?: string | null;
+  /** @nullable */
+  acceptanceLanguage?: string | null;
+  /** @nullable */
+  depositRequirements?: string | null;
+  /** @nullable */
+  footerNote?: string | null;
 }
 
 export interface Requirement {

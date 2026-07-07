@@ -111,6 +111,25 @@ export const extractedValuesTable = pgTable("extracted_requirement_values", {
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 
+export const invoiceSettingsTable = pgTable("invoice_settings", {
+  id: serial("id").primaryKey(),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id)
+    .unique(),
+  selectedTemplate: text("selected_template")
+    .notNull()
+    .default("modern_estimate_card"),
+  cancellationPolicy: text("cancellation_policy"),
+  paymentTerms: text("payment_terms"),
+  estimateDisclaimer: text("estimate_disclaimer"),
+  termsConditions: text("terms_conditions"),
+  acceptanceLanguage: text("acceptance_language"),
+  depositRequirements: text("deposit_requirements"),
+  footerNote: text("footer_note"),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
 export const sandboxTestsTable = pgTable("sandbox_tests", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")

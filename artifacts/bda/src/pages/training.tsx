@@ -6,8 +6,11 @@ import {
   useListSandboxTests, 
   useRunSandboxTest, 
   useSaveSandboxFeedback,
+  useGetInvoiceSettings,
+  useGetMe,
   getListSandboxTestsQueryKey
 } from "@workspace/api-client-react";
+import { InvoiceTemplatePreview } from "@/components/invoice-templates";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +28,8 @@ const testSchema = z.object({
 export default function TrainingPage() {
   const queryClient = useQueryClient();
   const { data: history, isLoading: isLoadingHistory } = useListSandboxTests();
+  const { data: invoiceSettings } = useGetInvoiceSettings();
+  const { data: me } = useGetMe();
   const runTest = useRunSandboxTest();
   const saveFeedback = useSaveSandboxFeedback();
   
@@ -123,37 +128,20 @@ export default function TrainingPage() {
                             <Calculator className="h-4 w-4 text-emerald-600" /> 
                             Generated Estimate
                           </div>
-                          <div className="p-4 text-sm space-y-4">
-                            <div>
-                              <div className="text-slate-500 mb-1">Customer Summary</div>
-                              <div className="font-medium text-slate-900">{activeTest.estimate.customerSummary}</div>
-                            </div>
-                            
-                            <table className="w-full text-left">
-                              <thead>
-                                <tr className="text-slate-500 border-b border-slate-100">
-                                  <th className="pb-2 font-normal">Item</th>
-                                  <th className="pb-2 font-normal text-right">Price</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-50">
-                                {activeTest.estimate.invoiceLineItems.map((item, i) => (
-                                  <tr key={i}>
-                                    <td className="py-2 text-slate-700">{item.description}</td>
-                                    <td className="py-2 text-right font-medium text-slate-900">${item.total.toFixed(2)}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                              <tfoot>
-                                <tr>
-                                  <td className="pt-3 font-bold text-slate-900">Estimated Total</td>
-                                  <td className="pt-3 text-right font-bold text-slate-900">
-                                    ${activeTest.estimate.totalEstimate.toFixed(2)}
-                                  </td>
-                                </tr>
-                              </tfoot>
-                            </table>
-                          </div>
+                          <InvoiceTemplatePreview
+                            templateId={invoiceSettings?.selectedTemplate ?? "modern_estimate_card"}
+                            data={{
+                              businessName: me?.business?.name ?? "Your Business",
+                              projectDescription: activeTest.prompt,
+                              date: new Date(activeTest.createdAt).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              }),
+                              estimate: activeTest.estimate,
+                              policies: invoiceSettings ?? {},
+                            }}
+                          />
                         </div>
                       )}
 

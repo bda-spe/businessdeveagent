@@ -46,6 +46,7 @@ export const GetMeResponse = zod.object({
   "businessProfile": zod.boolean(),
   "services": zod.boolean(),
   "pricing": zod.boolean(),
+  "invoiceFormatting": zod.boolean(),
   "widget": zod.boolean(),
   "testAgent": zod.boolean()
 })
@@ -280,6 +281,49 @@ export const SavePricingResponse = zod.object({
   "discounts": zod.string().nullish(),
   "minimumJobCost": zod.number().nullish(),
   "customNotes": zod.string().nullish()
+})
+
+
+/**
+ * @summary Get invoice formatting settings
+ */
+export const GetInvoiceSettingsResponse = zod.object({
+  "id": zod.number(),
+  "selectedTemplate": zod.enum(['simple_summary', 'modern_estimate_card', 'detailed_agreement', 'professional_proposal']),
+  "cancellationPolicy": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "estimateDisclaimer": zod.string().nullish(),
+  "termsConditions": zod.string().nullish(),
+  "acceptanceLanguage": zod.string().nullish(),
+  "depositRequirements": zod.string().nullish(),
+  "footerNote": zod.string().nullish()
+})
+
+
+/**
+ * @summary Create or update invoice formatting settings
+ */
+export const SaveInvoiceSettingsBody = zod.object({
+  "selectedTemplate": zod.enum(['simple_summary', 'modern_estimate_card', 'detailed_agreement', 'professional_proposal']).optional(),
+  "cancellationPolicy": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "estimateDisclaimer": zod.string().nullish(),
+  "termsConditions": zod.string().nullish(),
+  "acceptanceLanguage": zod.string().nullish(),
+  "depositRequirements": zod.string().nullish(),
+  "footerNote": zod.string().nullish()
+})
+
+export const SaveInvoiceSettingsResponse = zod.object({
+  "id": zod.number(),
+  "selectedTemplate": zod.enum(['simple_summary', 'modern_estimate_card', 'detailed_agreement', 'professional_proposal']),
+  "cancellationPolicy": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "estimateDisclaimer": zod.string().nullish(),
+  "termsConditions": zod.string().nullish(),
+  "acceptanceLanguage": zod.string().nullish(),
+  "depositRequirements": zod.string().nullish(),
+  "footerNote": zod.string().nullish()
 })
 
 
