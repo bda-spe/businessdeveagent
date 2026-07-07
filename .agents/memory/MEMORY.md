@@ -1,0 +1,1 @@
+- [api-server esbuild externals](api-server-esbuild-externals.md) — bundled deps that crash at startup (e.g. pdfkit) must go in build.mjs `external`; backend needs workflow restart, no HMR.

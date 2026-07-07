@@ -43,8 +43,10 @@ import type {
   Requirement,
   RequirementUpdate,
   SandboxFeedbackInput,
+  SandboxMessageInput,
   SandboxTest,
   SandboxTestInput,
+  SendEmailResult,
   Service,
   ServiceInput,
   ServiceUpdate,
@@ -1777,7 +1779,7 @@ export const getRunSandboxTestUrl = () => {
 }
 
 /**
- * @summary Run a sandbox test scenario
+ * @summary Start a new Test Agent conversation
  */
 export const runSandboxTest = async (sandboxTestInput: SandboxTestInput, options?: RequestInit): Promise<SandboxTest> => {
 
@@ -1825,7 +1827,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type RunSandboxTestMutationError = ErrorType<unknown>
 
     /**
- * @summary Run a sandbox test scenario
+ * @summary Start a new Test Agent conversation
  */
 export const useRunSandboxTest = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runSandboxTest>>, TError,{data: BodyType<SandboxTestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -1838,6 +1840,147 @@ export const useRunSandboxTest = <TError = ErrorType<unknown>,
       return useMutation(getRunSandboxTestMutationOptions(options));
     }
 
+export const getSendSandboxMessageUrl = (id: number,) => {
+
+
+
+
+  return `/api/sandbox-tests/${id}/messages`
+}
+
+/**
+ * @summary Send a follow-up message in a Test Agent conversation
+ */
+export const sendSandboxMessage = async (id: number,
+    sandboxMessageInput: SandboxMessageInput, options?: RequestInit): Promise<SandboxTest> => {
+
+  return customFetch<SandboxTest>(getSendSandboxMessageUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(sandboxMessageInput)
+  }
+);}
+
+
+
+
+export const getSendSandboxMessageMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendSandboxMessage>>, TError,{id: number;data: BodyType<SandboxMessageInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendSandboxMessage>>, TError,{id: number;data: BodyType<SandboxMessageInput>}, TContext> => {
+
+const mutationKey = ['sendSandboxMessage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendSandboxMessage>>, {id: number;data: BodyType<SandboxMessageInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  sendSandboxMessage(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendSandboxMessageMutationResult = NonNullable<Awaited<ReturnType<typeof sendSandboxMessage>>>
+    export type SendSandboxMessageMutationBody = BodyType<SandboxMessageInput>
+    export type SendSandboxMessageMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Send a follow-up message in a Test Agent conversation
+ */
+export const useSendSandboxMessage = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendSandboxMessage>>, TError,{id: number;data: BodyType<SandboxMessageInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendSandboxMessage>>,
+        TError,
+        {id: number;data: BodyType<SandboxMessageInput>},
+        TContext
+      > => {
+      return useMutation(getSendSandboxMessageMutationOptions(options));
+    }
+
+export const getSendSandboxTestEmailUrl = (id: number,) => {
+
+
+
+
+  return `/api/sandbox-tests/${id}/send-email`
+}
+
+/**
+ * @summary Send the test estimate email to the customer address
+ */
+export const sendSandboxTestEmail = async (id: number, options?: RequestInit): Promise<SendEmailResult> => {
+
+  return customFetch<SendEmailResult>(getSendSandboxTestEmailUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSendSandboxTestEmailMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendSandboxTestEmail>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendSandboxTestEmail>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['sendSandboxTestEmail'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendSandboxTestEmail>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  sendSandboxTestEmail(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendSandboxTestEmailMutationResult = NonNullable<Awaited<ReturnType<typeof sendSandboxTestEmail>>>
+
+    export type SendSandboxTestEmailMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Send the test estimate email to the customer address
+ */
+export const useSendSandboxTestEmail = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendSandboxTestEmail>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendSandboxTestEmail>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getSendSandboxTestEmailMutationOptions(options));
+    }
+
 export const getSaveSandboxFeedbackUrl = (id: number,) => {
 
 
@@ -1847,7 +1990,7 @@ export const getSaveSandboxFeedbackUrl = (id: number,) => {
 }
 
 /**
- * @summary Save feedback and regenerate the sandbox test
+ * @summary Save feedback for a Test Agent conversation
  */
 export const saveSandboxFeedback = async (id: number,
     sandboxFeedbackInput: SandboxFeedbackInput, options?: RequestInit): Promise<SandboxTest> => {
@@ -1896,7 +2039,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type SaveSandboxFeedbackMutationError = ErrorType<unknown>
 
     /**
- * @summary Save feedback and regenerate the sandbox test
+ * @summary Save feedback for a Test Agent conversation
  */
 export const useSaveSandboxFeedback = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveSandboxFeedback>>, TError,{id: number;data: BodyType<SandboxFeedbackInput>}, TContext>, request?: SecondParameter<typeof customFetch>}

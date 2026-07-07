@@ -296,7 +296,15 @@ export const GetInvoiceSettingsResponse = zod.object({
   "termsConditions": zod.string().nullish(),
   "acceptanceLanguage": zod.string().nullish(),
   "depositRequirements": zod.string().nullish(),
-  "footerNote": zod.string().nullish()
+  "footerNote": zod.string().nullish(),
+  "includedSections": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "emailSubject": zod.string().nullish(),
+  "emailGreeting": zod.string().nullish(),
+  "emailBodyText": zod.string().nullish(),
+  "emailClosing": zod.string().nullish(),
+  "replyToEmail": zod.string().nullish(),
+  "ccOwner": zod.boolean().optional(),
+  "attachPdf": zod.boolean().optional()
 })
 
 
@@ -311,7 +319,15 @@ export const SaveInvoiceSettingsBody = zod.object({
   "termsConditions": zod.string().nullish(),
   "acceptanceLanguage": zod.string().nullish(),
   "depositRequirements": zod.string().nullish(),
-  "footerNote": zod.string().nullish()
+  "footerNote": zod.string().nullish(),
+  "includedSections": zod.array(zod.string()).optional(),
+  "emailSubject": zod.string().nullish(),
+  "emailGreeting": zod.string().nullish(),
+  "emailBodyText": zod.string().nullish(),
+  "emailClosing": zod.string().nullish(),
+  "replyToEmail": zod.string().nullish(),
+  "ccOwner": zod.boolean().optional(),
+  "attachPdf": zod.boolean().optional()
 })
 
 export const SaveInvoiceSettingsResponse = zod.object({
@@ -323,7 +339,15 @@ export const SaveInvoiceSettingsResponse = zod.object({
   "termsConditions": zod.string().nullish(),
   "acceptanceLanguage": zod.string().nullish(),
   "depositRequirements": zod.string().nullish(),
-  "footerNote": zod.string().nullish()
+  "footerNote": zod.string().nullish(),
+  "includedSections": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "emailSubject": zod.string().nullish(),
+  "emailGreeting": zod.string().nullish(),
+  "emailBodyText": zod.string().nullish(),
+  "emailClosing": zod.string().nullish(),
+  "replyToEmail": zod.string().nullish(),
+  "ccOwner": zod.boolean().optional(),
+  "attachPdf": zod.boolean().optional()
 })
 
 
@@ -478,6 +502,15 @@ export const ListSandboxTestsResponseItem = zod.object({
   "scenario": zod.string().nullish(),
   "prompt": zod.string(),
   "agentResponse": zod.string(),
+  "messages": zod.union([zod.array(zod.object({
+  "role": zod.enum(['customer', 'agent']),
+  "content": zod.string()
+})),zod.null()]).optional(),
+  "stage": zod.enum(['gathering', 'confirming', 'awaiting_email', 'complete']),
+  "customerEmail": zod.string().nullish(),
+  "emailSubject": zod.string().nullish(),
+  "emailBody": zod.string().nullish(),
+  "emailSent": zod.boolean(),
   "estimate": zod.union([zod.object({
   "customerSummary": zod.string(),
   "assumptions": zod.array(zod.string()),
@@ -503,7 +536,7 @@ export const ListSandboxTestsResponse = zod.array(ListSandboxTestsResponseItem)
 
 
 /**
- * @summary Run a sandbox test scenario
+ * @summary Start a new Test Agent conversation
  */
 
 
@@ -518,6 +551,15 @@ export const RunSandboxTestResponse = zod.object({
   "scenario": zod.string().nullish(),
   "prompt": zod.string(),
   "agentResponse": zod.string(),
+  "messages": zod.union([zod.array(zod.object({
+  "role": zod.enum(['customer', 'agent']),
+  "content": zod.string()
+})),zod.null()]).optional(),
+  "stage": zod.enum(['gathering', 'confirming', 'awaiting_email', 'complete']),
+  "customerEmail": zod.string().nullish(),
+  "emailSubject": zod.string().nullish(),
+  "emailBody": zod.string().nullish(),
+  "emailSent": zod.boolean(),
   "estimate": zod.union([zod.object({
   "customerSummary": zod.string(),
   "assumptions": zod.array(zod.string()),
@@ -542,14 +584,82 @@ export const RunSandboxTestResponse = zod.object({
 
 
 /**
- * @summary Save feedback and regenerate the sandbox test
+ * @summary Send a follow-up message in a Test Agent conversation
+ */
+export const SendSandboxMessageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const SendSandboxMessageBody = zod.object({
+  "message": zod.string().min(1)
+})
+
+export const SendSandboxMessageResponse = zod.object({
+  "id": zod.number(),
+  "scenario": zod.string().nullish(),
+  "prompt": zod.string(),
+  "agentResponse": zod.string(),
+  "messages": zod.union([zod.array(zod.object({
+  "role": zod.enum(['customer', 'agent']),
+  "content": zod.string()
+})),zod.null()]).optional(),
+  "stage": zod.enum(['gathering', 'confirming', 'awaiting_email', 'complete']),
+  "customerEmail": zod.string().nullish(),
+  "emailSubject": zod.string().nullish(),
+  "emailBody": zod.string().nullish(),
+  "emailSent": zod.boolean(),
+  "estimate": zod.union([zod.object({
+  "customerSummary": zod.string(),
+  "assumptions": zod.array(zod.string()),
+  "recommendedPriceLow": zod.number().nullish(),
+  "recommendedPriceHigh": zod.number().nullish(),
+  "invoiceLineItems": zod.array(zod.object({
+  "description": zod.string(),
+  "quantity": zod.number().nullish(),
+  "unitPrice": zod.number().nullish(),
+  "total": zod.number()
+})),
+  "subtotal": zod.number(),
+  "taxes": zod.number(),
+  "totalEstimate": zod.number(),
+  "confidenceScore": zod.number(),
+  "followUpQuestions": zod.array(zod.string())
+}),zod.null()]).optional(),
+  "rating": zod.number().nullish(),
+  "feedbackNotes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Send the test estimate email to the customer address
+ */
+export const SendSandboxTestEmailParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SendSandboxTestEmailResponse = zod.object({
+  "sent": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Save feedback for a Test Agent conversation
  */
 export const SaveSandboxFeedbackParams = zod.object({
   "id": zod.coerce.number()
 })
 
+export const saveSandboxFeedbackBodyRatingMax = 5;
+
+
+
 export const SaveSandboxFeedbackBody = zod.object({
-  "rating": zod.number(),
+  "rating": zod.number().min(1).max(saveSandboxFeedbackBodyRatingMax),
   "feedbackNotes": zod.string().optional()
 })
 
@@ -558,6 +668,15 @@ export const SaveSandboxFeedbackResponse = zod.object({
   "scenario": zod.string().nullish(),
   "prompt": zod.string(),
   "agentResponse": zod.string(),
+  "messages": zod.union([zod.array(zod.object({
+  "role": zod.enum(['customer', 'agent']),
+  "content": zod.string()
+})),zod.null()]).optional(),
+  "stage": zod.enum(['gathering', 'confirming', 'awaiting_email', 'complete']),
+  "customerEmail": zod.string().nullish(),
+  "emailSubject": zod.string().nullish(),
+  "emailBody": zod.string().nullish(),
+  "emailSent": zod.boolean(),
   "estimate": zod.union([zod.object({
   "customerSummary": zod.string(),
   "assumptions": zod.array(zod.string()),

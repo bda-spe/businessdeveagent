@@ -186,6 +186,19 @@ export interface InvoiceSettings {
   depositRequirements?: string | null;
   /** @nullable */
   footerNote?: string | null;
+  includedSections?: string[] | null;
+  /** @nullable */
+  emailSubject?: string | null;
+  /** @nullable */
+  emailGreeting?: string | null;
+  /** @nullable */
+  emailBodyText?: string | null;
+  /** @nullable */
+  emailClosing?: string | null;
+  /** @nullable */
+  replyToEmail?: string | null;
+  ccOwner?: boolean;
+  attachPdf?: boolean;
 }
 
 export type InvoiceSettingsInputSelectedTemplate = typeof InvoiceSettingsInputSelectedTemplate[keyof typeof InvoiceSettingsInputSelectedTemplate];
@@ -214,6 +227,19 @@ export interface InvoiceSettingsInput {
   depositRequirements?: string | null;
   /** @nullable */
   footerNote?: string | null;
+  includedSections?: string[];
+  /** @nullable */
+  emailSubject?: string | null;
+  /** @nullable */
+  emailGreeting?: string | null;
+  /** @nullable */
+  emailBodyText?: string | null;
+  /** @nullable */
+  emailClosing?: string | null;
+  /** @nullable */
+  replyToEmail?: string | null;
+  ccOwner?: boolean;
+  attachPdf?: boolean;
 }
 
 export interface Requirement {
@@ -298,12 +324,44 @@ export interface Estimate {
   followUpQuestions: string[];
 }
 
+export type ChatMessageRole = typeof ChatMessageRole[keyof typeof ChatMessageRole];
+
+
+export const ChatMessageRole = {
+  customer: 'customer',
+  agent: 'agent',
+} as const;
+
+export interface ChatMessage {
+  role: ChatMessageRole;
+  content: string;
+}
+
+export type SandboxTestStage = typeof SandboxTestStage[keyof typeof SandboxTestStage];
+
+
+export const SandboxTestStage = {
+  gathering: 'gathering',
+  confirming: 'confirming',
+  awaiting_email: 'awaiting_email',
+  complete: 'complete',
+} as const;
+
 export interface SandboxTest {
   id: number;
   /** @nullable */
   scenario?: string | null;
   prompt: string;
   agentResponse: string;
+  messages?: ChatMessage[] | null;
+  stage: SandboxTestStage;
+  /** @nullable */
+  customerEmail?: string | null;
+  /** @nullable */
+  emailSubject?: string | null;
+  /** @nullable */
+  emailBody?: string | null;
+  emailSent: boolean;
   estimate?: Estimate | null;
   /** @nullable */
   rating?: number | null;
@@ -318,7 +376,21 @@ export interface SandboxTestInput {
   prompt: string;
 }
 
+export interface SandboxMessageInput {
+  /** @minLength 1 */
+  message: string;
+}
+
+export interface SendEmailResult {
+  sent: boolean;
+  message: string;
+}
+
 export interface SandboxFeedbackInput {
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
   rating: number;
   feedbackNotes?: string;
 }

@@ -8,11 +8,15 @@ import {
 } from "@workspace/api-zod";
 import { requireBusiness } from "../lib/auth";
 import { logActivity } from "../lib/business";
-import { DEFAULT_INVOICE_LANGUAGE } from "../lib/defaults";
+import {
+  DEFAULT_INVOICE_LANGUAGE,
+  DEFAULT_EMAIL_SETTINGS,
+  ALL_INVOICE_SECTIONS,
+} from "../lib/defaults";
 
 const router: IRouter = Router();
 
-async function getOrCreateSettings(businessId: number) {
+export async function getOrCreateSettings(businessId: number) {
   let [row] = await db
     .select()
     .from(invoiceSettingsTable)
@@ -20,8 +24,25 @@ async function getOrCreateSettings(businessId: number) {
   if (!row) {
     [row] = await db
       .insert(invoiceSettingsTable)
-      .values({ businessId, ...DEFAULT_INVOICE_LANGUAGE })
+      .values({
+        businessId,
+        ...DEFAULT_INVOICE_LANGUAGE,
+        ...DEFAULT_EMAIL_SETTINGS,
+        includedSections: ALL_INVOICE_SECTIONS,
+      })
       .returning();
+  }
+  if (row.includedSections == null) {
+    row = { ...row, includedSections: ALL_INVOICE_SECTIONS };
+  }
+  if (row.emailSubject == null) {
+    row = {
+      ...row,
+      emailSubject: DEFAULT_EMAIL_SETTINGS.emailSubject,
+      emailGreeting: row.emailGreeting ?? DEFAULT_EMAIL_SETTINGS.emailGreeting,
+      emailBodyText: row.emailBodyText ?? DEFAULT_EMAIL_SETTINGS.emailBodyText,
+      emailClosing: row.emailClosing ?? DEFAULT_EMAIL_SETTINGS.emailClosing,
+    };
   }
   return row;
 }

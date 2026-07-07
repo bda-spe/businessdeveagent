@@ -1,0 +1,113 @@
+Refine the Invoice Formatting and Test Agent workflow.
+
+1. Invoice Formatting Updates
+
+Add invoice content options with checkboxes so each business can control what appears on customer-facing estimates/invoices.
+
+Checkbox options:
+- Labor
+- Materials
+- Travel / Mobilization
+- Taxes & Fees
+- Discounts
+- Emergency / After-Hours Fees
+- Estimated Duration
+- Assumptions
+- Follow-Up Questions
+- Cancellation Policy
+- Payment Terms
+- Terms & Conditions
+- Estimate Disclaimer
+- Customer Acceptance Language
+
+These checkbox selections should be saved to invoice_settings and used when rendering invoice previews, PDF invoices, emailed invoices, and Test Agent outputs.
+
+Also add email preview settings to the Invoice Formatting step.
+
+Fields:
+- Email subject template
+- Email greeting
+- Supplemental email text shown before the attached invoice
+- Email closing/signature
+- Reply-to email
+- CC business owner toggle
+- Attach invoice PDF toggle
+
+The email preview should dynamically use the actual business name, customer name, service name, estimated range, and selected invoice template.
+
+Invoices must be generated as PDFs when emailed. The PDF should match the selected invoice template and include only the enabled invoice sections from the checkbox options.
+
+2. Test Agent Updates
+
+Rename/keep the step as “Test Agent,” not “Sandbox.”
+
+The Test Agent should simulate the real customer widget flow instead of generating an estimate immediately.
+
+Flow:
+- Tester enters a realistic customer request.
+- The BDA responds with a few clarifying questions before creating the estimate.
+- Clarifying questions should depend on the business type and services, but generally ask about:
+  - Project size or dimensions
+  - Scope of work
+  - Location / service area
+  - Timing or urgency
+  - Photos or additional details if helpful
+  - Materials or preferences
+  - Access issues or special conditions
+- After enough project scope is gathered, the BDA should ask:
+  “Is there any other information you’d like us to know before we prepare your estimate?”
+- Once the tester confirms, the BDA asks for the customer email address.
+- After email is provided, the system generates:
+  - Agent response
+  - Invoice preview
+  - PDF invoice attachment
+  - Email preview
+- Send a test email using the configured Gmail SMTP settings if available.
+- The email should go to the entered customer email and copy the logged-in business owner/tester so they can review exactly how the customer email looks.
+- If Gmail credentials are not configured, show a clear email preview and a message saying email sending is disabled until Gmail settings are added.
+
+3. Feedback Area
+
+In the Test Agent screen, add a feedback section with:
+- Star rating
+- Textarea labeled: “What should your BDA change about this response?”
+- Button: “Save Feedback & Improve Agent”
+
+The feedback should be saved to sandbox_tests or test_agent_feedback and associated with the business_id.
+Future Test Agent runs should include this feedback as part of the business context so responses can improve.
+
+4. AI Behavior
+
+Update the AI workflow so the BDA does not jump straight to an invoice when project details are incomplete.
+
+The AI should:
+- First gather enough scope information
+- Ask concise follow-up questions
+- Avoid overwhelming the customer
+- Generate an estimate only after the customer confirms enough detail has been provided
+- Use the business profile, services, pricing rules, requirements, uploaded document summaries, invoice settings, and previous Test Agent feedback
+- Return structured JSON for:
+  conversation_stage
+  clarifying_questions
+  customer_summary
+  assumptions
+  recommended_price_range
+  invoice_line_items
+  included_invoice_sections
+  total_estimate
+  confidence_score
+  follow_up_questions
+  email_subject
+  email_body
+  pdf_invoice_data
+
+5. Important Implementation Notes
+
+- Keep all OpenAI calls server-side using process.env.OPENAI_API_KEY
+- Do not expose secrets in frontend code
+- Keep the UI clean: white background, navy accents, soft borders, card layout
+- Make the Test Agent feel like a realistic preview of the live website widget
+- Use actual business data dynamically, not hardcoded demo text
+- If a business is asphalt striping, the questions should naturally ask about parking lot size, number of spaces/lines, restriping vs new layout, ADA markings, arrows, curbs, traffic flow, and timing
+- If a business is HVAC, plumbing, roofing, landscaping, etc., the clarifying questions should adapt accordingly
+- Prioritize a complete working demo flow over perfect production complexity

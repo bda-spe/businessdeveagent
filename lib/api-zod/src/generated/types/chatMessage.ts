@@ -5,12 +5,9 @@
  * Business Development Agent (BDA) multi-tenant SaaS API
  * OpenAPI spec version: 0.1.0
  */
+import type { ChatMessageRole } from './chatMessageRole';
 
-export interface SandboxFeedbackInput {
-  /**
-     * @minimum 1
-     * @maximum 5
-     */
-  rating: number;
-  feedbackNotes?: string;
+export interface ChatMessage {
+  role: ChatMessageRole;
+  content: string;
 }

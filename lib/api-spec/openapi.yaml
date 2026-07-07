@@ -411,7 +411,7 @@ paths:
     post:
       operationId: runSandboxTest
       tags: [sandbox]
-      summary: Run a sandbox test scenario
+      summary: Start a new Test Agent conversation
       requestBody:
         required: true
         content:
@@ -426,11 +426,55 @@ paths:
               schema:
                 $ref: "#/components/schemas/SandboxTest"
 
+  /sandbox-tests/{id}/messages:
+    post:
+      operationId: sendSandboxMessage
+      tags: [sandbox]
+      summary: Send a follow-up message in a Test Agent conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SandboxMessageInput"
+      responses:
+        "200":
+          description: Updated conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SandboxTest"
+
+  /sandbox-tests/{id}/send-email:
+    post:
+      operationId: sendSandboxTestEmail
+      tags: [sandbox]
+      summary: Send the test estimate email to the customer address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Email send result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendEmailResult"
+
   /sandbox-tests/{id}/feedback:
     post:
       operationId: saveSandboxFeedback
       tags: [sandbox]
-      summary: Save feedback and regenerate the sandbox test
+      summary: Save feedback for a Test Agent conversation
       parameters:
         - name: id
           in: path
@@ -445,7 +489,7 @@ paths:
               $ref: "#/components/schemas/SandboxFeedbackInput"
       responses:
         "200":
-          description: Regenerated sandbox test
+          description: Updated sandbox test
           content:
             application/json:
               schema:
@@ -898,6 +942,26 @@ components:
           type: ["string", "null"]
         footerNote:
           type: ["string", "null"]
+        includedSections:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+        emailSubject:
+          type: ["string", "null"]
+        emailGreeting:
+          type: ["string", "null"]
+        emailBodyText:
+          type: ["string", "null"]
+        emailClosing:
+          type: ["string", "null"]
+        replyToEmail:
+          type: ["string", "null"]
+        ccOwner:
+          type: boolean
+        attachPdf:
+          type: boolean
 
     InvoiceSettingsInput:
       type: object
@@ -919,6 +983,24 @@ components:
           type: ["string", "null"]
         footerNote:
           type: ["string", "null"]
+        includedSections:
+          type: array
+          items:
+            type: string
+        emailSubject:
+          type: ["string", "null"]
+        emailGreeting:
+          type: ["string", "null"]
+        emailBodyText:
+          type: ["string", "null"]
+        emailClosing:
+          type: ["string", "null"]
+        replyToEmail:
+          type: ["string", "null"]
+        ccOwner:
+          type: boolean
+        attachPdf:
+          type: boolean
 
     Requirement:
       type: object
@@ -1056,9 +1138,19 @@ components:
         total:
           type: number
 
+    ChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [customer, agent]
+        content:
+          type: string
+
     SandboxTest:
       type: object
-      required: [id, prompt, agentResponse, createdAt]
+      required: [id, prompt, agentResponse, stage, emailSent, createdAt]
       properties:
         id:
           type: integer
@@ -1068,6 +1160,23 @@ components:
           type: string
         agentResponse:
           type: string
+        messages:
+          oneOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/ChatMessage"
+            - type: "null"
+        stage:
+          type: string
+          enum: [gathering, confirming, awaiting_email, complete]
+        customerEmail:
+          type: ["string", "null"]
+        emailSubject:
+          type: ["string", "null"]
+        emailBody:
+          type: ["string", "null"]
+        emailSent:
+          type: boolean
         estimate:
           oneOf:
             - $ref: "#/components/schemas/Estimate"
@@ -1089,12 +1198,31 @@ components:
           type: string
           minLength: 1
 
+    SandboxMessageInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          minLength: 1
+
+    SendEmailResult:
+      type: object
+      required: [sent, message]
+      properties:
+        sent:
+          type: boolean
+        message:
+          type: string
+
     SandboxFeedbackInput:
       type: object
       required: [rating]
       properties:
         rating:
           type: integer
+          minimum: 1
+          maximum: 5
         feedbackNotes:
           type: string
 

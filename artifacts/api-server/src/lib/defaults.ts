@@ -25,6 +25,34 @@ export const DEFAULT_INVOICE_LANGUAGE = {
   footerNote: "Thank you for your business. We look forward to serving you.",
 };
 
+export const ALL_INVOICE_SECTIONS = [
+  "labor",
+  "materials",
+  "travel_mobilization",
+  "taxes_fees",
+  "discounts",
+  "emergency_fees",
+  "estimated_duration",
+  "assumptions",
+  "follow_up_questions",
+  "cancellation_policy",
+  "payment_terms",
+  "terms_conditions",
+  "estimate_disclaimer",
+  "acceptance_language",
+];
+
+export const DEFAULT_EMAIL_SETTINGS = {
+  emailSubject: "Your estimate from {business_name}",
+  emailGreeting: "Hi {customer_name},",
+  emailBodyText:
+    "Thank you for reaching out. Based on the details you shared, we have prepared a preliminary estimate for your project. Please find it below, along with our standard terms. If anything looks off or you have questions, just reply to this email.",
+  emailClosing: "Best regards,\nThe team at {business_name}",
+  replyToEmail: null as string | null,
+  ccOwner: true,
+  attachPdf: true,
+};
+
 export const BILLING_PLANS: {
   id: string;
   name: string;

@@ -24,4 +24,17 @@ export interface InvoiceSettings {
   depositRequirements?: string | null;
   /** @nullable */
   footerNote?: string | null;
+  includedSections?: string[] | null;
+  /** @nullable */
+  emailSubject?: string | null;
+  /** @nullable */
+  emailGreeting?: string | null;
+  /** @nullable */
+  emailBodyText?: string | null;
+  /** @nullable */
+  emailClosing?: string | null;
+  /** @nullable */
+  replyToEmail?: string | null;
+  ccOwner?: boolean;
+  attachPdf?: boolean;
 }

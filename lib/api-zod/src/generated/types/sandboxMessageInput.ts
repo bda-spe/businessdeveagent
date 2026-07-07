@@ -6,11 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface SandboxFeedbackInput {
-  /**
-     * @minimum 1
-     * @maximum 5
-     */
-  rating: number;
-  feedbackNotes?: string;
+export interface SandboxMessageInput {
+  /** @minLength 1 */
+  message: string;
 }

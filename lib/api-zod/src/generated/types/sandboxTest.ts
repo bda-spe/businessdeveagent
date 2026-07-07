@@ -5,7 +5,9 @@
  * Business Development Agent (BDA) multi-tenant SaaS API
  * OpenAPI spec version: 0.1.0
  */
+import type { ChatMessage } from './chatMessage';
 import type { Estimate } from './estimate';
+import type { SandboxTestStage } from './sandboxTestStage';
 
 export interface SandboxTest {
   id: number;
@@ -13,6 +15,15 @@ export interface SandboxTest {
   scenario?: string | null;
   prompt: string;
   agentResponse: string;
+  messages?: ChatMessage[] | null;
+  stage: SandboxTestStage;
+  /** @nullable */
+  customerEmail?: string | null;
+  /** @nullable */
+  emailSubject?: string | null;
+  /** @nullable */
+  emailBody?: string | null;
+  emailSent: boolean;
   estimate?: Estimate | null;
   /** @nullable */
   rating?: number | null;
