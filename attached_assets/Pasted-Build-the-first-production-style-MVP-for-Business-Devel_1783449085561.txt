@@ -1,0 +1,325 @@
+Build the first production-style MVP for Business Development Agent (BDA) by Sean Pelillo Enterprises.
+
+Branding:
+- The customer-facing product name is “Business Development Agent”
+- The acronym is “BDA”
+- Do not prominently display “Sean Pelillo Enterprises” in the app UI
+- Sean Pelillo Enterprises may appear only in footer/legal/T&Cs areas
+- Do not call the product QuoteCraft, QuoteBuilder, AI Estimator Platform, or invent another name
+
+Core concept:
+Business Development Agent is a multi-tenant SaaS platform that lets local service businesses create, train, test, and deploy their own AI-powered business development agent. A BDA acts like a digital employee that can answer customer questions, qualify leads, generate estimates, draft invoices, and store lead activity.
+
+Important architecture:
+- Use one centralized OpenAI integration through the existing Replit secret:
+  OPENAI_API_KEY
+- Do not ask for a new API key
+- Do not expose the API key in frontend code
+- All OpenAI calls must happen server-side only
+- Each client/business gets a unique client_id and business profile
+- The same OpenAI key powers every client, but each response must be customized using that business’s services, pricing rules, requirements, uploaded documents, sandbox feedback, and widget settings
+
+Tech requirements:
+- Full-stack web app
+- Clean React/Next.js-style frontend
+- PostgreSQL database
+- Email/password authentication
+- Multi-tenant database structure using business_id/client_id
+- File upload support
+- Stripe billing placeholder
+- Gmail SMTP welcome email using:
+  GMAIL_USER
+  GMAIL_APP_PASSWORD
+- Centralized AI service file, such as /server/aiService.ts or /lib/aiService.ts
+- All AI functions should live in that service:
+  extractBusinessKnowledge()
+  evaluateRequirements()
+  generateEstimate()
+  generateInvoice()
+  runSandboxTest()
+  summarizeLead()
+
+UI style:
+- White background
+- Navy accents
+- Simple cards
+- Soft borders
+- Rounded corners
+- Spacious layout
+- Professional B2B SaaS look
+- Minimal, trustworthy, not flashy, not trendy
+- The app should feel like the user is training a digital employee, not configuring a chatbot
+
+Create these screens:
+
+1. Landing Page
+Hero:
+“Train your Business Development Agent.”
+Subtext:
+“Launch a company-trained digital employee that answers questions, qualifies leads, creates estimates, and helps convert website visitors into customers.”
+Buttons:
+Get Started
+View Demo
+Feature cards:
+24/7 Customer Response
+Company-Trained Estimates
+Lead Qualification
+Invoice Drafting
+Website Widget
+Sandbox Testing
+Include a preview of a floating BDA widget and estimate card.
+
+2. Sign Up
+Fields:
+Owner name
+Email
+Password
+Business name
+On submit:
+Create user
+Create business
+Generate unique client_id
+Start onboarding flow
+Send welcome email if Gmail secrets are available
+Show client_id in sidebar/profile
+
+3. Business Info
+Fields:
+Business name
+Industry
+Company size
+Customer type: Residential, Commercial, Both, Other
+Website
+Phone
+Email
+Service area
+Save and continue
+
+4. Services
+Allow user to add/edit services.
+Fields:
+Service name
+Description
+Category
+Base price
+Hourly rate
+Minimum price
+Estimated duration
+Active/inactive
+Show services in a clean table.
+
+5. Pricing
+Fields:
+Labor rate
+Emergency fee
+Travel fee
+Weekend multiplier
+Tax rate
+Discounts
+Minimum job cost
+Custom pricing notes/rules
+Save to business profile.
+
+6. Requirements
+Main content area:
+Requirement checklist table with:
+Requirement
+Status
+Source
+Edit
+
+Requirements:
+Services & Offerings
+Pricing & Rate Sheet
+Labor Rates
+Service Area / Travel Fees
+Discounts & Promotions
+Taxes & Fees
+Policies & Guarantees
+Payment Terms
+Wage Information
+Other Notes / Special Rules
+
+Right-side panel:
+Upload Images card
+Upload Documents card
+Drag-and-drop box
+Uploaded file list with filename, size, and delete icon
+
+Show progress:
+“6/10 Requirements Complete”
+
+Use badges:
+Completed
+In Progress
+Pending
+
+7. Document Upload
+Dedicated page for uploading PDFs, images, spreadsheets, and Word docs.
+Show uploaded file list.
+Add “Scan Documents with BDA” button.
+If OPENAI_API_KEY exists, call the AI service to extract business knowledge from uploaded text where possible.
+If document parsing is not fully implemented yet, use safe placeholder extraction and add TODO comments.
+Store extracted summaries in the database.
+
+8. Requirement Review
+Show each requirement with:
+Extracted value
+Source document
+Confidence score
+Edit button
+Manual override field
+
+Manual edits override AI-extracted values.
+Include:
+Approve Business Profile button
+
+9. Sandbox Testing
+Title:
+“Train your BDA.”
+
+Description:
+“Run realistic customer scenarios before your Business Development Agent goes live.”
+
+Include:
+Scenario dropdown
+Custom customer prompt textarea
+Run Test button
+
+Output tabs:
+Agent Response
+Generated Invoice
+
+Invoice should include:
+Line items
+Assumptions
+Estimated price range
+Estimated total
+Confidence score
+Follow-up questions
+
+Feedback panel:
+Star rating
+Textbox: “What should your BDA adjust?”
+Button:
+Save Feedback & Regenerate
+
+Save feedback to sandbox_notes for that business.
+
+10. Billing
+Plans:
+Monthly: $99/month
+Yearly: $799/year
+One-time build fee: $129
+
+For now, create Stripe placeholder flow:
+Pay with Card button
+Order summary card
+Payment status
+After successful placeholder payment, mark business as active.
+
+11. Dashboard
+Main dashboard after onboarding.
+Cards:
+BDA Status
+Training Score
+Knowledge Score
+Pricing Confidence
+Conversations This Month
+Leads Generated
+Revenue Influenced
+Requirements Complete
+
+Sections:
+Recent leads
+Recent sandbox tests
+BDA activity timeline
+Button to Widget Settings
+
+12. Widget Settings
+Show client_id.
+Generate script:
+<script src="https://yourdomain.com/widget.js" data-client-id="CLIENT_ID"></script>
+
+Settings:
+Widget greeting
+Primary color
+Position: bottom-right / bottom-left
+Enabled/disabled
+Preview widget on page
+
+13. Lead Inbox
+Table:
+Customer name
+Email
+Phone
+Request summary
+Estimated range
+Status: New, Contacted, Won, Lost
+Created date
+
+Lead detail view:
+Original customer message
+AI response
+Assumptions
+Invoice draft
+Confidence score
+Follow-up questions
+Status update
+
+14. Public Widget Endpoint
+Create a basic embeddable widget script route.
+The widget should:
+Load based on data-client-id
+Render a floating launcher
+Open a simple chat/estimate request panel
+Collect name, email, phone, and project description
+Submit to backend with client_id
+Backend loads business profile and calls OpenAI server-side
+Save result as lead/estimate
+Return formatted response to visitor
+
+AI workflow:
+When a sandbox or widget request comes in:
+1. Use client_id/business_id to fetch the right business
+2. Load services, pricing, requirements, uploaded document summaries, sandbox notes, and widget settings
+3. Build a structured prompt
+4. Call OpenAI using process.env.OPENAI_API_KEY server-side
+5. Request JSON output with:
+   customer_summary
+   assumptions
+   recommended_price_range
+   invoice_line_items
+   subtotal
+   taxes
+   total_estimate
+   confidence_score
+   follow_up_questions
+6. Save the result to estimates/leads
+7. Display it in the dashboard and Lead Inbox
+
+Database tables:
+users
+businesses
+services
+pricing_rules
+requirements
+uploaded_files
+extracted_requirement_values
+sandbox_tests
+leads
+estimates
+widget_settings
+billing_subscriptions
+activity_events
+
+Important:
+- Prioritize a complete clickable MVP over perfect complexity
+- Use dummy/sample data where needed
+- Keep app functional if Stripe/Gmail are not configured
+- OpenAI should work now because OPENAI_API_KEY already exists in Replit Secrets
+- Add clear TODO comments for deeper document parsing, Stripe checkout, and production email handling
+- Do not expose secrets to the frontend
+- Create reusable UI components
+- Make navigation between every screen work
+- Make the product feel demo-ready for local service businesses

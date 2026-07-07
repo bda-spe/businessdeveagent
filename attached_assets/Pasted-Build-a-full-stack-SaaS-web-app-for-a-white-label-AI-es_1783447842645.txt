@@ -1,0 +1,192 @@
+Build a full-stack SaaS web app for a white-label AI estimating platform for local service businesses. The UI should match this style: clean white background, navy accents, simple cards, soft borders, lots of spacing, professional B2B SaaS look, not flashy or overly “tech startup.” Use placeholder branding only: “Logo” or “AI Estimator Platform.” Do not invent a final product name.
+
+Core concept:
+Businesses create an account, onboard their company data, upload documents, review extracted requirements, test their AI estimating agent in a sandbox, choose a billing plan, and then receive an embeddable website widget. The platform uses one central OpenAI integration, but each business has its own profile, pricing, services, rules, documents, leads, and widget.
+
+Tech requirements:
+- Full-stack app with React/Next.js-style frontend
+- PostgreSQL database
+- Authentication with email/password
+- Multi-tenant structure using client_id/business_id
+- File upload support
+- Stripe billing integration placeholder
+- OpenAI integration placeholder using environment variable OPENAI_API_KEY
+- Gmail SMTP/app password email setup using environment variables:
+  - GMAIL_USER
+  - GMAIL_APP_PASSWORD
+- Send welcome email after signup/onboarding completion
+- Generate embeddable widget script per client
+
+Create these screens:
+
+1. Landing Page
+- Hero headline: “AI Estimates. More Jobs. Less Work.”
+- Subtext: “Launch a smart estimating agent on your website that answers questions, creates accurate estimates, and turns more visitors into paying customers.”
+- Buttons: Get Started, View Demo
+- Feature cards: 24/7 Availability, Accurate Estimates, More Conversions, Fully Customizable
+- Example floating chat widget and estimate preview on the right
+- Industry row: HVAC, Plumbing, Electrical, Roofing, Landscaping, and more
+
+2. Sign Up
+- Business owner creates account with name, email, password, business name
+- On submit, create user, business record, unique client_id
+- Show client_id in the onboarding sidebar/profile
+
+3. Business Info
+Fields:
+- Business name
+- Industry dropdown
+- Company size dropdown
+- Customer type: Residential, Commercial, Both, Other
+- Website
+- Phone
+- Email
+- Service area
+- Save and continue button
+
+4. Services
+- Add/edit services
+- Fields: service name, description, category, base price, hourly rate, minimum price, estimated duration, active/inactive
+- Table of services
+- Add service modal or inline form
+
+5. Pricing
+- Pricing rules page
+- Fields for labor rate, emergency fee, travel fee, weekend multiplier, tax rate, discounts, minimum job cost
+- Allow custom pricing rules
+- Save to business profile
+
+6. Requirements
+- Main table in center-left with columns: Requirement, Status, Source, Edit
+- Requirements include:
+  - Services & Offerings
+  - Pricing & Rate Sheet
+  - Labor Rates
+  - Service Area / Travel Fees
+  - Discounts & Promotions
+  - Taxes & Fees
+  - Policies & Guarantees
+  - Payment Terms
+  - Wage Information
+  - Other Notes / Special Rules
+- Right-side panel must contain upload UI:
+  - Upload Images card
+  - Upload Documents card
+  - Drag and drop box
+  - File list with filenames, sizes, and delete icons
+- Status badges: Completed, In Progress, Pending
+- Progress counter like “6/10 Requirements Complete”
+
+7. Document Upload
+- Dedicated upload screen for PDFs, images, spreadsheets, Word docs
+- Show uploaded file list
+- For now, simulate AI scanning with a “Scan Documents” button
+- After scanning, mark relevant requirements as completed or in progress
+- Store extracted placeholder summaries in database
+
+8. Requirement Review
+- Show each requirement with extracted value, source document, confidence score, and edit button
+- Example:
+  - Labor Rate: $145/hr
+  - Source: Price Sheet 2024.pdf
+  - Confidence: 94%
+- Allow manual correction
+- Manual edits should override AI-extracted values
+- Show “Approve Business Profile” button
+
+9. Sandbox Testing
+- Screen title: “Test your agent.”
+- Dropdown of test scenarios
+- Textarea for custom customer prompt
+- Button: Run Test
+- Show two tabs:
+  - Agent Response
+  - Generated Invoice
+- Generated invoice should include line items, assumptions, estimated total, and price range
+- Feedback panel:
+  - Star rating
+  - Textbox: “What would you like to adjust?”
+  - Button: “Save Feedback & Regenerate”
+- Feedback should update a sandbox_notes field for that business
+
+10. Billing
+- Stripe checkout placeholder
+- Plans:
+  - Monthly: $99/month
+  - Yearly: $799/year
+  - Build Fee: $129 one-time
+- Order summary card
+- Button: Pay with Card
+- Mark business as active after successful placeholder payment
+
+11. Dashboard
+- Main client dashboard after onboarding
+- Cards:
+  - Agent Status
+  - Confidence Score
+  - Conversations This Month
+  - Leads Generated
+  - Revenue Influenced
+  - Requirements Complete
+- Recent leads table
+- Recent sandbox tests
+- Button to open Widget Settings
+
+12. Widget Settings
+- Show unique client_id
+- Generate embeddable script:
+  <script src="https://yourdomain.com/widget.js" data-client-id="CLIENT_ID"></script>
+- Let business customize widget greeting, primary color, position, and enabled/disabled status
+- Preview widget on the page
+
+13. Lead Inbox
+- Table of customer leads from the widget
+- Fields:
+  - Customer name
+  - Email
+  - Phone
+  - Request summary
+  - Estimated range
+  - Status: New, Contacted, Won, Lost
+  - Created date
+- Lead detail view with full AI estimate, assumptions, invoice draft, and original customer message
+
+AI workflow:
+When a widget or sandbox request comes in:
+1. Use client_id to fetch the correct business profile
+2. Fetch services, pricing rules, uploaded document summaries, approved requirement values, and sandbox notes
+3. Build a structured prompt for OpenAI
+4. Ask OpenAI to return JSON with:
+   - customer_summary
+   - assumptions
+   - recommended_price_range
+   - invoice_line_items
+   - total_estimate
+   - confidence_score
+   - follow_up_questions
+5. Save the result as an estimate/lead
+6. Display it in the dashboard and lead inbox
+
+Database tables:
+- users
+- businesses
+- services
+- pricing_rules
+- requirements
+- uploaded_files
+- extracted_requirement_values
+- sandbox_tests
+- leads
+- estimates
+- widget_settings
+- billing_subscriptions
+
+Important:
+- Build the app with clean reusable components
+- Use dummy data where needed
+- Keep the app functional even before Stripe/OpenAI/Gmail keys are added
+- Use environment variables for all secrets
+- Include clear TODO comments where real integrations need API keys
+- Prioritize clean UI, simple navigation, and a complete clickable workflow over perfect backend complexity
+- Make the first version feel like a polished MVP that I can demo to service businesses
+

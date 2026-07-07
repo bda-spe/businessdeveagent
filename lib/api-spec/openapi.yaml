@@ -3,13 +3,35 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Business Development Agent (BDA) multi-tenant SaaS API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: account
+    description: Current user and business
+  - name: services
+    description: Business services catalog
+  - name: pricing
+    description: Pricing rules
+  - name: requirements
+    description: Onboarding requirements checklist
+  - name: files
+    description: Uploaded documents and images
+  - name: extracted
+    description: AI-extracted requirement values
+  - name: sandbox
+    description: Sandbox training tests
+  - name: leads
+    description: Lead inbox
+  - name: widget
+    description: Public embeddable widget
+  - name: billing
+    description: Subscription billing
+  - name: dashboard
+    description: Dashboard summaries and activity
 paths:
   /healthz:
     get:
@@ -24,6 +46,581 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /me:
+    get:
+      operationId: getMe
+      tags: [account]
+      summary: Get current user and their business
+      responses:
+        "200":
+          description: Current account context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+
+  /onboarding/business:
+    post:
+      operationId: createBusiness
+      tags: [account]
+      summary: Create the business during onboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessCreateInput"
+      responses:
+        "201":
+          description: Business created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+
+  /business:
+    get:
+      operationId: getBusiness
+      tags: [account]
+      summary: Get the current business profile
+      responses:
+        "200":
+          description: Business profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+    patch:
+      operationId: updateBusiness
+      tags: [account]
+      summary: Update the business info
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessUpdate"
+      responses:
+        "200":
+          description: Updated business
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+
+  /business/approve:
+    post:
+      operationId: approveBusinessProfile
+      tags: [account]
+      summary: Approve the business profile after requirement review
+      responses:
+        "200":
+          description: Approved business
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+
+  /services:
+    get:
+      operationId: listServices
+      tags: [services]
+      summary: List services
+      responses:
+        "200":
+          description: List of services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+    post:
+      operationId: createService
+      tags: [services]
+      summary: Create a service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "201":
+          description: Created service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+
+  /services/{id}:
+    patch:
+      operationId: updateService
+      tags: [services]
+      summary: Update a service
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceUpdate"
+      responses:
+        "200":
+          description: Updated service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+    delete:
+      operationId: deleteService
+      tags: [services]
+      summary: Delete a service
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /pricing:
+    get:
+      operationId: getPricing
+      tags: [pricing]
+      summary: Get pricing rules
+      responses:
+        "200":
+          description: Pricing rules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingRules"
+    put:
+      operationId: savePricing
+      tags: [pricing]
+      summary: Create or update pricing rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingRulesInput"
+      responses:
+        "200":
+          description: Saved pricing rules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingRules"
+
+  /requirements:
+    get:
+      operationId: listRequirements
+      tags: [requirements]
+      summary: List the requirements checklist
+      responses:
+        "200":
+          description: Requirements checklist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Requirement"
+
+  /requirements/{id}:
+    patch:
+      operationId: updateRequirement
+      tags: [requirements]
+      summary: Update a requirement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequirementUpdate"
+      responses:
+        "200":
+          description: Updated requirement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Requirement"
+
+  /files:
+    get:
+      operationId: listFiles
+      tags: [files]
+      summary: List uploaded files
+      responses:
+        "200":
+          description: Uploaded files
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UploadedFile"
+    post:
+      operationId: uploadFile
+      tags: [files]
+      summary: Register an uploaded file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadedFileInput"
+      responses:
+        "201":
+          description: Uploaded file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadedFile"
+
+  /files/{id}:
+    delete:
+      operationId: deleteFile
+      tags: [files]
+      summary: Delete an uploaded file
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /files/scan:
+    post:
+      operationId: scanDocuments
+      tags: [files]
+      summary: Scan uploaded documents with BDA to extract business knowledge
+      responses:
+        "200":
+          description: Extracted requirement values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExtractedValue"
+
+  /extracted-values:
+    get:
+      operationId: listExtractedValues
+      tags: [extracted]
+      summary: List AI-extracted requirement values
+      responses:
+        "200":
+          description: Extracted values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExtractedValue"
+
+  /extracted-values/{id}:
+    patch:
+      operationId: updateExtractedValue
+      tags: [extracted]
+      summary: Manually override an extracted value
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtractedValueUpdate"
+      responses:
+        "200":
+          description: Updated extracted value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtractedValue"
+
+  /sandbox-tests:
+    get:
+      operationId: listSandboxTests
+      tags: [sandbox]
+      summary: List sandbox test history
+      responses:
+        "200":
+          description: Sandbox tests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SandboxTest"
+    post:
+      operationId: runSandboxTest
+      tags: [sandbox]
+      summary: Run a sandbox test scenario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SandboxTestInput"
+      responses:
+        "201":
+          description: Sandbox test result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SandboxTest"
+
+  /sandbox-tests/{id}/feedback:
+    post:
+      operationId: saveSandboxFeedback
+      tags: [sandbox]
+      summary: Save feedback and regenerate the sandbox test
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SandboxFeedbackInput"
+      responses:
+        "200":
+          description: Regenerated sandbox test
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SandboxTest"
+
+  /leads:
+    get:
+      operationId: listLeads
+      tags: [leads]
+      summary: List leads
+      responses:
+        "200":
+          description: Leads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lead"
+
+  /leads/{id}:
+    get:
+      operationId: getLead
+      tags: [leads]
+      summary: Get lead detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lead detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadDetail"
+    patch:
+      operationId: updateLead
+      tags: [leads]
+      summary: Update a lead status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadUpdate"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /widget-settings:
+    get:
+      operationId: getWidgetSettings
+      tags: [widget]
+      summary: Get widget settings
+      responses:
+        "200":
+          description: Widget settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetSettings"
+    put:
+      operationId: saveWidgetSettings
+      tags: [widget]
+      summary: Save widget settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WidgetSettingsInput"
+      responses:
+        "200":
+          description: Saved widget settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetSettings"
+
+  /widget/config:
+    get:
+      operationId: getWidgetConfig
+      tags: [widget]
+      summary: Public widget config by client id
+      parameters:
+        - name: clientId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Public widget config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetConfig"
+
+  /widget/interact:
+    post:
+      operationId: widgetInteract
+      tags: [widget]
+      summary: Public widget interaction that creates a lead and estimate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WidgetInteractInput"
+      responses:
+        "200":
+          description: AI response and generated estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetInteractResult"
+
+  /billing/plans:
+    get:
+      operationId: listBillingPlans
+      tags: [billing]
+      summary: List available billing plans
+      responses:
+        "200":
+          description: Billing plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BillingPlan"
+
+  /billing/subscription:
+    get:
+      operationId: getSubscription
+      tags: [billing]
+      summary: Get current subscription
+      responses:
+        "200":
+          description: Subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingSubscription"
+
+  /billing/checkout:
+    post:
+      operationId: checkout
+      tags: [billing]
+      summary: Placeholder checkout that activates the business
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutInput"
+      responses:
+        "200":
+          description: Updated subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingSubscription"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Dashboard summary metrics
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/activity:
+    get:
+      operationId: listActivity
+      tags: [dashboard]
+      summary: Recent BDA activity timeline
+      responses:
+        "200":
+          description: Activity events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEvent"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +631,593 @@ components:
       required:
         - status
 
+    Account:
+      type: object
+      required: [user, onboardingComplete]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        business:
+          oneOf:
+            - $ref: "#/components/schemas/Business"
+            - type: "null"
+        onboardingComplete:
+          type: boolean
+
+    User:
+      type: object
+      required: [id, email, ownerName]
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        ownerName:
+          type: string
+
+    Business:
+      type: object
+      required: [id, clientId, name, status, profileApproved]
+      properties:
+        id:
+          type: integer
+        clientId:
+          type: string
+        name:
+          type: string
+        industry:
+          type: ["string", "null"]
+        companySize:
+          type: ["string", "null"]
+        customerType:
+          type: ["string", "null"]
+        website:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        serviceArea:
+          type: ["string", "null"]
+        status:
+          type: string
+          description: onboarding or active
+        profileApproved:
+          type: boolean
+        createdAt:
+          type: string
+
+    BusinessCreateInput:
+      type: object
+      required: [ownerName, businessName]
+      properties:
+        ownerName:
+          type: string
+          minLength: 1
+        businessName:
+          type: string
+          minLength: 1
+
+    BusinessUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        industry:
+          type: string
+        companySize:
+          type: string
+        customerType:
+          type: string
+        website:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        serviceArea:
+          type: string
+
+    Service:
+      type: object
+      required: [id, name, active]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        category:
+          type: ["string", "null"]
+        basePrice:
+          type: ["number", "null"]
+        hourlyRate:
+          type: ["number", "null"]
+        minimumPrice:
+          type: ["number", "null"]
+        estimatedDuration:
+          type: ["string", "null"]
+        active:
+          type: boolean
+
+    ServiceInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        category:
+          type: string
+        basePrice:
+          type: ["number", "null"]
+        hourlyRate:
+          type: ["number", "null"]
+        minimumPrice:
+          type: ["number", "null"]
+        estimatedDuration:
+          type: string
+        active:
+          type: boolean
+
+    ServiceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        basePrice:
+          type: ["number", "null"]
+        hourlyRate:
+          type: ["number", "null"]
+        minimumPrice:
+          type: ["number", "null"]
+        estimatedDuration:
+          type: string
+        active:
+          type: boolean
+
+    PricingRules:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+        laborRate:
+          type: ["number", "null"]
+        emergencyFee:
+          type: ["number", "null"]
+        travelFee:
+          type: ["number", "null"]
+        weekendMultiplier:
+          type: ["number", "null"]
+        taxRate:
+          type: ["number", "null"]
+        discounts:
+          type: ["string", "null"]
+        minimumJobCost:
+          type: ["number", "null"]
+        customNotes:
+          type: ["string", "null"]
+
+    PricingRulesInput:
+      type: object
+      properties:
+        laborRate:
+          type: ["number", "null"]
+        emergencyFee:
+          type: ["number", "null"]
+        travelFee:
+          type: ["number", "null"]
+        weekendMultiplier:
+          type: ["number", "null"]
+        taxRate:
+          type: ["number", "null"]
+        discounts:
+          type: ["string", "null"]
+        minimumJobCost:
+          type: ["number", "null"]
+        customNotes:
+          type: ["string", "null"]
+
+    Requirement:
+      type: object
+      required: [id, key, label, status]
+      properties:
+        id:
+          type: integer
+        key:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+          description: completed, in_progress, or pending
+        source:
+          type: ["string", "null"]
+        value:
+          type: ["string", "null"]
+
+    RequirementUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        source:
+          type: string
+        value:
+          type: string
+
+    UploadedFile:
+      type: object
+      required: [id, filename, sizeBytes, fileType, createdAt]
+      properties:
+        id:
+          type: integer
+        filename:
+          type: string
+        sizeBytes:
+          type: integer
+        fileType:
+          type: string
+        category:
+          type: ["string", "null"]
+        summary:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    UploadedFileInput:
+      type: object
+      required: [filename, sizeBytes, fileType]
+      properties:
+        filename:
+          type: string
+          minLength: 1
+        sizeBytes:
+          type: integer
+        fileType:
+          type: string
+        category:
+          type: string
+        textContent:
+          type: string
+
+    ExtractedValue:
+      type: object
+      required: [id, requirementKey, requirementLabel, confidenceScore, approved]
+      properties:
+        id:
+          type: integer
+        requirementKey:
+          type: string
+        requirementLabel:
+          type: string
+        extractedValue:
+          type: ["string", "null"]
+        sourceDocument:
+          type: ["string", "null"]
+        confidenceScore:
+          type: number
+        overrideValue:
+          type: ["string", "null"]
+        approved:
+          type: boolean
+
+    ExtractedValueUpdate:
+      type: object
+      properties:
+        overrideValue:
+          type: string
+        approved:
+          type: boolean
+
+    Estimate:
+      type: object
+      required: [customerSummary, assumptions, invoiceLineItems, subtotal, taxes, totalEstimate, confidenceScore, followUpQuestions]
+      properties:
+        customerSummary:
+          type: string
+        assumptions:
+          type: array
+          items:
+            type: string
+        recommendedPriceLow:
+          type: ["number", "null"]
+        recommendedPriceHigh:
+          type: ["number", "null"]
+        invoiceLineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceLineItem"
+        subtotal:
+          type: number
+        taxes:
+          type: number
+        totalEstimate:
+          type: number
+        confidenceScore:
+          type: number
+        followUpQuestions:
+          type: array
+          items:
+            type: string
+
+    InvoiceLineItem:
+      type: object
+      required: [description, total]
+      properties:
+        description:
+          type: string
+        quantity:
+          type: ["number", "null"]
+        unitPrice:
+          type: ["number", "null"]
+        total:
+          type: number
+
+    SandboxTest:
+      type: object
+      required: [id, prompt, agentResponse, createdAt]
+      properties:
+        id:
+          type: integer
+        scenario:
+          type: ["string", "null"]
+        prompt:
+          type: string
+        agentResponse:
+          type: string
+        estimate:
+          oneOf:
+            - $ref: "#/components/schemas/Estimate"
+            - type: "null"
+        rating:
+          type: ["integer", "null"]
+        feedbackNotes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    SandboxTestInput:
+      type: object
+      required: [prompt]
+      properties:
+        scenario:
+          type: string
+        prompt:
+          type: string
+          minLength: 1
+
+    SandboxFeedbackInput:
+      type: object
+      required: [rating]
+      properties:
+        rating:
+          type: integer
+        feedbackNotes:
+          type: string
+
+    Lead:
+      type: object
+      required: [id, customerName, status, createdAt]
+      properties:
+        id:
+          type: integer
+        customerName:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        requestSummary:
+          type: ["string", "null"]
+        projectDescription:
+          type: ["string", "null"]
+        estimatedLow:
+          type: ["number", "null"]
+        estimatedHigh:
+          type: ["number", "null"]
+        confidenceScore:
+          type: ["number", "null"]
+        status:
+          type: string
+          description: new, contacted, won, or lost
+        createdAt:
+          type: string
+
+    LeadDetail:
+      type: object
+      required: [id, customerName, status, createdAt]
+      properties:
+        id:
+          type: integer
+        customerName:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        requestSummary:
+          type: ["string", "null"]
+        projectDescription:
+          type: ["string", "null"]
+        estimatedLow:
+          type: ["number", "null"]
+        estimatedHigh:
+          type: ["number", "null"]
+        confidenceScore:
+          type: ["number", "null"]
+        status:
+          type: string
+        createdAt:
+          type: string
+        aiResponse:
+          type: ["string", "null"]
+        estimate:
+          oneOf:
+            - $ref: "#/components/schemas/Estimate"
+            - type: "null"
+
+    LeadUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    WidgetSettings:
+      type: object
+      required: [id, greeting, primaryColor, position, enabled]
+      properties:
+        id:
+          type: integer
+        greeting:
+          type: string
+        primaryColor:
+          type: string
+        position:
+          type: string
+          description: bottom-right or bottom-left
+        enabled:
+          type: boolean
+
+    WidgetSettingsInput:
+      type: object
+      properties:
+        greeting:
+          type: string
+        primaryColor:
+          type: string
+        position:
+          type: string
+        enabled:
+          type: boolean
+
+    WidgetConfig:
+      type: object
+      required: [clientId, businessName, greeting, primaryColor, position, enabled]
+      properties:
+        clientId:
+          type: string
+        businessName:
+          type: string
+        greeting:
+          type: string
+        primaryColor:
+          type: string
+        position:
+          type: string
+        enabled:
+          type: boolean
+
+    WidgetInteractInput:
+      type: object
+      required: [clientId, name, projectDescription]
+      properties:
+        clientId:
+          type: string
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+        phone:
+          type: string
+        projectDescription:
+          type: string
+          minLength: 1
+
+    WidgetInteractResult:
+      type: object
+      required: [leadId, message, estimate]
+      properties:
+        leadId:
+          type: integer
+        message:
+          type: string
+        estimate:
+          $ref: "#/components/schemas/Estimate"
+
+    BillingPlan:
+      type: object
+      required: [id, name, price, interval]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        interval:
+          type: string
+          description: month, year, or one-time
+        description:
+          type: ["string", "null"]
+
+    BillingSubscription:
+      type: object
+      required: [status, active]
+      properties:
+        id:
+          type: ["integer", "null"]
+        planId:
+          type: ["string", "null"]
+        planName:
+          type: ["string", "null"]
+        status:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: ["string", "null"]
+
+    CheckoutInput:
+      type: object
+      required: [planId]
+      properties:
+        planId:
+          type: string
+
+    DashboardSummary:
+      type: object
+      required: [bdaStatus, trainingScore, knowledgeScore, pricingConfidence, conversationsThisMonth, leadsGenerated, revenueInfluenced, requirementsComplete, requirementsTotal]
+      properties:
+        bdaStatus:
+          type: string
+          description: draft, training, or live
+        trainingScore:
+          type: integer
+        knowledgeScore:
+          type: integer
+        pricingConfidence:
+          type: integer
+        conversationsThisMonth:
+          type: integer
+        leadsGenerated:
+          type: integer
+        revenueInfluenced:
+          type: number
+        requirementsComplete:
+          type: integer
+        requirementsTotal:
+          type: integer
+
+    ActivityEvent:
+      type: object
+      required: [id, type, description, createdAt]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
