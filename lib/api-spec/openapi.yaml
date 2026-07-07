@@ -593,6 +593,158 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProfileInterview"
 
+  /business/operations:
+    get:
+      operationId: getBusinessOperations
+      tags: [businessOperations]
+      summary: Get company operations data
+      responses:
+        "200":
+          description: Operations data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessOperations"
+    patch:
+      operationId: saveBusinessOperations
+      tags: [businessOperations]
+      summary: Save company operations data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessOperationsInput"
+      responses:
+        "200":
+          description: Saved operations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessOperations"
+
+  /business/policies:
+    get:
+      operationId: getBusinessPolicies
+      tags: [businessPolicies]
+      summary: Get business policies
+      responses:
+        "200":
+          description: Policies data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessPolicies"
+    patch:
+      operationId: saveBusinessPolicies
+      tags: [businessPolicies]
+      summary: Save business policies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessPoliciesInput"
+      responses:
+        "200":
+          description: Saved policies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessPolicies"
+
+  /business/policies/ai-draft:
+    post:
+      operationId: aiDraftPolicy
+      tags: [businessPolicies]
+      summary: AI-generate a draft for a single policy field
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiDraftPolicyInput"
+      responses:
+        "200":
+          description: AI-generated policy wording
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiDraftPolicyResult"
+
+  /business/estimate-rules:
+    get:
+      operationId: getEstimateRules
+      tags: [estimateRules]
+      summary: Get estimate rules
+      responses:
+        "200":
+          description: Estimate rules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstimateRules"
+    patch:
+      operationId: saveEstimateRules
+      tags: [estimateRules]
+      summary: Save estimate rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EstimateRulesInput"
+      responses:
+        "200":
+          description: Saved estimate rules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstimateRules"
+
+  /business/tone:
+    get:
+      operationId: getBusinessTone
+      tags: [businessTone]
+      summary: Get business tone settings
+      responses:
+        "200":
+          description: Tone settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessTone"
+    patch:
+      operationId: saveBusinessTone
+      tags: [businessTone]
+      summary: Save business tone settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessToneInput"
+      responses:
+        "200":
+          description: Saved tone
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessTone"
+
+  /business/profile/confirm:
+    post:
+      operationId: confirmBusinessProfile
+      tags: [account]
+      summary: Confirm the structured business profile and mark it complete
+      responses:
+        "200":
+          description: Confirmed business
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+
   /leads:
     get:
       operationId: listLeads
@@ -858,6 +1010,8 @@ components:
           type: string
         industry:
           type: ["string", "null"]
+        industryOther:
+          type: ["string", "null"]
         companySize:
           type: ["string", "null"]
         customerType:
@@ -869,6 +1023,16 @@ components:
         email:
           type: ["string", "null"]
         serviceArea:
+          type: ["string", "null"]
+        addressLine1:
+          type: ["string", "null"]
+        addressLine2:
+          type: ["string", "null"]
+        addressCity:
+          type: ["string", "null"]
+        addressState:
+          type: ["string", "null"]
+        addressZip:
           type: ["string", "null"]
         status:
           type: string
@@ -896,6 +1060,8 @@ components:
           type: string
         industry:
           type: string
+        industryOther:
+          type: string
         companySize:
           type: string
         customerType:
@@ -908,10 +1074,20 @@ components:
           type: string
         serviceArea:
           type: string
+        addressLine1:
+          type: string
+        addressLine2:
+          type: string
+        addressCity:
+          type: string
+        addressState:
+          type: string
+        addressZip:
+          type: string
 
     Service:
       type: object
-      required: [id, name, active]
+      required: [id, name, active, requiresInspection]
       properties:
         id:
           type: integer
@@ -929,6 +1105,8 @@ components:
           type: ["number", "null"]
         estimatedDuration:
           type: ["string", "null"]
+        requiresInspection:
+          type: boolean
         active:
           type: boolean
 
@@ -951,6 +1129,8 @@ components:
           type: ["number", "null"]
         estimatedDuration:
           type: string
+        requiresInspection:
+          type: boolean
         active:
           type: boolean
 
@@ -971,30 +1151,56 @@ components:
           type: ["number", "null"]
         estimatedDuration:
           type: string
+        requiresInspection:
+          type: boolean
         active:
           type: boolean
 
     PricingRules:
       type: object
-      required: [id]
+      required: [id, depositRequired]
       properties:
         id:
           type: integer
         laborRate:
           type: ["number", "null"]
-        emergencyFee:
+        minimumJobCost:
           type: ["number", "null"]
+        travelFeeType:
+          type: ["string", "null"]
         travelFee:
           type: ["number", "null"]
-        weekendMultiplier:
+        freeTravelRadius:
+          type: ["integer", "null"]
+        materialMarkup:
+          type: ["number", "null"]
+        weekendFeeType:
+          type: ["string", "null"]
+        weekendFeeValue:
+          type: ["number", "null"]
+        emergencyFeeType:
+          type: ["string", "null"]
+        emergencyFee:
+          type: ["number", "null"]
+        cancellationFee:
+          type: ["number", "null"]
+        cancellationWindow:
+          type: ["string", "null"]
+        depositRequired:
+          type: boolean
+        depositType:
+          type: ["string", "null"]
+        depositValue:
           type: ["number", "null"]
         taxRate:
           type: ["number", "null"]
+        weekendMultiplier:
+          type: ["number", "null"]
         discounts:
           type: ["string", "null"]
-        minimumJobCost:
-          type: ["number", "null"]
         customNotes:
+          type: ["string", "null"]
+        pricingNotes:
           type: ["string", "null"]
 
     PricingRulesInput:
@@ -1002,19 +1208,43 @@ components:
       properties:
         laborRate:
           type: ["number", "null"]
-        emergencyFee:
+        minimumJobCost:
           type: ["number", "null"]
+        travelFeeType:
+          type: ["string", "null"]
         travelFee:
           type: ["number", "null"]
-        weekendMultiplier:
+        freeTravelRadius:
+          type: ["integer", "null"]
+        materialMarkup:
+          type: ["number", "null"]
+        weekendFeeType:
+          type: ["string", "null"]
+        weekendFeeValue:
+          type: ["number", "null"]
+        emergencyFeeType:
+          type: ["string", "null"]
+        emergencyFee:
+          type: ["number", "null"]
+        cancellationFee:
+          type: ["number", "null"]
+        cancellationWindow:
+          type: ["string", "null"]
+        depositRequired:
+          type: boolean
+        depositType:
+          type: ["string", "null"]
+        depositValue:
           type: ["number", "null"]
         taxRate:
           type: ["number", "null"]
+        weekendMultiplier:
+          type: ["number", "null"]
         discounts:
           type: ["string", "null"]
-        minimumJobCost:
-          type: ["number", "null"]
         customNotes:
+          type: ["string", "null"]
+        pricingNotes:
           type: ["string", "null"]
 
     InvoiceSettings:
@@ -1434,6 +1664,202 @@ components:
         key:
           type: string
         wording:
+          type: string
+
+    BusinessOperations:
+      type: object
+      required: [id, emergencyAvailable]
+      properties:
+        id:
+          type: integer
+        customerType:
+          type: ["string", "null"]
+        employeeCount:
+          type: ["integer", "null"]
+        yearFounded:
+          type: ["integer", "null"]
+        businessHours:
+          type: ["object", "null"]
+          additionalProperties: true
+        emergencyAvailable:
+          type: boolean
+        emergencyNotes:
+          type: ["string", "null"]
+        seasonalAvailability:
+          type: ["string", "null"]
+        seasonalNotes:
+          type: ["string", "null"]
+        typicalResponseTime:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+
+    BusinessOperationsInput:
+      type: object
+      properties:
+        customerType:
+          type: string
+        employeeCount:
+          type: ["integer", "null"]
+        yearFounded:
+          type: ["integer", "null"]
+        businessHours:
+          type: ["object", "null"]
+          additionalProperties: true
+        emergencyAvailable:
+          type: boolean
+        emergencyNotes:
+          type: string
+        seasonalAvailability:
+          type: string
+        seasonalNotes:
+          type: string
+        typicalResponseTime:
+          type: string
+
+    BusinessPolicies:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+        paymentTerms:
+          type: ["string", "null"]
+        cancellationPolicy:
+          type: ["string", "null"]
+        warrantyPolicy:
+          type: ["string", "null"]
+        refundPolicy:
+          type: ["string", "null"]
+        weatherDelayPolicy:
+          type: ["string", "null"]
+        customerResponsibilities:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+
+    BusinessPoliciesInput:
+      type: object
+      properties:
+        paymentTerms:
+          type: string
+        cancellationPolicy:
+          type: string
+        warrantyPolicy:
+          type: string
+        refundPolicy:
+          type: string
+        weatherDelayPolicy:
+          type: string
+        customerResponsibilities:
+          type: string
+
+    AiDraftPolicyInput:
+      type: object
+      required: [field]
+      properties:
+        field:
+          type: string
+        currentValue:
+          type: string
+
+    AiDraftPolicyResult:
+      type: object
+      required: [wording]
+      properties:
+        wording:
+          type: string
+
+    EstimateRules:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+        requiredInfoBeforeQuoting:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+        bdaQuestionsToAsk:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+        whenToGivePriceRange:
+          type: ["string", "null"]
+        whenToRecommendVisit:
+          type: ["string", "null"]
+        estimateDisclaimer:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+
+    EstimateRulesInput:
+      type: object
+      properties:
+        requiredInfoBeforeQuoting:
+          type: array
+          items:
+            type: string
+        bdaQuestionsToAsk:
+          type: array
+          items:
+            type: string
+        whenToGivePriceRange:
+          type: string
+        whenToRecommendVisit:
+          type: string
+        estimateDisclaimer:
+          type: string
+
+    BusinessTone:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+        toneOptions:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+        phrasesToUse:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+        phrasesToAvoid:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+        brandVoice:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+
+    BusinessToneInput:
+      type: object
+      properties:
+        toneOptions:
+          type: array
+          items:
+            type: string
+        phrasesToUse:
+          type: array
+          items:
+            type: string
+        phrasesToAvoid:
+          type: array
+          items:
+            type: string
+        brandVoice:
           type: string
 
     SendEmailResult:

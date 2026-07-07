@@ -17,5 +17,6 @@ export interface ServiceUpdate {
   /** @nullable */
   minimumPrice?: number | null;
   estimatedDuration?: string;
+  requiresInspection?: boolean;
   active?: boolean;
 }

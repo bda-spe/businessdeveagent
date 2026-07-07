@@ -22,6 +22,8 @@ export interface Business {
   /** @nullable */
   industry?: string | null;
   /** @nullable */
+  industryOther?: string | null;
+  /** @nullable */
   companySize?: string | null;
   /** @nullable */
   customerType?: string | null;
@@ -33,6 +35,16 @@ export interface Business {
   email?: string | null;
   /** @nullable */
   serviceArea?: string | null;
+  /** @nullable */
+  addressLine1?: string | null;
+  /** @nullable */
+  addressLine2?: string | null;
+  /** @nullable */
+  addressCity?: string | null;
+  /** @nullable */
+  addressState?: string | null;
+  /** @nullable */
+  addressZip?: string | null;
   /** onboarding or active */
   status: string;
   profileApproved: boolean;
@@ -65,12 +77,18 @@ export interface BusinessCreateInput {
 export interface BusinessUpdate {
   name?: string;
   industry?: string;
+  industryOther?: string;
   companySize?: string;
   customerType?: string;
   website?: string;
   phone?: string;
   email?: string;
   serviceArea?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  addressCity?: string;
+  addressState?: string;
+  addressZip?: string;
 }
 
 export interface Service {
@@ -88,6 +106,7 @@ export interface Service {
   minimumPrice?: number | null;
   /** @nullable */
   estimatedDuration?: string | null;
+  requiresInspection: boolean;
   active: boolean;
 }
 
@@ -103,6 +122,7 @@ export interface ServiceInput {
   /** @nullable */
   minimumPrice?: number | null;
   estimatedDuration?: string;
+  requiresInspection?: boolean;
   active?: boolean;
 }
 
@@ -117,6 +137,7 @@ export interface ServiceUpdate {
   /** @nullable */
   minimumPrice?: number | null;
   estimatedDuration?: string;
+  requiresInspection?: boolean;
   active?: boolean;
 }
 
@@ -125,38 +146,84 @@ export interface PricingRules {
   /** @nullable */
   laborRate?: number | null;
   /** @nullable */
-  emergencyFee?: number | null;
+  minimumJobCost?: number | null;
+  /** @nullable */
+  travelFeeType?: string | null;
   /** @nullable */
   travelFee?: number | null;
   /** @nullable */
-  weekendMultiplier?: number | null;
+  freeTravelRadius?: number | null;
+  /** @nullable */
+  materialMarkup?: number | null;
+  /** @nullable */
+  weekendFeeType?: string | null;
+  /** @nullable */
+  weekendFeeValue?: number | null;
+  /** @nullable */
+  emergencyFeeType?: string | null;
+  /** @nullable */
+  emergencyFee?: number | null;
+  /** @nullable */
+  cancellationFee?: number | null;
+  /** @nullable */
+  cancellationWindow?: string | null;
+  depositRequired: boolean;
+  /** @nullable */
+  depositType?: string | null;
+  /** @nullable */
+  depositValue?: number | null;
   /** @nullable */
   taxRate?: number | null;
   /** @nullable */
+  weekendMultiplier?: number | null;
+  /** @nullable */
   discounts?: string | null;
   /** @nullable */
-  minimumJobCost?: number | null;
-  /** @nullable */
   customNotes?: string | null;
+  /** @nullable */
+  pricingNotes?: string | null;
 }
 
 export interface PricingRulesInput {
   /** @nullable */
   laborRate?: number | null;
   /** @nullable */
-  emergencyFee?: number | null;
+  minimumJobCost?: number | null;
+  /** @nullable */
+  travelFeeType?: string | null;
   /** @nullable */
   travelFee?: number | null;
   /** @nullable */
-  weekendMultiplier?: number | null;
+  freeTravelRadius?: number | null;
+  /** @nullable */
+  materialMarkup?: number | null;
+  /** @nullable */
+  weekendFeeType?: string | null;
+  /** @nullable */
+  weekendFeeValue?: number | null;
+  /** @nullable */
+  emergencyFeeType?: string | null;
+  /** @nullable */
+  emergencyFee?: number | null;
+  /** @nullable */
+  cancellationFee?: number | null;
+  /** @nullable */
+  cancellationWindow?: string | null;
+  depositRequired?: boolean;
+  /** @nullable */
+  depositType?: string | null;
+  /** @nullable */
+  depositValue?: number | null;
   /** @nullable */
   taxRate?: number | null;
   /** @nullable */
+  weekendMultiplier?: number | null;
+  /** @nullable */
   discounts?: string | null;
   /** @nullable */
-  minimumJobCost?: number | null;
-  /** @nullable */
   customNotes?: string | null;
+  /** @nullable */
+  pricingNotes?: string | null;
 }
 
 export type InvoiceSettingsSelectedTemplate = typeof InvoiceSettingsSelectedTemplate[keyof typeof InvoiceSettingsSelectedTemplate];
@@ -475,6 +542,126 @@ export interface StructuredProfileInput {
 export interface AcceptPolicyInput {
   key: string;
   wording: string;
+}
+
+/**
+ * @nullable
+ */
+export type BusinessOperationsBusinessHours = { [key: string]: unknown } | null;
+
+export interface BusinessOperations {
+  id: number;
+  /** @nullable */
+  customerType?: string | null;
+  /** @nullable */
+  employeeCount?: number | null;
+  /** @nullable */
+  yearFounded?: number | null;
+  /** @nullable */
+  businessHours?: BusinessOperationsBusinessHours;
+  emergencyAvailable: boolean;
+  /** @nullable */
+  emergencyNotes?: string | null;
+  /** @nullable */
+  seasonalAvailability?: string | null;
+  /** @nullable */
+  seasonalNotes?: string | null;
+  /** @nullable */
+  typicalResponseTime?: string | null;
+  updatedAt?: string;
+}
+
+/**
+ * @nullable
+ */
+export type BusinessOperationsInputBusinessHours = { [key: string]: unknown } | null;
+
+export interface BusinessOperationsInput {
+  customerType?: string;
+  /** @nullable */
+  employeeCount?: number | null;
+  /** @nullable */
+  yearFounded?: number | null;
+  /** @nullable */
+  businessHours?: BusinessOperationsInputBusinessHours;
+  emergencyAvailable?: boolean;
+  emergencyNotes?: string;
+  seasonalAvailability?: string;
+  seasonalNotes?: string;
+  typicalResponseTime?: string;
+}
+
+export interface BusinessPolicies {
+  id: number;
+  /** @nullable */
+  paymentTerms?: string | null;
+  /** @nullable */
+  cancellationPolicy?: string | null;
+  /** @nullable */
+  warrantyPolicy?: string | null;
+  /** @nullable */
+  refundPolicy?: string | null;
+  /** @nullable */
+  weatherDelayPolicy?: string | null;
+  /** @nullable */
+  customerResponsibilities?: string | null;
+  updatedAt?: string;
+}
+
+export interface BusinessPoliciesInput {
+  paymentTerms?: string;
+  cancellationPolicy?: string;
+  warrantyPolicy?: string;
+  refundPolicy?: string;
+  weatherDelayPolicy?: string;
+  customerResponsibilities?: string;
+}
+
+export interface AiDraftPolicyInput {
+  field: string;
+  currentValue?: string;
+}
+
+export interface AiDraftPolicyResult {
+  wording: string;
+}
+
+export interface EstimateRules {
+  id: number;
+  requiredInfoBeforeQuoting?: string[] | null;
+  bdaQuestionsToAsk?: string[] | null;
+  /** @nullable */
+  whenToGivePriceRange?: string | null;
+  /** @nullable */
+  whenToRecommendVisit?: string | null;
+  /** @nullable */
+  estimateDisclaimer?: string | null;
+  updatedAt?: string;
+}
+
+export interface EstimateRulesInput {
+  requiredInfoBeforeQuoting?: string[];
+  bdaQuestionsToAsk?: string[];
+  whenToGivePriceRange?: string;
+  whenToRecommendVisit?: string;
+  estimateDisclaimer?: string;
+}
+
+export interface BusinessTone {
+  id: number;
+  toneOptions?: string[] | null;
+  phrasesToUse?: string[] | null;
+  phrasesToAvoid?: string[] | null;
+  /** @nullable */
+  brandVoice?: string | null;
+  updatedAt?: string;
+}
+
+export interface BusinessToneInput {
+  toneOptions?: string[];
+  phrasesToUse?: string[];
+  phrasesToAvoid?: string[];
+  brandVoice?: string;
 }
 
 export interface SendEmailResult {

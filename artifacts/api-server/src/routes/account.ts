@@ -160,4 +160,22 @@ router.post(
   },
 );
 
+router.post(
+  "/business/profile/confirm",
+  requireBusiness,
+  async (req, res): Promise<void> => {
+    const [updated] = await db
+      .update(businessesTable)
+      .set({ profileApproved: true })
+      .where(eq(businessesTable.id, req.business!.id))
+      .returning();
+    await logActivity(
+      req.business!.id,
+      "profile_approved",
+      "Business profile confirmed via setup wizard",
+    );
+    res.json(ApproveBusinessProfileResponse.parse(updated));
+  },
+);
+
 export default router;

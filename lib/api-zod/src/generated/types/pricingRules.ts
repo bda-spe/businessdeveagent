@@ -11,17 +11,40 @@ export interface PricingRules {
   /** @nullable */
   laborRate?: number | null;
   /** @nullable */
-  emergencyFee?: number | null;
+  minimumJobCost?: number | null;
+  /** @nullable */
+  travelFeeType?: string | null;
   /** @nullable */
   travelFee?: number | null;
   /** @nullable */
-  weekendMultiplier?: number | null;
+  freeTravelRadius?: number | null;
+  /** @nullable */
+  materialMarkup?: number | null;
+  /** @nullable */
+  weekendFeeType?: string | null;
+  /** @nullable */
+  weekendFeeValue?: number | null;
+  /** @nullable */
+  emergencyFeeType?: string | null;
+  /** @nullable */
+  emergencyFee?: number | null;
+  /** @nullable */
+  cancellationFee?: number | null;
+  /** @nullable */
+  cancellationWindow?: string | null;
+  depositRequired: boolean;
+  /** @nullable */
+  depositType?: string | null;
+  /** @nullable */
+  depositValue?: number | null;
   /** @nullable */
   taxRate?: number | null;
   /** @nullable */
+  weekendMultiplier?: number | null;
+  /** @nullable */
   discounts?: string | null;
   /** @nullable */
-  minimumJobCost?: number | null;
-  /** @nullable */
   customNotes?: string | null;
+  /** @nullable */
+  pricingNotes?: string | null;
 }

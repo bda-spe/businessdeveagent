@@ -1,0 +1,303 @@
+Refactor Business Profile into a 6-part structured onboarding flow.
+
+The BDA Setup Helper should be a small card at the top of the Business Profile page, not the main interface. It should say:
+“Need help? I can help with questions about a filed we capture, write policies, estimate rules, and customer-facing language after you enter the basics.”
+
+The main interface should be structured forms, not a large AI chat.
+
+Create 6 moving steps:
+
+1. Basic Business Info
+2. Company Operations
+3. Services Offered
+4. Pricing & Rates
+5. Policies & Estimate Rules
+6. Business Tone & Review
+
+Each step should have Save & Continue, Back, and progress indicators.
+
+Use proper field types, validation, and database columns. Avoid dumping everything into one unstructured text field.
+
+STEP 1: BASIC BUSINESS INFO
+
+Fields:
+- Business name
+  - input: single-line text
+  - db: varchar(150)
+  - required
+  - allow letters, numbers, spaces, &, -, apostrophes, periods
+- Industry
+  - input: dropdown
+  - db: varchar(75)
+  - required
+  - options: HVAC, Plumbing, Electrical, Roofing, Landscaping, Asphalt Striping, Painting, Pest Control, Cleaning, General Contractor, Other*add textbox of varchar75 no special characters
+- Website
+  - input: url field
+  - db: varchar(250)
+  - optional
+- Phone number
+  - input: phone field
+  - db: varchar(25)
+  - required
+- Email
+  - input: email field
+  - db: varchar(150)
+  - required
+- Business address
+  - input: mutliple text boxes;
+	- Address	
+	- address 2
+	- city, varchar 75
+	- state, dropdown select, 50 states abbreviations + out of united states option
+	- zip
+  - db: varchar(300)
+  - optional
+- Service area
+  - input: textbox, enter city
+  - db: varchar75
+  - required
+
+STEP 2: COMPANY OPERATIONS
+
+Fields:
+- Customer type
+  - input: radio buttons
+  - db: varchar(25)
+  - options: Residential, Commercial, Both, Other
+- Number of employees
+  - input: small number input
+  - db: integer
+  - whole numbers only
+- Years in business
+  - input: dropdown select, 1900-2026
+  - db: date,year only
+  - optional
+- Normal business hours
+  - input: structured weekly schedule editor
+  - db: jsonb
+  - example: Monday-Friday 8:00 AM-5:00 PM
+- Emergency / after-hours availability
+  - input: toggle + optional notes
+  - db: boolean + varchar(250)
+- Seasonal availability
+  - input: dropdown + optional notes
+  - db: varchar(100) + varchar(250)
+  - options: Year-round, Seasonal, Weather-dependent, Custom
+- Typical response time
+  - input: dropdown
+  - db: varchar(75)
+  - options: Immediate, Within 1 hour, Same day, Within 24 hours, 1-2 business days
+
+STEP 3: SERVICES OFFERED
+
+Use repeatable service cards, not one big textarea.
+
+Each service should save to the services table.
+
+Service fields:
+- Service name
+  - input: single-line text
+  - db: varchar(150)
+  - required
+- Service category
+  - input: text
+  - db: varchar(100)
+- Description
+  - input: textarea
+  - db: text
+  - max 1,000 characters
+- Base price
+  - input: currency
+  - db: decimal(10,2)
+- optional
+- Hourly rate
+  - input: currency
+  - db: decimal(10,2)
+ - optional
+- Minimum price
+  - input: currency
+  - db: decimal(10,2)
+ - optional
+- Estimated duration
+  - input: varchar(100)
+  - example: 2-4 hours, 1 day, 2-3 days
+- optional
+- Requires inspection before quote
+  - input: checkbox
+  - db: boolean
+- optional
+- Active
+  - input: toggle
+  - db: boolean
+
+
+STEP 4: PRICING & RATES
+
+Fields:
+- Default labor rate
+  - input: currency
+  - db: decimal(10,2)
+- Minimum job charge
+  - input: currency
+  - db: decimal(10,2)
+- Travel / mobilization fee type
+  - input: dropdown
+  - db: varchar(50)
+  - options: None, Flat Fee, Distance-Based, Custom
+- Flat travel fee
+  - input: currency
+  - db: decimal(10,2)
+- Free travel radius
+  - input: number
+  - db: integer
+  - unit: miles
+- Material markup
+  - input: percentage
+  - db: decimal(5,2)
+- Weekend fee type
+  - input: dropdown
+  - db: varchar(50)
+  - options: None, Flat Fee, Percentage Increase, Custom
+- Weekend fee value
+  - input: currency or percentage depending on type
+  - db: decimal(10,2)
+- Emergency fee type
+  - input: dropdown
+  - db: varchar(50)
+  - options: None, Flat Fee, Percentage Increase, Custom
+- Emergency fee value
+  - input: currency or percentage depending on type
+  - db: decimal(10,2)
+- Cancellation fee
+  - input: currency
+  - db: decimal(10,2)
+- Cancellation window
+  - input: dropdown
+  - db: varchar(50)
+  - options: Same day, Less than 24 hours, Less than 48 hours, Less than 72 hours, Custom
+- Deposit required
+  - input: toggle
+  - db: boolean
+- Deposit amount/type
+  - input: dropdown + value
+  - db: varchar(50) + decimal(10,2)
+  - options: Flat Amount, Percentage
+- Tax rate
+  - input: percentage
+  - db: decimal(5,2)
+- Pricing notes
+  - input: textarea
+  - db: text
+  - max 1,500 characters
+
+STEP 5: POLICIES & ESTIMATE RULES
+
+This step should combine structured fields with AI-assisted writing.
+
+For each policy field:
+- Show a textarea
+- Add button: “Help Me Write This”
+- AI should generate customer-facing language using existing business data
+- User can accept, edit, or regenerate
+
+Fields:
+- Payment terms
+  - input: textarea
+  - db: text
+  - max 2,000 characters
+- Cancellation policy
+  - input: textarea
+  - db: text
+  - max 2,000 characters
+- Warranty / guarantee policy
+  - input: textarea
+  - db: text
+  - max 2,000 characters
+- Refund policy
+  - input: textarea
+  - db: text
+  - max 2,000 characters
+- Weather delay policy
+  - input: textarea
+  - db: text
+  - max 2,000 characters
+- Customer responsibilities before service
+  - input: textarea
+  - db: text
+  - max 2,000 characters
+
+Estimate rule fields:
+- Required information before quoting
+  - input: checklist/tag input
+  - db: jsonb array
+  - examples: address, photos, measurements, project size, preferred date, service type
+- Questions BDA should ask customers
+  - input: repeatable question fields
+  - db: jsonb array
+- When to give a price range
+  - input: textarea
+  - db: text
+  - max 1,500 characters
+- When to recommend on-site visit
+  - input: textarea
+  - db: text
+  - max 1,500 characters
+- Estimate disclaimer
+  - input: textarea
+  - db: text
+  - max 1,500 characters
+
+STEP 6: BUSINESS TONE & REVIEW
+
+Fields:
+- Tone
+  - input: multi-select chips
+  - db: jsonb array
+  - options: Professional, Friendly, Casual, Premium, Technical, Direct, Warm, Family-Owned, Corporate
+- Phrases to use
+  - input: tag input
+  - db: jsonb array
+- Phrases to avoid
+  - input: tag input
+  - db: jsonb array
+- How the company should sound
+  - input: textarea
+  - db: text
+  - max 1,500 characters
+
+Review section:
+Show a clean summary of all captured business data.
+Allow Edit buttons for each section.
+Add final button: “Confirm Business Profile.”
+
+After confirmation:
+- Mark Business Profile complete
+- Unlock the next onboarding step
+- Save completion timestamp
+
+AI Helper behavior:
+The BDA Setup Helper should be small and contextual. It should not ask every question at once. It should only help write policy language, estimate rules, tone, and missing-field suggestions.
+
+Validation:
+- Currency fields must be decimals
+- Percent fields must be decimals
+- Employee count and years in business must be whole numbers
+- Required fields should show validation errors
+- Phone/email/website should validate format
+- Text fields should enforce max lengths
+- Do not allow raw HTML/script input
+
+Database:
+Create or update tables as needed:
+- businesses
+- business_operations
+- services
+- pricing_rules
+- business_policies
+- estimate_rules
+- business_tone
+- business_profile_completion
+
+Keep the UI simple, white, navy-accented, professional, and not overwhelming.
+For all fields that arent specfied as required (either optional or no choice) assume optional
+

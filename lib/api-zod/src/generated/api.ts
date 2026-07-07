@@ -31,12 +31,18 @@ export const GetMeResponse = zod.object({
   "clientId": zod.string(),
   "name": zod.string(),
   "industry": zod.string().nullish(),
+  "industryOther": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "email": zod.string().nullish(),
   "serviceArea": zod.string().nullish(),
+  "addressLine1": zod.string().nullish(),
+  "addressLine2": zod.string().nullish(),
+  "addressCity": zod.string().nullish(),
+  "addressState": zod.string().nullish(),
+  "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
   "createdAt": zod.string().optional()
@@ -70,12 +76,18 @@ export const CreateBusinessResponse = zod.object({
   "clientId": zod.string(),
   "name": zod.string(),
   "industry": zod.string().nullish(),
+  "industryOther": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "email": zod.string().nullish(),
   "serviceArea": zod.string().nullish(),
+  "addressLine1": zod.string().nullish(),
+  "addressLine2": zod.string().nullish(),
+  "addressCity": zod.string().nullish(),
+  "addressState": zod.string().nullish(),
+  "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
   "createdAt": zod.string().optional()
@@ -90,12 +102,18 @@ export const GetBusinessResponse = zod.object({
   "clientId": zod.string(),
   "name": zod.string(),
   "industry": zod.string().nullish(),
+  "industryOther": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "email": zod.string().nullish(),
   "serviceArea": zod.string().nullish(),
+  "addressLine1": zod.string().nullish(),
+  "addressLine2": zod.string().nullish(),
+  "addressCity": zod.string().nullish(),
+  "addressState": zod.string().nullish(),
+  "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
   "createdAt": zod.string().optional()
@@ -108,12 +126,18 @@ export const GetBusinessResponse = zod.object({
 export const UpdateBusinessBody = zod.object({
   "name": zod.string().optional(),
   "industry": zod.string().optional(),
+  "industryOther": zod.string().optional(),
   "companySize": zod.string().optional(),
   "customerType": zod.string().optional(),
   "website": zod.string().optional(),
   "phone": zod.string().optional(),
   "email": zod.string().optional(),
-  "serviceArea": zod.string().optional()
+  "serviceArea": zod.string().optional(),
+  "addressLine1": zod.string().optional(),
+  "addressLine2": zod.string().optional(),
+  "addressCity": zod.string().optional(),
+  "addressState": zod.string().optional(),
+  "addressZip": zod.string().optional()
 })
 
 export const UpdateBusinessResponse = zod.object({
@@ -121,12 +145,18 @@ export const UpdateBusinessResponse = zod.object({
   "clientId": zod.string(),
   "name": zod.string(),
   "industry": zod.string().nullish(),
+  "industryOther": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "email": zod.string().nullish(),
   "serviceArea": zod.string().nullish(),
+  "addressLine1": zod.string().nullish(),
+  "addressLine2": zod.string().nullish(),
+  "addressCity": zod.string().nullish(),
+  "addressState": zod.string().nullish(),
+  "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
   "createdAt": zod.string().optional()
@@ -141,12 +171,18 @@ export const ApproveBusinessProfileResponse = zod.object({
   "clientId": zod.string(),
   "name": zod.string(),
   "industry": zod.string().nullish(),
+  "industryOther": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),
   "phone": zod.string().nullish(),
   "email": zod.string().nullish(),
   "serviceArea": zod.string().nullish(),
+  "addressLine1": zod.string().nullish(),
+  "addressLine2": zod.string().nullish(),
+  "addressCity": zod.string().nullish(),
+  "addressState": zod.string().nullish(),
+  "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
   "createdAt": zod.string().optional()
@@ -165,6 +201,7 @@ export const ListServicesResponseItem = zod.object({
   "hourlyRate": zod.number().nullish(),
   "minimumPrice": zod.number().nullish(),
   "estimatedDuration": zod.string().nullish(),
+  "requiresInspection": zod.boolean(),
   "active": zod.boolean()
 })
 export const ListServicesResponse = zod.array(ListServicesResponseItem)
@@ -184,6 +221,7 @@ export const CreateServiceBody = zod.object({
   "hourlyRate": zod.number().nullish(),
   "minimumPrice": zod.number().nullish(),
   "estimatedDuration": zod.string().optional(),
+  "requiresInspection": zod.boolean().optional(),
   "active": zod.boolean().optional()
 })
 
@@ -196,6 +234,7 @@ export const CreateServiceResponse = zod.object({
   "hourlyRate": zod.number().nullish(),
   "minimumPrice": zod.number().nullish(),
   "estimatedDuration": zod.string().nullish(),
+  "requiresInspection": zod.boolean(),
   "active": zod.boolean()
 })
 
@@ -215,6 +254,7 @@ export const UpdateServiceBody = zod.object({
   "hourlyRate": zod.number().nullish(),
   "minimumPrice": zod.number().nullish(),
   "estimatedDuration": zod.string().optional(),
+  "requiresInspection": zod.boolean().optional(),
   "active": zod.boolean().optional()
 })
 
@@ -227,6 +267,7 @@ export const UpdateServiceResponse = zod.object({
   "hourlyRate": zod.number().nullish(),
   "minimumPrice": zod.number().nullish(),
   "estimatedDuration": zod.string().nullish(),
+  "requiresInspection": zod.boolean(),
   "active": zod.boolean()
 })
 
@@ -247,13 +288,25 @@ export const DeleteServiceResponse = zod.void()
 export const GetPricingResponse = zod.object({
   "id": zod.number(),
   "laborRate": zod.number().nullish(),
-  "emergencyFee": zod.number().nullish(),
-  "travelFee": zod.number().nullish(),
-  "weekendMultiplier": zod.number().nullish(),
-  "taxRate": zod.number().nullish(),
-  "discounts": zod.string().nullish(),
   "minimumJobCost": zod.number().nullish(),
-  "customNotes": zod.string().nullish()
+  "travelFeeType": zod.string().nullish(),
+  "travelFee": zod.number().nullish(),
+  "freeTravelRadius": zod.number().nullish(),
+  "materialMarkup": zod.number().nullish(),
+  "weekendFeeType": zod.string().nullish(),
+  "weekendFeeValue": zod.number().nullish(),
+  "emergencyFeeType": zod.string().nullish(),
+  "emergencyFee": zod.number().nullish(),
+  "cancellationFee": zod.number().nullish(),
+  "cancellationWindow": zod.string().nullish(),
+  "depositRequired": zod.boolean(),
+  "depositType": zod.string().nullish(),
+  "depositValue": zod.number().nullish(),
+  "taxRate": zod.number().nullish(),
+  "weekendMultiplier": zod.number().nullish(),
+  "discounts": zod.string().nullish(),
+  "customNotes": zod.string().nullish(),
+  "pricingNotes": zod.string().nullish()
 })
 
 
@@ -262,25 +315,49 @@ export const GetPricingResponse = zod.object({
  */
 export const SavePricingBody = zod.object({
   "laborRate": zod.number().nullish(),
-  "emergencyFee": zod.number().nullish(),
-  "travelFee": zod.number().nullish(),
-  "weekendMultiplier": zod.number().nullish(),
-  "taxRate": zod.number().nullish(),
-  "discounts": zod.string().nullish(),
   "minimumJobCost": zod.number().nullish(),
-  "customNotes": zod.string().nullish()
+  "travelFeeType": zod.string().nullish(),
+  "travelFee": zod.number().nullish(),
+  "freeTravelRadius": zod.number().nullish(),
+  "materialMarkup": zod.number().nullish(),
+  "weekendFeeType": zod.string().nullish(),
+  "weekendFeeValue": zod.number().nullish(),
+  "emergencyFeeType": zod.string().nullish(),
+  "emergencyFee": zod.number().nullish(),
+  "cancellationFee": zod.number().nullish(),
+  "cancellationWindow": zod.string().nullish(),
+  "depositRequired": zod.boolean().optional(),
+  "depositType": zod.string().nullish(),
+  "depositValue": zod.number().nullish(),
+  "taxRate": zod.number().nullish(),
+  "weekendMultiplier": zod.number().nullish(),
+  "discounts": zod.string().nullish(),
+  "customNotes": zod.string().nullish(),
+  "pricingNotes": zod.string().nullish()
 })
 
 export const SavePricingResponse = zod.object({
   "id": zod.number(),
   "laborRate": zod.number().nullish(),
-  "emergencyFee": zod.number().nullish(),
-  "travelFee": zod.number().nullish(),
-  "weekendMultiplier": zod.number().nullish(),
-  "taxRate": zod.number().nullish(),
-  "discounts": zod.string().nullish(),
   "minimumJobCost": zod.number().nullish(),
-  "customNotes": zod.string().nullish()
+  "travelFeeType": zod.string().nullish(),
+  "travelFee": zod.number().nullish(),
+  "freeTravelRadius": zod.number().nullish(),
+  "materialMarkup": zod.number().nullish(),
+  "weekendFeeType": zod.string().nullish(),
+  "weekendFeeValue": zod.number().nullish(),
+  "emergencyFeeType": zod.string().nullish(),
+  "emergencyFee": zod.number().nullish(),
+  "cancellationFee": zod.number().nullish(),
+  "cancellationWindow": zod.string().nullish(),
+  "depositRequired": zod.boolean(),
+  "depositType": zod.string().nullish(),
+  "depositValue": zod.number().nullish(),
+  "taxRate": zod.number().nullish(),
+  "weekendMultiplier": zod.number().nullish(),
+  "discounts": zod.string().nullish(),
+  "customNotes": zod.string().nullish(),
+  "pricingNotes": zod.string().nullish()
 })
 
 
@@ -955,6 +1032,201 @@ export const AcceptPolicyDraftResponse = zod.object({
   "yearsInBusiness": zod.string().nullish(),
   "typicalResponseTime": zod.string().nullish()
 })
+})
+
+
+/**
+ * @summary Get company operations data
+ */
+export const GetBusinessOperationsResponse = zod.object({
+  "id": zod.number(),
+  "customerType": zod.string().nullish(),
+  "employeeCount": zod.number().nullish(),
+  "yearFounded": zod.number().nullish(),
+  "businessHours": zod.record(zod.string(), zod.unknown()).nullish(),
+  "emergencyAvailable": zod.boolean(),
+  "emergencyNotes": zod.string().nullish(),
+  "seasonalAvailability": zod.string().nullish(),
+  "seasonalNotes": zod.string().nullish(),
+  "typicalResponseTime": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Save company operations data
+ */
+export const SaveBusinessOperationsBody = zod.object({
+  "customerType": zod.string().optional(),
+  "employeeCount": zod.number().nullish(),
+  "yearFounded": zod.number().nullish(),
+  "businessHours": zod.record(zod.string(), zod.unknown()).nullish(),
+  "emergencyAvailable": zod.boolean().optional(),
+  "emergencyNotes": zod.string().optional(),
+  "seasonalAvailability": zod.string().optional(),
+  "seasonalNotes": zod.string().optional(),
+  "typicalResponseTime": zod.string().optional()
+})
+
+export const SaveBusinessOperationsResponse = zod.object({
+  "id": zod.number(),
+  "customerType": zod.string().nullish(),
+  "employeeCount": zod.number().nullish(),
+  "yearFounded": zod.number().nullish(),
+  "businessHours": zod.record(zod.string(), zod.unknown()).nullish(),
+  "emergencyAvailable": zod.boolean(),
+  "emergencyNotes": zod.string().nullish(),
+  "seasonalAvailability": zod.string().nullish(),
+  "seasonalNotes": zod.string().nullish(),
+  "typicalResponseTime": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Get business policies
+ */
+export const GetBusinessPoliciesResponse = zod.object({
+  "id": zod.number(),
+  "paymentTerms": zod.string().nullish(),
+  "cancellationPolicy": zod.string().nullish(),
+  "warrantyPolicy": zod.string().nullish(),
+  "refundPolicy": zod.string().nullish(),
+  "weatherDelayPolicy": zod.string().nullish(),
+  "customerResponsibilities": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Save business policies
+ */
+export const SaveBusinessPoliciesBody = zod.object({
+  "paymentTerms": zod.string().optional(),
+  "cancellationPolicy": zod.string().optional(),
+  "warrantyPolicy": zod.string().optional(),
+  "refundPolicy": zod.string().optional(),
+  "weatherDelayPolicy": zod.string().optional(),
+  "customerResponsibilities": zod.string().optional()
+})
+
+export const SaveBusinessPoliciesResponse = zod.object({
+  "id": zod.number(),
+  "paymentTerms": zod.string().nullish(),
+  "cancellationPolicy": zod.string().nullish(),
+  "warrantyPolicy": zod.string().nullish(),
+  "refundPolicy": zod.string().nullish(),
+  "weatherDelayPolicy": zod.string().nullish(),
+  "customerResponsibilities": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary AI-generate a draft for a single policy field
+ */
+export const AiDraftPolicyBody = zod.object({
+  "field": zod.string(),
+  "currentValue": zod.string().optional()
+})
+
+export const AiDraftPolicyResponse = zod.object({
+  "wording": zod.string()
+})
+
+
+/**
+ * @summary Get estimate rules
+ */
+export const GetEstimateRulesResponse = zod.object({
+  "id": zod.number(),
+  "requiredInfoBeforeQuoting": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "bdaQuestionsToAsk": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "whenToGivePriceRange": zod.string().nullish(),
+  "whenToRecommendVisit": zod.string().nullish(),
+  "estimateDisclaimer": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Save estimate rules
+ */
+export const SaveEstimateRulesBody = zod.object({
+  "requiredInfoBeforeQuoting": zod.array(zod.string()).optional(),
+  "bdaQuestionsToAsk": zod.array(zod.string()).optional(),
+  "whenToGivePriceRange": zod.string().optional(),
+  "whenToRecommendVisit": zod.string().optional(),
+  "estimateDisclaimer": zod.string().optional()
+})
+
+export const SaveEstimateRulesResponse = zod.object({
+  "id": zod.number(),
+  "requiredInfoBeforeQuoting": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "bdaQuestionsToAsk": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "whenToGivePriceRange": zod.string().nullish(),
+  "whenToRecommendVisit": zod.string().nullish(),
+  "estimateDisclaimer": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Get business tone settings
+ */
+export const GetBusinessToneResponse = zod.object({
+  "id": zod.number(),
+  "toneOptions": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "phrasesToUse": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "phrasesToAvoid": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "brandVoice": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Save business tone settings
+ */
+export const SaveBusinessToneBody = zod.object({
+  "toneOptions": zod.array(zod.string()).optional(),
+  "phrasesToUse": zod.array(zod.string()).optional(),
+  "phrasesToAvoid": zod.array(zod.string()).optional(),
+  "brandVoice": zod.string().optional()
+})
+
+export const SaveBusinessToneResponse = zod.object({
+  "id": zod.number(),
+  "toneOptions": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "phrasesToUse": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "phrasesToAvoid": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "brandVoice": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Confirm the structured business profile and mark it complete
+ */
+export const ConfirmBusinessProfileResponse = zod.object({
+  "id": zod.number(),
+  "clientId": zod.string(),
+  "name": zod.string(),
+  "industry": zod.string().nullish(),
+  "industryOther": zod.string().nullish(),
+  "companySize": zod.string().nullish(),
+  "customerType": zod.string().nullish(),
+  "website": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "serviceArea": zod.string().nullish(),
+  "addressLine1": zod.string().nullish(),
+  "addressLine2": zod.string().nullish(),
+  "addressCity": zod.string().nullish(),
+  "addressState": zod.string().nullish(),
+  "addressZip": zod.string().nullish(),
+  "status": zod.string().describe('onboarding or active'),
+  "profileApproved": zod.boolean(),
+  "createdAt": zod.string().optional()
 })
 
 

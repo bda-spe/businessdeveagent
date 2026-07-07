@@ -9,10 +9,16 @@
 export interface BusinessUpdate {
   name?: string;
   industry?: string;
+  industryOther?: string;
   companySize?: string;
   customerType?: string;
   website?: string;
   phone?: string;
   email?: string;
   serviceArea?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  addressCity?: string;
+  addressState?: string;
+  addressZip?: string;
 }

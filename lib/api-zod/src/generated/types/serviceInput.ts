@@ -18,5 +18,6 @@ export interface ServiceInput {
   /** @nullable */
   minimumPrice?: number | null;
   estimatedDuration?: string;
+  requiresInspection?: boolean;
   active?: boolean;
 }

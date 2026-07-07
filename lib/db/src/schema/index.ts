@@ -25,12 +25,18 @@ export const businessesTable = pgTable("businesses", {
   clientId: text("client_id").notNull().unique(),
   name: text("name").notNull(),
   industry: text("industry"),
+  industryOther: text("industry_other"),
   companySize: text("company_size"),
   customerType: text("customer_type"),
   website: text("website"),
   phone: text("phone"),
   email: text("email"),
   serviceArea: text("service_area"),
+  addressLine1: text("address_line1"),
+  addressLine2: text("address_line2"),
+  addressCity: text("address_city"),
+  addressState: text("address_state"),
+  addressZip: text("address_zip"),
   status: text("status").notNull().default("onboarding"),
   profileApproved: boolean("profile_approved").notNull().default(false),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
@@ -48,6 +54,7 @@ export const servicesTable = pgTable("services", {
   hourlyRate: doublePrecision("hourly_rate"),
   minimumPrice: doublePrecision("minimum_price"),
   estimatedDuration: text("estimated_duration"),
+  requiresInspection: boolean("requires_inspection").notNull().default(false),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
@@ -59,13 +66,25 @@ export const pricingRulesTable = pgTable("pricing_rules", {
     .references(() => businessesTable.id, { onDelete: "cascade" })
     .unique(),
   laborRate: doublePrecision("labor_rate"),
-  emergencyFee: doublePrecision("emergency_fee"),
-  travelFee: doublePrecision("travel_fee"),
-  weekendMultiplier: doublePrecision("weekend_multiplier"),
-  taxRate: doublePrecision("tax_rate"),
-  discounts: text("discounts"),
   minimumJobCost: doublePrecision("minimum_job_cost"),
+  travelFeeType: text("travel_fee_type"),
+  travelFee: doublePrecision("travel_fee"),
+  freeTravelRadius: integer("free_travel_radius"),
+  materialMarkup: doublePrecision("material_markup"),
+  weekendFeeType: text("weekend_fee_type"),
+  weekendFeeValue: doublePrecision("weekend_fee_value"),
+  emergencyFeeType: text("emergency_fee_type"),
+  emergencyFee: doublePrecision("emergency_fee"),
+  cancellationFee: doublePrecision("cancellation_fee"),
+  cancellationWindow: text("cancellation_window"),
+  depositRequired: boolean("deposit_required").notNull().default(false),
+  depositType: text("deposit_type"),
+  depositValue: doublePrecision("deposit_value"),
+  taxRate: doublePrecision("tax_rate"),
+  weekendMultiplier: doublePrecision("weekend_multiplier"),
+  discounts: text("discounts"),
   customNotes: text("custom_notes"),
+  pricingNotes: text("pricing_notes"),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
@@ -153,6 +172,85 @@ export const businessProfileInterviewsTable = pgTable(
     updatedAt: timestamp("updated_at", { mode: "string" })
       .defaultNow()
       .notNull(),
+  },
+);
+
+export const businessOperationsTable = pgTable("business_operations", {
+  id: serial("id").primaryKey(),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id, { onDelete: "cascade" })
+    .unique(),
+  customerType: text("customer_type"),
+  employeeCount: integer("employee_count"),
+  yearFounded: integer("year_founded"),
+  businessHours: jsonb("business_hours"),
+  emergencyAvailable: boolean("emergency_available").notNull().default(false),
+  emergencyNotes: text("emergency_notes"),
+  seasonalAvailability: text("seasonal_availability"),
+  seasonalNotes: text("seasonal_notes"),
+  typicalResponseTime: text("typical_response_time"),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const businessPoliciesTable = pgTable("business_policies", {
+  id: serial("id").primaryKey(),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id, { onDelete: "cascade" })
+    .unique(),
+  paymentTerms: text("payment_terms"),
+  cancellationPolicy: text("cancellation_policy"),
+  warrantyPolicy: text("warranty_policy"),
+  refundPolicy: text("refund_policy"),
+  weatherDelayPolicy: text("weather_delay_policy"),
+  customerResponsibilities: text("customer_responsibilities"),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const estimateRulesTable = pgTable("estimate_rules", {
+  id: serial("id").primaryKey(),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id, { onDelete: "cascade" })
+    .unique(),
+  requiredInfoBeforeQuoting: jsonb("required_info_before_quoting"),
+  bdaQuestionsToAsk: jsonb("bda_questions_to_ask"),
+  whenToGivePriceRange: text("when_to_give_price_range"),
+  whenToRecommendVisit: text("when_to_recommend_visit"),
+  estimateDisclaimer: text("estimate_disclaimer"),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const businessToneTable = pgTable("business_tone", {
+  id: serial("id").primaryKey(),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id, { onDelete: "cascade" })
+    .unique(),
+  toneOptions: jsonb("tone_options"),
+  phrasesToUse: jsonb("phrases_to_use"),
+  phrasesToAvoid: jsonb("phrases_to_avoid"),
+  brandVoice: text("brand_voice"),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const businessProfileCompletionTable = pgTable(
+  "business_profile_completion",
+  {
+    id: serial("id").primaryKey(),
+    businessId: integer("business_id")
+      .notNull()
+      .references(() => businessesTable.id, { onDelete: "cascade" })
+      .unique(),
+    step1Complete: boolean("step1_complete").notNull().default(false),
+    step2Complete: boolean("step2_complete").notNull().default(false),
+    step3Complete: boolean("step3_complete").notNull().default(false),
+    step4Complete: boolean("step4_complete").notNull().default(false),
+    step5Complete: boolean("step5_complete").notNull().default(false),
+    step6Complete: boolean("step6_complete").notNull().default(false),
+    confirmedAt: timestamp("confirmed_at", { mode: "string" }),
+    updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
   },
 );
 

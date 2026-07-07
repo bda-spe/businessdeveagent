@@ -13,6 +13,8 @@ export interface Business {
   /** @nullable */
   industry?: string | null;
   /** @nullable */
+  industryOther?: string | null;
+  /** @nullable */
   companySize?: string | null;
   /** @nullable */
   customerType?: string | null;
@@ -24,6 +26,16 @@ export interface Business {
   email?: string | null;
   /** @nullable */
   serviceArea?: string | null;
+  /** @nullable */
+  addressLine1?: string | null;
+  /** @nullable */
+  addressLine2?: string | null;
+  /** @nullable */
+  addressCity?: string | null;
+  /** @nullable */
+  addressState?: string | null;
+  /** @nullable */
+  addressZip?: string | null;
   /** onboarding or active */
   status: string;
   profileApproved: boolean;

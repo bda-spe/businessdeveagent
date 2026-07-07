@@ -6,21 +6,19 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface Service {
+export interface BusinessPolicies {
   id: number;
-  name: string;
   /** @nullable */
-  description?: string | null;
+  paymentTerms?: string | null;
   /** @nullable */
-  category?: string | null;
+  cancellationPolicy?: string | null;
   /** @nullable */
-  basePrice?: number | null;
+  warrantyPolicy?: string | null;
   /** @nullable */
-  hourlyRate?: number | null;
+  refundPolicy?: string | null;
   /** @nullable */
-  minimumPrice?: number | null;
+  weatherDelayPolicy?: string | null;
   /** @nullable */
-  estimatedDuration?: string | null;
-  requiresInspection: boolean;
-  active: boolean;
+  customerResponsibilities?: string | null;
+  updatedAt?: string;
 }
