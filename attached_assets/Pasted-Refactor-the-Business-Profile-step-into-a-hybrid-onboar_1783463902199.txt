@@ -1,0 +1,85 @@
+Refactor the Business Profile step into a hybrid onboarding page.
+
+The page should have two sections:
+
+1. Structured Business Info Form
+Use normal input fields for simple factual data:
+- Business name
+- Industry
+- Website
+- Phone
+- Email
+- Business address
+- Service area / cities / zip codes
+- Customer type: residential, commercial, both, other
+- Number of employees
+- Years in business
+- Business hours
+- Emergency / after-hours availability
+- Seasonal availability
+- Typical response time
+
+2. BDA Helper Chat
+Place an AI chat panel on the right side or below the form called “BDA Setup Helper.”
+
+The BDA helper should not overwhelm the user with every question at once. It should guide them section by section and help write the harder business policy language.
+
+The BDA helper should help create:
+- Payment terms
+- Cancellation policy
+- Warranty / guarantee policy
+- Refund policy
+- Weather delay policy
+- Customer responsibilities before service
+- Estimate rules
+- Required customer questions before quoting
+- Rules for when to give a price range
+- Rules for when to recommend an on-site visit
+- Estimate disclaimers
+- Business tone / voice
+- Phrases to use or avoid
+
+Initial BDA helper message:
+“Great — start by filling out the simple business fields on the left. Once those are saved, I’ll help you write the policy language and estimating rules your Business Development Agent needs to speak accurately for your company. We’ll handle one section at a time so this stays simple.”
+
+Workflow:
+- User fills structured fields manually.
+- User clicks “Save Basic Info.”
+- BDA helper reviews what is complete and suggests the next missing section.
+- BDA asks one focused question at a time.
+- Example: “How do you normally handle cancellations? For example, do customers owe a fee if they cancel within 24 hours?”
+- User answers casually.
+- BDA converts that answer into polished customer-facing policy language.
+- Show both:
+  1. Captured answer
+  2. Suggested policy wording
+- User can accept, edit, or regenerate.
+- Accepted wording is saved into the business profile.
+
+For policies, provide editable generated drafts.
+
+Example:
+User says: “If they cancel less than a day before, it’s $75. Weather doesn’t count.”
+BDA should generate:
+“Cancellations made less than 24 hours before the scheduled service may be subject to a $75 cancellation fee. Weather-related delays do not incur cancellation fees and will be rescheduled for the next available service window.”
+
+Add a progress checklist for:
+- Basic Info
+- Operations
+- Services
+- Pricing
+- Policies
+- Estimate Rules
+- Business Tone
+
+Mark each complete as the user fills or accepts generated content.
+
+Keep the UI clean:
+- White background
+- Navy accents
+- Simple cards
+- Soft borders
+- Minimal clutter
+- Helpful but not overwhelming
+
+Do not display a giant list of all required fields in the first AI message.

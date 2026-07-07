@@ -5,116 +5,45 @@ const apiKey = process.env.OPENAI_API_KEY;
 const client = apiKey ? new OpenAI({ apiKey }) : null;
 const MODEL = "gpt-4o";
 
-export const INITIAL_INTERVIEW_MESSAGE = `Hi — I'll help build your Business Development Agent by learning how your business operates. To make your BDA useful on your website, I need to capture the details a real front-office employee would need before answering customers, qualifying leads, or preparing estimates.
+export const INITIAL_BDA_HELPER_MESSAGE =
+  "Great — start by filling out the simple business fields on the left. Once those are saved, I'll help you write the policy language and estimating rules your Business Development Agent needs to speak accurately for your company. We'll handle one section at a time so this stays simple.";
 
-Please tell me what you can about:
-
-1. Basic Business Info
-- Business name
-- Industry
-- Website
-- Phone number
-- Email
-- Business address
-- Service area / cities / zip codes
-
-2. Company Operations
-- Residential, commercial, or both
-- Number of employees
-- Years in business
-- Normal business hours
-- Emergency / after-hours availability
-- Seasonal availability
-- Typical response time
-
-3. Services Offered
-- Main services
-- Add-on services
-- Services you do not offer
-- Most common customer requests
-- Jobs that require inspection before pricing
-
-4. Pricing & Rates
-- Labor rate
-- Minimum job charge
-- Travel or mobilization fees
-- Material markup
-- Weekend / emergency fees
-- Cancellation fees
-- Deposit requirements
-- Tax rate, if applicable
-
-5. Policies
-- Payment terms
-- Cancellation policy
-- Warranty / guarantee policy
-- Refund policy
-- Weather delay policy
-- Customer responsibilities before service
-
-6. Estimate Rules
-- What information you need before quoting
-- What questions your BDA should ask customers
-- When it should give a price range
-- When it should recommend an on-site visit
-- Any wording or disclaimers you want included
-
-7. Business Tone
-- Professional, friendly, casual, premium, technical, etc.
-- Any phrases you like or dislike
-- How your company should sound to customers
-
-You can answer all at once, or just start with what you know. After each message, I'll summarize what I captured and show what's still missing.`;
-
-export interface ProfileField {
+export interface ChatField {
   key: string;
   label: string;
   group: string;
   required: boolean;
 }
 
-export const PROFILE_FIELDS: ProfileField[] = [
-  { key: "businessName", label: "Business Name", group: "Basic Business Info", required: true },
-  { key: "industry", label: "Industry", group: "Basic Business Info", required: true },
-  { key: "website", label: "Website", group: "Basic Business Info", required: false },
-  { key: "phone", label: "Phone", group: "Basic Business Info", required: true },
-  { key: "email", label: "Email", group: "Basic Business Info", required: true },
-  { key: "businessAddress", label: "Business Address", group: "Basic Business Info", required: false },
-  { key: "serviceArea", label: "Service Area", group: "Basic Business Info", required: true },
-  { key: "customerType", label: "Customer Type", group: "Company Operations", required: true },
-  { key: "numberOfEmployees", label: "Number of Employees", group: "Company Operations", required: false },
-  { key: "yearsInBusiness", label: "Years in Business", group: "Company Operations", required: false },
-  { key: "businessHours", label: "Business Hours", group: "Company Operations", required: true },
-  { key: "emergencyAvailability", label: "Emergency / After-Hours Availability", group: "Company Operations", required: false },
-  { key: "seasonalAvailability", label: "Seasonal Availability", group: "Company Operations", required: false },
-  { key: "typicalResponseTime", label: "Typical Response Time", group: "Company Operations", required: false },
-  { key: "mainServices", label: "Main Services", group: "Services Offered", required: true },
-  { key: "addOnServices", label: "Add-On Services", group: "Services Offered", required: false },
-  { key: "servicesNotOffered", label: "Services Not Offered", group: "Services Offered", required: false },
-  { key: "commonCustomerRequests", label: "Common Customer Requests", group: "Services Offered", required: false },
-  { key: "jobsRequiringInspection", label: "Jobs Requiring Inspection", group: "Services Offered", required: false },
-  { key: "laborRate", label: "Labor Rate", group: "Pricing & Rates", required: true },
-  { key: "minimumJobCharge", label: "Minimum Job Charge", group: "Pricing & Rates", required: false },
-  { key: "travelFees", label: "Travel / Mobilization Fees", group: "Pricing & Rates", required: false },
-  { key: "materialMarkup", label: "Material Markup", group: "Pricing & Rates", required: false },
-  { key: "weekendEmergencyFees", label: "Weekend / Emergency Fees", group: "Pricing & Rates", required: false },
-  { key: "cancellationFees", label: "Cancellation Fees", group: "Pricing & Rates", required: false },
-  { key: "depositRequirements", label: "Deposit Requirements", group: "Pricing & Rates", required: false },
-  { key: "taxRate", label: "Tax Rate", group: "Pricing & Rates", required: false },
+// These are the fields the BDA chat helps write — policies & tone.
+// Basic info / operations are captured in the left-side form.
+export const CHAT_FIELDS: ChatField[] = [
   { key: "paymentTerms", label: "Payment Terms", group: "Policies", required: true },
-  { key: "cancellationPolicy", label: "Cancellation Policy", group: "Policies", required: false },
+  { key: "cancellationPolicy", label: "Cancellation Policy", group: "Policies", required: true },
   { key: "warrantyPolicy", label: "Warranty / Guarantee Policy", group: "Policies", required: false },
   { key: "refundPolicy", label: "Refund Policy", group: "Policies", required: false },
   { key: "weatherDelayPolicy", label: "Weather Delay Policy", group: "Policies", required: false },
-  { key: "customerResponsibilities", label: "Customer Responsibilities", group: "Policies", required: false },
+  { key: "customerResponsibilities", label: "Customer Responsibilities Before Service", group: "Policies", required: false },
   { key: "estimateRules", label: "Estimate Rules", group: "Estimate Rules", required: false },
-  { key: "requiredQuoteQuestions", label: "Required Quote Questions", group: "Estimate Rules", required: false },
+  { key: "requiredQuoteQuestions", label: "Required Customer Questions Before Quoting", group: "Estimate Rules", required: false },
   { key: "whenToGivePriceRange", label: "When to Give a Price Range", group: "Estimate Rules", required: false },
   { key: "whenToRecommendVisit", label: "When to Recommend an On-Site Visit", group: "Estimate Rules", required: false },
-  { key: "disclaimers", label: "Disclaimers", group: "Estimate Rules", required: false },
-  { key: "businessTone", label: "Business Tone", group: "Business Tone", required: false },
+  { key: "disclaimers", label: "Estimate Disclaimers", group: "Estimate Rules", required: false },
+  { key: "businessTone", label: "Business Tone / Voice", group: "Business Tone", required: false },
   { key: "phrasesToUseOrAvoid", label: "Phrases to Use or Avoid", group: "Business Tone", required: false },
 ];
+
+// Extra form fields that live only in profileData (not a dedicated DB column)
+export const EXTRA_FORM_KEYS = [
+  "businessAddress",
+  "businessHours",
+  "emergencyAvailability",
+  "seasonalAvailability",
+  "yearsInBusiness",
+  "typicalResponseTime",
+] as const;
+
+export type ExtraFormKey = (typeof EXTRA_FORM_KEYS)[number];
 
 export type ProfileData = Record<string, string | null>;
 
@@ -123,40 +52,48 @@ export interface InterviewMessage {
   content: string;
 }
 
+export interface PolicyDraft {
+  key: string;
+  label: string;
+  wording: string;
+}
+
 export function emptyProfile(): ProfileData {
   const data: ProfileData = {};
-  for (const f of PROFILE_FIELDS) data[f.key] = null;
+  for (const f of CHAT_FIELDS) data[f.key] = null;
+  for (const k of EXTRA_FORM_KEYS) data[k] = null;
   return data;
 }
 
-export function capturedFields(profile: ProfileData): ProfileField[] {
-  return PROFILE_FIELDS.filter((f) => {
+export function capturedChatFields(profile: ProfileData): ChatField[] {
+  return CHAT_FIELDS.filter((f) => {
     const v = profile[f.key];
     return typeof v === "string" && v.trim().length > 0;
   });
 }
 
-export function missingFields(profile: ProfileData): ProfileField[] {
-  return PROFILE_FIELDS.filter((f) => {
+export function missingChatFields(profile: ProfileData): ChatField[] {
+  return CHAT_FIELDS.filter((f) => {
     const v = profile[f.key];
     return !(typeof v === "string" && v.trim().length > 0);
   });
 }
 
-export function requiredComplete(profile: ProfileData): boolean {
-  return missingFields(profile).every((f) => !f.required);
+export function policiesComplete(profile: ProfileData): boolean {
+  return missingChatFields(profile).every((f) => !f.required);
 }
 
 export interface InterviewTurnResult {
   reply: string;
   profile: ProfileData;
+  policyDraft: PolicyDraft | null;
   readyToConfirm: boolean;
 }
 
-function normalizeProfile(raw: unknown, previous: ProfileData): ProfileData {
+function mergeProfile(raw: unknown, previous: ProfileData): ProfileData {
   const merged: ProfileData = { ...previous };
   if (raw && typeof raw === "object") {
-    for (const f of PROFILE_FIELDS) {
+    for (const f of CHAT_FIELDS) {
       const v = (raw as Record<string, unknown>)[f.key];
       if (typeof v === "string" && v.trim().length > 0) {
         merged[f.key] = v.trim();
@@ -166,54 +103,86 @@ function normalizeProfile(raw: unknown, previous: ProfileData): ProfileData {
   return merged;
 }
 
+function normalizePolicyDraft(raw: unknown): PolicyDraft | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (
+    typeof r.key === "string" &&
+    typeof r.label === "string" &&
+    typeof r.wording === "string" &&
+    r.wording.trim().length > 0 &&
+    CHAT_FIELDS.some((f) => f.key === r.key)
+  ) {
+    return { key: r.key, label: r.label, wording: r.wording.trim() };
+  }
+  return null;
+}
+
 export async function runInterviewTurn(params: {
+  businessName: string | null;
   messages: InterviewMessage[];
   profile: ProfileData;
 }): Promise<InterviewTurnResult> {
-  const { messages, profile } = params;
+  const { businessName, messages, profile } = params;
 
   const fallback: InterviewTurnResult = {
     reply:
-      "Thanks — I've noted that. Could you tell me more about your services, pricing, and policies so I can complete your business profile?",
+      "Got it — thanks for sharing. Could you tell me a bit about how you handle payments and cancellations?",
     profile,
+    policyDraft: null,
     readyToConfirm: false,
   };
 
   if (!client) {
-    logger.warn("OPENAI_API_KEY not set — profile interview using fallback");
+    logger.warn("OPENAI_API_KEY not set — BDA helper using fallback");
     return fallback;
   }
 
-  const missing = missingFields(profile);
-  const captured = capturedFields(profile);
+  const captured = capturedChatFields(profile);
+  const missing = missingChatFields(profile);
+  const nextMissing = missing.filter((f) => f.group === (missing[0]?.group ?? "Policies"));
 
-  const system = `You are a Business Development Agent (BDA) acting as an onboarding specialist. You are interviewing a business owner to learn everything a front-office employee would need to know before answering customers, qualifying leads, preparing estimates, and creating invoices. Never use emojis. Be warm, concise, and professional.
+  const system = `You are the BDA Setup Helper, a friendly and efficient onboarding assistant for "${businessName ?? "this business"}". The business owner has already filled in their basic company info (name, industry, contact details, service area, hours, etc.) on a structured form. Your job is now to help them write the harder policy and tone language — one section at a time.
 
-After every owner response you must:
-1. Extract any useful business information from their message into the structured fields below.
-2. Reply with a message that has EXACTLY this structure:
-   - A one-line acknowledgment.
-   - A "Captured:" section listing ONLY the fields captured or updated so far, as "- Label: value" bullet lines (keep values short).
-   - A "Still Missing:" section listing the most important fields not yet captured, as "- Label" bullet lines (list at most 8, prioritizing required ones).
-   - End with the single next most useful follow-up question (or 2-3 related short questions from the same group).
-3. If ALL required fields are captured and you have asked about the remaining groups, set "ready_to_confirm" to true and instead of a follow-up question, present a final confirmation summary of the full profile and ask the owner to confirm or request changes.
+You handle these sections in order: Policies, Estimate Rules, Business Tone.
 
-Structured fields (JSON keys with labels):
-${PROFILE_FIELDS.map((f) => `- ${f.key} (${f.label}${f.required ? ", REQUIRED" : ""}) [${f.group}]`).join("\n")}
+Policies to capture:
+${CHAT_FIELDS.map((f) => `- ${f.key}: ${f.label}`).join("\n")}
 
-Already captured (do not lose these values; only update them if the owner corrects them):
-${captured.length > 0 ? captured.map((f) => `- ${f.key}: ${profile[f.key]}`).join("\n") : "(nothing yet)"}
+Already captured:
+${captured.length > 0 ? captured.map((f) => `- ${f.key}: ${profile[f.key]}`).join("\n") : "(nothing yet — start with Policies)"}
 
 Still missing:
-${missing.map((f) => `- ${f.key}${f.required ? " (REQUIRED)" : ""}`).join("\n")}
+${missing.map((f) => `- ${f.key} (${f.label})${f.required ? " [REQUIRED]" : ""}`).join("\n")}
+
+RULES:
+1. Ask about ONE section at a time. Do NOT list all missing fields at once. Pick the next most important missing field and ask ONE focused, casual question about it.
+2. When the owner gives a casual answer, extract what they said AND write a polished customer-facing version of that policy.
+3. When you have a polished draft for a specific field, include it in the "policy_draft" object of your JSON response.
+4. If the owner says their answer is fine as-is or to just save it, still write a polished version.
+5. If all required fields are captured, set "ready_to_confirm" to true.
+6. Never use emojis. Be warm and conversational, not formal.
+
+Example: If owner says "If they cancel less than a day before, it's $75. Weather doesn't count." — write:
+"Cancellations made less than 24 hours before the scheduled service may be subject to a $75 cancellation fee. Weather-related delays do not incur cancellation fees and will be rescheduled for the next available service window."
 
 Respond ONLY with a JSON object:
-{"reply": string, "profile": {<field key>: string | null, ...only include fields you extracted or updated from the latest message>}, "ready_to_confirm": boolean}`;
+{
+  "reply": string,
+  "profile": { <only the chat field keys you extracted or updated from this turn> },
+  "policy_draft": { "key": string, "label": string, "wording": string } | null,
+  "ready_to_confirm": boolean
+}
 
-  const user = `Conversation so far:
-${messages.map((m) => `${m.role === "user" ? "Owner" : "BDA"}: ${m.content}`).join("\n\n")}
+"policy_draft" should only be set when you are proposing polished wording for a specific field. Set it to null otherwise.
+The "profile" object should use the actual field key (e.g. "cancellationPolicy") and contain the CASUAL captured value — the polished wording goes only in "policy_draft.wording".`;
 
-Extract fields from the owner's latest message and produce the next BDA reply.`;
+  const user = `Next missing section fields: ${nextMissing.map((f) => f.label).join(", ")}
+
+Conversation so far:
+${messages.map((m) => `${m.role === "user" ? "Owner" : "BDA Helper"}: ${m.content}`).join("\n\n")}
+
+Respond with the next BDA Helper message.`;
 
   try {
     const completion = await client.chat.completions.create({
@@ -230,12 +199,18 @@ Extract fields from the owner's latest message and produce the next BDA reply.`;
     if (typeof data.reply !== "string" || data.reply.trim().length === 0) {
       return fallback;
     }
-    const mergedProfile = normalizeProfile(data.profile, profile);
+    const mergedProfile = mergeProfile(data.profile, profile);
+    const policyDraft = normalizePolicyDraft(data.policy_draft);
     const ready =
-      Boolean(data.ready_to_confirm) && requiredComplete(mergedProfile);
-    return { reply: data.reply, profile: mergedProfile, readyToConfirm: ready };
+      Boolean(data.ready_to_confirm) && policiesComplete(mergedProfile);
+    return {
+      reply: data.reply,
+      profile: mergedProfile,
+      policyDraft,
+      readyToConfirm: ready,
+    };
   } catch (err) {
-    logger.error({ err }, "Profile interview OpenAI request failed");
+    logger.error({ err }, "BDA helper OpenAI request failed");
     return fallback;
   }
 }

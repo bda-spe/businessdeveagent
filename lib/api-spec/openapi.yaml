@@ -555,6 +555,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProfileInterview"
 
+  /business-profile-interview/structured:
+    patch:
+      operationId: saveStructuredProfileData
+      tags: [profileInterview]
+      summary: Save structured form fields into the interview profile data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StructuredProfileInput"
+      responses:
+        "200":
+          description: Updated interview state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileInterview"
+
+  /business-profile-interview/accept-policy:
+    post:
+      operationId: acceptPolicyDraft
+      tags: [profileInterview]
+      summary: Accept (or save an edited version of) a BDA-generated policy draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptPolicyInput"
+      responses:
+        "200":
+          description: Updated interview state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileInterview"
+
   /leads:
     get:
       operationId: listLeads
@@ -1308,9 +1346,36 @@ components:
         required:
           type: boolean
 
+    PolicyDraft:
+      type: object
+      required: [key, label, wording]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        wording:
+          type: string
+
+    ProfileFormData:
+      type: object
+      properties:
+        businessAddress:
+          type: ["string", "null"]
+        businessHours:
+          type: ["string", "null"]
+        emergencyAvailability:
+          type: ["string", "null"]
+        seasonalAvailability:
+          type: ["string", "null"]
+        yearsInBusiness:
+          type: ["string", "null"]
+        typicalResponseTime:
+          type: ["string", "null"]
+
     ProfileInterview:
       type: object
-      required: [id, status, messages, captured, stillMissing, readyToConfirm]
+      required: [id, status, messages, captured, stillMissing, readyToConfirm, formData]
       properties:
         id:
           type: integer
@@ -1331,6 +1396,12 @@ components:
             $ref: "#/components/schemas/ProfileMissingField"
         readyToConfirm:
           type: boolean
+        policyDraft:
+          oneOf:
+            - $ref: "#/components/schemas/PolicyDraft"
+            - type: "null"
+        formData:
+          $ref: "#/components/schemas/ProfileFormData"
 
     ProfileInterviewMessageInput:
       type: object
@@ -1339,6 +1410,31 @@ components:
         message:
           type: string
           minLength: 1
+
+    StructuredProfileInput:
+      type: object
+      properties:
+        businessAddress:
+          type: string
+        businessHours:
+          type: string
+        emergencyAvailability:
+          type: string
+        seasonalAvailability:
+          type: string
+        yearsInBusiness:
+          type: string
+        typicalResponseTime:
+          type: string
+
+    AcceptPolicyInput:
+      type: object
+      required: [key, wording]
+      properties:
+        key:
+          type: string
+        wording:
+          type: string
 
     SendEmailResult:
       type: object

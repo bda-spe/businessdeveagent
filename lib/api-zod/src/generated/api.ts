@@ -725,7 +725,20 @@ export const GetProfileInterviewResponse = zod.object({
   "group": zod.string(),
   "required": zod.boolean()
 })),
-  "readyToConfirm": zod.boolean()
+  "readyToConfirm": zod.boolean(),
+  "policyDraft": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "wording": zod.string()
+}),zod.null()]).optional(),
+  "formData": zod.object({
+  "businessAddress": zod.string().nullish(),
+  "businessHours": zod.string().nullish(),
+  "emergencyAvailability": zod.string().nullish(),
+  "seasonalAvailability": zod.string().nullish(),
+  "yearsInBusiness": zod.string().nullish(),
+  "typicalResponseTime": zod.string().nullish()
+})
 })
 
 
@@ -758,7 +771,20 @@ export const SendProfileInterviewMessageResponse = zod.object({
   "group": zod.string(),
   "required": zod.boolean()
 })),
-  "readyToConfirm": zod.boolean()
+  "readyToConfirm": zod.boolean(),
+  "policyDraft": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "wording": zod.string()
+}),zod.null()]).optional(),
+  "formData": zod.object({
+  "businessAddress": zod.string().nullish(),
+  "businessHours": zod.string().nullish(),
+  "emergencyAvailability": zod.string().nullish(),
+  "seasonalAvailability": zod.string().nullish(),
+  "yearsInBusiness": zod.string().nullish(),
+  "typicalResponseTime": zod.string().nullish()
+})
 })
 
 
@@ -784,7 +810,20 @@ export const ConfirmProfileInterviewResponse = zod.object({
   "group": zod.string(),
   "required": zod.boolean()
 })),
-  "readyToConfirm": zod.boolean()
+  "readyToConfirm": zod.boolean(),
+  "policyDraft": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "wording": zod.string()
+}),zod.null()]).optional(),
+  "formData": zod.object({
+  "businessAddress": zod.string().nullish(),
+  "businessHours": zod.string().nullish(),
+  "emergencyAvailability": zod.string().nullish(),
+  "seasonalAvailability": zod.string().nullish(),
+  "yearsInBusiness": zod.string().nullish(),
+  "typicalResponseTime": zod.string().nullish()
+})
 })
 
 
@@ -810,7 +849,112 @@ export const ResetProfileInterviewResponse = zod.object({
   "group": zod.string(),
   "required": zod.boolean()
 })),
-  "readyToConfirm": zod.boolean()
+  "readyToConfirm": zod.boolean(),
+  "policyDraft": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "wording": zod.string()
+}),zod.null()]).optional(),
+  "formData": zod.object({
+  "businessAddress": zod.string().nullish(),
+  "businessHours": zod.string().nullish(),
+  "emergencyAvailability": zod.string().nullish(),
+  "seasonalAvailability": zod.string().nullish(),
+  "yearsInBusiness": zod.string().nullish(),
+  "typicalResponseTime": zod.string().nullish()
+})
+})
+
+
+/**
+ * @summary Save structured form fields into the interview profile data
+ */
+export const SaveStructuredProfileDataBody = zod.object({
+  "businessAddress": zod.string().optional(),
+  "businessHours": zod.string().optional(),
+  "emergencyAvailability": zod.string().optional(),
+  "seasonalAvailability": zod.string().optional(),
+  "yearsInBusiness": zod.string().optional(),
+  "typicalResponseTime": zod.string().optional()
+})
+
+export const SaveStructuredProfileDataResponse = zod.object({
+  "id": zod.number(),
+  "status": zod.enum(['in_progress', 'confirmed']),
+  "messages": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string()
+})),
+  "captured": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "value": zod.string()
+})),
+  "stillMissing": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "required": zod.boolean()
+})),
+  "readyToConfirm": zod.boolean(),
+  "policyDraft": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "wording": zod.string()
+}),zod.null()]).optional(),
+  "formData": zod.object({
+  "businessAddress": zod.string().nullish(),
+  "businessHours": zod.string().nullish(),
+  "emergencyAvailability": zod.string().nullish(),
+  "seasonalAvailability": zod.string().nullish(),
+  "yearsInBusiness": zod.string().nullish(),
+  "typicalResponseTime": zod.string().nullish()
+})
+})
+
+
+/**
+ * @summary Accept (or save an edited version of) a BDA-generated policy draft
+ */
+export const AcceptPolicyDraftBody = zod.object({
+  "key": zod.string(),
+  "wording": zod.string()
+})
+
+export const AcceptPolicyDraftResponse = zod.object({
+  "id": zod.number(),
+  "status": zod.enum(['in_progress', 'confirmed']),
+  "messages": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string()
+})),
+  "captured": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "value": zod.string()
+})),
+  "stillMissing": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "group": zod.string(),
+  "required": zod.boolean()
+})),
+  "readyToConfirm": zod.boolean(),
+  "policyDraft": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "wording": zod.string()
+}),zod.null()]).optional(),
+  "formData": zod.object({
+  "businessAddress": zod.string().nullish(),
+  "businessHours": zod.string().nullish(),
+  "emergencyAvailability": zod.string().nullish(),
+  "seasonalAvailability": zod.string().nullish(),
+  "yearsInBusiness": zod.string().nullish(),
+  "typicalResponseTime": zod.string().nullish()
+})
 })
 
 

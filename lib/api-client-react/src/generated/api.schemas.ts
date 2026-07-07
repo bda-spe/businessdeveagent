@@ -418,6 +418,27 @@ export interface ProfileMissingField {
   required: boolean;
 }
 
+export interface PolicyDraft {
+  key: string;
+  label: string;
+  wording: string;
+}
+
+export interface ProfileFormData {
+  /** @nullable */
+  businessAddress?: string | null;
+  /** @nullable */
+  businessHours?: string | null;
+  /** @nullable */
+  emergencyAvailability?: string | null;
+  /** @nullable */
+  seasonalAvailability?: string | null;
+  /** @nullable */
+  yearsInBusiness?: string | null;
+  /** @nullable */
+  typicalResponseTime?: string | null;
+}
+
 export type ProfileInterviewStatus = typeof ProfileInterviewStatus[keyof typeof ProfileInterviewStatus];
 
 
@@ -433,11 +454,27 @@ export interface ProfileInterview {
   captured: ProfileCapturedField[];
   stillMissing: ProfileMissingField[];
   readyToConfirm: boolean;
+  policyDraft?: PolicyDraft | null;
+  formData: ProfileFormData;
 }
 
 export interface ProfileInterviewMessageInput {
   /** @minLength 1 */
   message: string;
+}
+
+export interface StructuredProfileInput {
+  businessAddress?: string;
+  businessHours?: string;
+  emergencyAvailability?: string;
+  seasonalAvailability?: string;
+  yearsInBusiness?: string;
+  typicalResponseTime?: string;
+}
+
+export interface AcceptPolicyInput {
+  key: string;
+  wording: string;
 }
 
 export interface SendEmailResult {

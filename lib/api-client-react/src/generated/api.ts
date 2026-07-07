@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AcceptPolicyInput,
   Account,
   ActivityEvent,
   BillingPlan,
@@ -52,6 +53,7 @@ import type {
   Service,
   ServiceInput,
   ServiceUpdate,
+  StructuredProfileInput,
   UploadedFile,
   UploadedFileInput,
   WidgetConfig,
@@ -2339,6 +2341,146 @@ export const useResetProfileInterview = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getResetProfileInterviewMutationOptions(options));
+    }
+
+export const getSaveStructuredProfileDataUrl = () => {
+
+
+
+
+  return `/api/business-profile-interview/structured`
+}
+
+/**
+ * @summary Save structured form fields into the interview profile data
+ */
+export const saveStructuredProfileData = async (structuredProfileInput: StructuredProfileInput, options?: RequestInit): Promise<ProfileInterview> => {
+
+  return customFetch<ProfileInterview>(getSaveStructuredProfileDataUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(structuredProfileInput)
+  }
+);}
+
+
+
+
+export const getSaveStructuredProfileDataMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveStructuredProfileData>>, TError,{data: BodyType<StructuredProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveStructuredProfileData>>, TError,{data: BodyType<StructuredProfileInput>}, TContext> => {
+
+const mutationKey = ['saveStructuredProfileData'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveStructuredProfileData>>, {data: BodyType<StructuredProfileInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveStructuredProfileData(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveStructuredProfileDataMutationResult = NonNullable<Awaited<ReturnType<typeof saveStructuredProfileData>>>
+    export type SaveStructuredProfileDataMutationBody = BodyType<StructuredProfileInput>
+    export type SaveStructuredProfileDataMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save structured form fields into the interview profile data
+ */
+export const useSaveStructuredProfileData = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveStructuredProfileData>>, TError,{data: BodyType<StructuredProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveStructuredProfileData>>,
+        TError,
+        {data: BodyType<StructuredProfileInput>},
+        TContext
+      > => {
+      return useMutation(getSaveStructuredProfileDataMutationOptions(options));
+    }
+
+export const getAcceptPolicyDraftUrl = () => {
+
+
+
+
+  return `/api/business-profile-interview/accept-policy`
+}
+
+/**
+ * @summary Accept (or save an edited version of) a BDA-generated policy draft
+ */
+export const acceptPolicyDraft = async (acceptPolicyInput: AcceptPolicyInput, options?: RequestInit): Promise<ProfileInterview> => {
+
+  return customFetch<ProfileInterview>(getAcceptPolicyDraftUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(acceptPolicyInput)
+  }
+);}
+
+
+
+
+export const getAcceptPolicyDraftMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptPolicyDraft>>, TError,{data: BodyType<AcceptPolicyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptPolicyDraft>>, TError,{data: BodyType<AcceptPolicyInput>}, TContext> => {
+
+const mutationKey = ['acceptPolicyDraft'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptPolicyDraft>>, {data: BodyType<AcceptPolicyInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  acceptPolicyDraft(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptPolicyDraftMutationResult = NonNullable<Awaited<ReturnType<typeof acceptPolicyDraft>>>
+    export type AcceptPolicyDraftMutationBody = BodyType<AcceptPolicyInput>
+    export type AcceptPolicyDraftMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Accept (or save an edited version of) a BDA-generated policy draft
+ */
+export const useAcceptPolicyDraft = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptPolicyDraft>>, TError,{data: BodyType<AcceptPolicyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof acceptPolicyDraft>>,
+        TError,
+        {data: BodyType<AcceptPolicyInput>},
+        TContext
+      > => {
+      return useMutation(getAcceptPolicyDraftMutationOptions(options));
     }
 
 export const getListLeadsUrl = () => {

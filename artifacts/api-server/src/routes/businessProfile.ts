@@ -13,19 +13,25 @@ import {
   SendProfileInterviewMessageResponse,
   ConfirmProfileInterviewResponse,
   ResetProfileInterviewResponse,
+  SaveStructuredProfileDataBody,
+  SaveStructuredProfileDataResponse,
+  AcceptPolicyDraftBody,
+  AcceptPolicyDraftResponse,
 } from "@workspace/api-zod";
 import { requireBusiness } from "../lib/auth";
 import { logActivity } from "../lib/business";
 import {
-  INITIAL_INTERVIEW_MESSAGE,
-  PROFILE_FIELDS,
+  INITIAL_BDA_HELPER_MESSAGE,
+  CHAT_FIELDS,
+  EXTRA_FORM_KEYS,
   emptyProfile,
-  capturedFields,
-  missingFields,
-  requiredComplete,
+  capturedChatFields,
+  missingChatFields,
+  policiesComplete,
   runInterviewTurn,
   type InterviewMessage,
   type ProfileData,
+  type PolicyDraft,
 } from "../lib/profileInterview";
 
 const router: IRouter = Router();
@@ -36,9 +42,13 @@ function rowProfile(row: InterviewRow): ProfileData {
   const base = emptyProfile();
   const stored = row.profileData;
   if (stored && typeof stored === "object") {
-    for (const f of PROFILE_FIELDS) {
+    for (const f of CHAT_FIELDS) {
       const v = (stored as Record<string, unknown>)[f.key];
       if (typeof v === "string" && v.trim().length > 0) base[f.key] = v;
+    }
+    for (const k of EXTRA_FORM_KEYS) {
+      const v = (stored as Record<string, unknown>)[k];
+      if (typeof v === "string" && v.trim().length > 0) base[k] = v;
     }
   }
   return base;
@@ -56,27 +66,54 @@ function rowMessages(row: InterviewRow): InterviewMessage[] {
   return [];
 }
 
+function rowPolicyDraft(row: InterviewRow): PolicyDraft | null {
+  const stored = row.profileData;
+  if (!stored || typeof stored !== "object") return null;
+  const raw = (stored as Record<string, unknown>)["_pendingDraft"];
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (
+    typeof r.key === "string" &&
+    typeof r.label === "string" &&
+    typeof r.wording === "string" &&
+    CHAT_FIELDS.some((f) => f.key === r.key)
+  ) {
+    return { key: r.key, label: r.label, wording: r.wording };
+  }
+  return null;
+}
+
 function serializeInterview(row: InterviewRow) {
   const profile = rowProfile(row);
-  const captured = capturedFields(profile).map((f) => ({
+  const captured = capturedChatFields(profile).map((f) => ({
     key: f.key,
     label: f.label,
     group: f.group,
     value: profile[f.key] as string,
   }));
-  const stillMissing = missingFields(profile).map((f) => ({
+  const stillMissing = missingChatFields(profile).map((f) => ({
     key: f.key,
     label: f.label,
     group: f.group,
     required: f.required,
   }));
+  const formData = {
+    businessAddress: profile["businessAddress"] ?? null,
+    businessHours: profile["businessHours"] ?? null,
+    emergencyAvailability: profile["emergencyAvailability"] ?? null,
+    seasonalAvailability: profile["seasonalAvailability"] ?? null,
+    yearsInBusiness: profile["yearsInBusiness"] ?? null,
+    typicalResponseTime: profile["typicalResponseTime"] ?? null,
+  };
   return {
     id: row.id,
     status: row.status,
     messages: rowMessages(row),
     captured,
     stillMissing,
-    readyToConfirm: requiredComplete(profile),
+    readyToConfirm: policiesComplete(profile),
+    policyDraft: rowPolicyDraft(row) ?? null,
+    formData,
   };
 }
 
@@ -91,7 +128,7 @@ async function getOrCreateInterview(businessId: number): Promise<InterviewRow> {
     .values({
       businessId,
       messages: [
-        { role: "assistant", content: INITIAL_INTERVIEW_MESSAGE },
+        { role: "assistant", content: INITIAL_BDA_HELPER_MESSAGE },
       ] satisfies InterviewMessage[],
       profileData: emptyProfile(),
     })
@@ -99,102 +136,24 @@ async function getOrCreateInterview(businessId: number): Promise<InterviewRow> {
   return created;
 }
 
-function firstNumber(v: string | null): number | null {
-  if (!v) return null;
-  const match = v.replace(/,/g, "").match(/\d+(\.\d+)?/);
-  if (!match) return null;
-  const n = Number(match[0]);
-  return Number.isFinite(n) ? n : null;
-}
-
-// The interview is the key source of truth: extracted values are synced into
-// the structured business, pricing, and invoice settings records so every
-// other part of the app (estimates, PDFs, widget agent) uses them.
-async function syncProfileToRecords(
+// Sync accepted policy wording into invoice_settings for downstream use.
+async function syncPolicyToInvoiceSettings(
   businessId: number,
-  profile: ProfileData,
+  key: string,
+  wording: string,
 ): Promise<void> {
-  const businessUpdate: Record<string, string> = {};
-  if (profile.businessName) businessUpdate.name = profile.businessName;
-  if (profile.industry) businessUpdate.industry = profile.industry;
-  if (profile.website) businessUpdate.website = profile.website;
-  if (profile.phone) businessUpdate.phone = profile.phone;
-  if (profile.email) businessUpdate.email = profile.email;
-  if (profile.serviceArea) businessUpdate.serviceArea = profile.serviceArea;
-  if (profile.customerType) businessUpdate.customerType = profile.customerType;
-  if (profile.numberOfEmployees)
-    businessUpdate.companySize = profile.numberOfEmployees;
-
-  if (Object.keys(businessUpdate).length > 0) {
-    await db
-      .update(businessesTable)
-      .set(businessUpdate)
-      .where(eq(businessesTable.id, businessId));
-  }
-
-  const pricingUpdate: Record<string, number> = {};
-  const laborRate = firstNumber(profile.laborRate);
-  const minimumJobCost = firstNumber(profile.minimumJobCharge);
-  const travelFee = firstNumber(profile.travelFees);
-  const taxRate = firstNumber(profile.taxRate);
-  const emergencyFee = firstNumber(profile.weekendEmergencyFees);
-  if (laborRate != null) pricingUpdate.laborRate = laborRate;
-  if (minimumJobCost != null) pricingUpdate.minimumJobCost = minimumJobCost;
-  if (travelFee != null) pricingUpdate.travelFee = travelFee;
-  if (taxRate != null) pricingUpdate.taxRate = taxRate;
-  if (emergencyFee != null) pricingUpdate.emergencyFee = emergencyFee;
-
-  const pricingNotes: string[] = [];
-  if (profile.materialMarkup)
-    pricingNotes.push(`Material markup: ${profile.materialMarkup}`);
-  if (profile.cancellationFees)
-    pricingNotes.push(`Cancellation fees: ${profile.cancellationFees}`);
-
-  if (Object.keys(pricingUpdate).length > 0 || pricingNotes.length > 0) {
-    let customNotesUpdate: { customNotes: string } | {} = {};
-    if (pricingNotes.length > 0) {
-      // Merge with any existing user-entered notes instead of overwriting:
-      // replace only lines this sync previously wrote, keep everything else.
-      const [existing] = await db
-        .select({ customNotes: pricingRulesTable.customNotes })
-        .from(pricingRulesTable)
-        .where(eq(pricingRulesTable.businessId, businessId));
-      const keptLines = (existing?.customNotes ?? "")
-        .split("\n")
-        .filter(
-          (line) =>
-            line.trim().length > 0 &&
-            !/^\s*(Material markup|Cancellation fees):/i.test(line),
-        );
-      customNotesUpdate = {
-        customNotes: [...keptLines, ...pricingNotes].join("\n"),
-      };
-    }
-    await db
-      .update(pricingRulesTable)
-      .set({
-        ...pricingUpdate,
-        ...customNotesUpdate,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(pricingRulesTable.businessId, businessId));
-  }
-
-  const invoiceUpdate: Record<string, string> = {};
-  if (profile.paymentTerms) invoiceUpdate.paymentTerms = profile.paymentTerms;
-  if (profile.cancellationPolicy)
-    invoiceUpdate.cancellationPolicy = profile.cancellationPolicy;
-  if (profile.depositRequirements)
-    invoiceUpdate.depositRequirements = profile.depositRequirements;
-  if (profile.disclaimers)
-    invoiceUpdate.estimateDisclaimer = profile.disclaimers;
-
-  if (Object.keys(invoiceUpdate).length > 0) {
-    await db
-      .update(invoiceSettingsTable)
-      .set({ ...invoiceUpdate, updatedAt: new Date().toISOString() })
-      .where(eq(invoiceSettingsTable.businessId, businessId));
-  }
+  const colMap: Record<string, string> = {
+    paymentTerms: "paymentTerms",
+    cancellationPolicy: "cancellationPolicy",
+    depositRequirements: "depositRequirements",
+    disclaimers: "estimateDisclaimer",
+  };
+  const col = colMap[key];
+  if (!col) return;
+  await db
+    .update(invoiceSettingsTable)
+    .set({ [col]: wording, updatedAt: new Date().toISOString() })
+    .where(eq(invoiceSettingsTable.businessId, businessId));
 }
 
 router.get(
@@ -226,6 +185,7 @@ router.post(
     ];
 
     const turn = await runInterviewTurn({
+      businessName: req.business!.name ?? null,
       messages: withUser,
       profile,
     });
@@ -235,21 +195,116 @@ router.post(
       { role: "assistant", content: turn.reply },
     ];
 
+    // Store casual captured value; pending draft wording goes in _pendingDraft.
+    const updatedProfileData: Record<string, unknown> = {
+      ...turn.profile,
+      _pendingDraft: turn.policyDraft ?? null,
+    };
+
     const [updated] = await db
       .update(businessProfileInterviewsTable)
       .set({
         messages: updatedMessages,
-        profileData: turn.profile,
+        profileData: updatedProfileData,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(businessProfileInterviewsTable.businessId, businessId))
       .returning();
 
-    await syncProfileToRecords(businessId, turn.profile);
-
     res.json(
       SendProfileInterviewMessageResponse.parse(serializeInterview(updated)),
     );
+  },
+);
+
+router.patch(
+  "/business-profile-interview/structured",
+  requireBusiness,
+  async (req, res): Promise<void> => {
+    const parsed = SaveStructuredProfileDataBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const businessId = req.business!.id;
+    const row = await getOrCreateInterview(businessId);
+    const profile = rowProfile(row);
+
+    // Merge extra form fields into profileData
+    const updatedProfileData: Record<string, unknown> = {
+      ...((row.profileData as Record<string, unknown>) ?? {}),
+    };
+    const data = parsed.data;
+    if (data.businessAddress != null)
+      updatedProfileData["businessAddress"] = data.businessAddress;
+    if (data.businessHours != null)
+      updatedProfileData["businessHours"] = data.businessHours;
+    if (data.emergencyAvailability != null)
+      updatedProfileData["emergencyAvailability"] = data.emergencyAvailability;
+    if (data.seasonalAvailability != null)
+      updatedProfileData["seasonalAvailability"] = data.seasonalAvailability;
+    if (data.yearsInBusiness != null)
+      updatedProfileData["yearsInBusiness"] = data.yearsInBusiness;
+    if (data.typicalResponseTime != null)
+      updatedProfileData["typicalResponseTime"] = data.typicalResponseTime;
+
+    const [updated] = await db
+      .update(businessProfileInterviewsTable)
+      .set({
+        profileData: updatedProfileData,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(businessProfileInterviewsTable.businessId, businessId))
+      .returning();
+
+    // Keep policy draft from existing row since this is just form data
+    void profile; // used above via spread
+    res.json(
+      SaveStructuredProfileDataResponse.parse(serializeInterview(updated)),
+    );
+  },
+);
+
+router.post(
+  "/business-profile-interview/accept-policy",
+  requireBusiness,
+  async (req, res): Promise<void> => {
+    const parsed = AcceptPolicyDraftBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const businessId = req.business!.id;
+    const row = await getOrCreateInterview(businessId);
+
+    const { key, wording } = parsed.data;
+
+    // Validate key is a real chat field
+    if (!CHAT_FIELDS.some((f) => f.key === key)) {
+      res.status(400).json({ error: "Unknown policy key" });
+      return;
+    }
+
+    // Save accepted wording into profileData and clear pending draft
+    const updatedProfileData: Record<string, unknown> = {
+      ...((row.profileData as Record<string, unknown>) ?? {}),
+      [key]: wording,
+      _pendingDraft: null,
+    };
+
+    const [updated] = await db
+      .update(businessProfileInterviewsTable)
+      .set({
+        profileData: updatedProfileData,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(businessProfileInterviewsTable.businessId, businessId))
+      .returning();
+
+    // Sync into invoice_settings for fields that map there
+    await syncPolicyToInvoiceSettings(businessId, key, wording);
+
+    res.json(AcceptPolicyDraftResponse.parse(serializeInterview(updated)));
   },
 );
 
@@ -260,15 +315,34 @@ router.post(
     const businessId = req.business!.id;
     const row = await getOrCreateInterview(businessId);
     const profile = rowProfile(row);
-    if (!requiredComplete(profile)) {
+
+    if (!policiesComplete(profile)) {
       res.status(400).json({
         error:
-          "The interview is still missing required fields. Keep answering the BDA's questions before confirming.",
+          "Still missing required policy fields. Keep chatting with the BDA helper to complete them.",
       });
       return;
     }
 
-    await syncProfileToRecords(businessId, profile);
+    // Sync accepted policy fields into invoice settings
+    const policyToCol: Record<string, string> = {
+      paymentTerms: "paymentTerms",
+      cancellationPolicy: "cancellationPolicy",
+      disclaimers: "estimateDisclaimer",
+    };
+    const invoiceUpdate: Record<string, string> = {};
+    for (const [k, col] of Object.entries(policyToCol)) {
+      const v = profile[k];
+      if (typeof v === "string" && v.trim().length > 0) {
+        invoiceUpdate[col] = v;
+      }
+    }
+    if (Object.keys(invoiceUpdate).length > 0) {
+      await db
+        .update(invoiceSettingsTable)
+        .set({ ...invoiceUpdate, updatedAt: new Date().toISOString() })
+        .where(eq(invoiceSettingsTable.businessId, businessId));
+    }
 
     const [updated] = await db
       .update(businessProfileInterviewsTable)
@@ -284,12 +358,10 @@ router.post(
     await logActivity(
       businessId,
       "business_updated",
-      "Business profile interview completed and confirmed",
+      "Business profile completed and confirmed",
     );
 
-    res.json(
-      ConfirmProfileInterviewResponse.parse(serializeInterview(updated)),
-    );
+    res.json(ConfirmProfileInterviewResponse.parse(serializeInterview(updated)));
   },
 );
 
@@ -303,7 +375,7 @@ router.post(
       .update(businessProfileInterviewsTable)
       .set({
         messages: [
-          { role: "assistant", content: INITIAL_INTERVIEW_MESSAGE },
+          { role: "assistant", content: INITIAL_BDA_HELPER_MESSAGE },
         ] satisfies InterviewMessage[],
         profileData: emptyProfile(),
         status: "in_progress",
@@ -312,10 +384,6 @@ router.post(
       .where(eq(businessProfileInterviewsTable.businessId, businessId))
       .returning();
 
-    // Restarting the interview revokes the confirmed/approved state so the
-    // Business Profile step is no longer marked complete. Previously synced
-    // business data is intentionally preserved — it remains editable and will
-    // be overwritten as the new interview captures fresh values.
     await db
       .update(businessesTable)
       .set({ profileApproved: false })

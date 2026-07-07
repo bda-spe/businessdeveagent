@@ -5,7 +5,9 @@
  * Business Development Agent (BDA) multi-tenant SaaS API
  * OpenAPI spec version: 0.1.0
  */
+import type { PolicyDraft } from './policyDraft';
 import type { ProfileCapturedField } from './profileCapturedField';
+import type { ProfileFormData } from './profileFormData';
 import type { ProfileInterviewMessage } from './profileInterviewMessage';
 import type { ProfileInterviewStatus } from './profileInterviewStatus';
 import type { ProfileMissingField } from './profileMissingField';
@@ -17,4 +19,6 @@ export interface ProfileInterview {
   captured: ProfileCapturedField[];
   stillMissing: ProfileMissingField[];
   readyToConfirm: boolean;
+  policyDraft?: PolicyDraft | null;
+  formData: ProfileFormData;
 }

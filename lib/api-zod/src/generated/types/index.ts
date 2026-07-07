@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './acceptPolicyInput';
 export * from './account';
 export * from './activityEvent';
 export * from './billingPlan';
@@ -30,9 +31,11 @@ export * from './invoiceSettingsSelectedTemplate';
 export * from './lead';
 export * from './leadDetail';
 export * from './leadUpdate';
+export * from './policyDraft';
 export * from './pricingRules';
 export * from './pricingRulesInput';
 export * from './profileCapturedField';
+export * from './profileFormData';
 export * from './profileInterview';
 export * from './profileInterviewMessage';
 export * from './profileInterviewMessageInput';
@@ -51,6 +54,7 @@ export * from './service';
 export * from './serviceInput';
 export * from './serviceUpdate';
 export * from './setupProgress';
+export * from './structuredProfileInput';
 export * from './uploadedFile';
 export * from './uploadedFileInput';
 export * from './user';
