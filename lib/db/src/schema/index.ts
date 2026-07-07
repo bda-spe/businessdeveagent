@@ -21,7 +21,7 @@ export const businessesTable = pgTable("businesses", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
     .notNull()
-    .references(() => usersTable.id),
+    .references(() => usersTable.id, { onDelete: "cascade" }),
   clientId: text("client_id").notNull().unique(),
   name: text("name").notNull(),
   industry: text("industry"),
@@ -40,7 +40,7 @@ export const servicesTable = pgTable("services", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id),
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
   category: text("category"),
@@ -56,7 +56,7 @@ export const pricingRulesTable = pgTable("pricing_rules", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id)
+    .references(() => businessesTable.id, { onDelete: "cascade" })
     .unique(),
   laborRate: doublePrecision("labor_rate"),
   emergencyFee: doublePrecision("emergency_fee"),
@@ -73,7 +73,7 @@ export const requirementsTable = pgTable("requirements", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id),
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   key: text("key").notNull(),
   label: text("label").notNull(),
   status: text("status").notNull().default("pending"),
@@ -86,7 +86,7 @@ export const uploadedFilesTable = pgTable("uploaded_files", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id),
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   filename: text("filename").notNull(),
   sizeBytes: integer("size_bytes").notNull(),
   fileType: text("file_type").notNull(),
@@ -100,7 +100,7 @@ export const extractedValuesTable = pgTable("extracted_requirement_values", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id),
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   requirementKey: text("requirement_key").notNull(),
   requirementLabel: text("requirement_label").notNull(),
   extractedValue: text("extracted_value"),
@@ -115,7 +115,7 @@ export const invoiceSettingsTable = pgTable("invoice_settings", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id)
+    .references(() => businessesTable.id, { onDelete: "cascade" })
     .unique(),
   selectedTemplate: text("selected_template")
     .notNull()
@@ -145,7 +145,7 @@ export const businessProfileInterviewsTable = pgTable(
     id: serial("id").primaryKey(),
     businessId: integer("business_id")
       .notNull()
-      .references(() => businessesTable.id)
+      .references(() => businessesTable.id, { onDelete: "cascade" })
       .unique(),
     messages: jsonb("messages"),
     profileData: jsonb("profile_data"),
@@ -160,7 +160,7 @@ export const sandboxTestsTable = pgTable("sandbox_tests", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id),
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   scenario: text("scenario"),
   prompt: text("prompt").notNull(),
   agentResponse: text("agent_response").notNull(),
@@ -180,7 +180,7 @@ export const leadsTable = pgTable("leads", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id),
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   customerName: text("customer_name").notNull(),
   email: text("email"),
   phone: text("phone"),
@@ -199,7 +199,7 @@ export const widgetSettingsTable = pgTable("widget_settings", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id)
+    .references(() => businessesTable.id, { onDelete: "cascade" })
     .unique(),
   greeting: text("greeting").notNull().default("Hi! How can we help with your project today?"),
   primaryColor: text("primary_color").notNull().default("#1e3a5f"),
@@ -212,7 +212,7 @@ export const billingSubscriptionsTable = pgTable("billing_subscriptions", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id),
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   planId: text("plan_id"),
   planName: text("plan_name"),
   status: text("status").notNull().default("inactive"),
@@ -224,7 +224,7 @@ export const activityEventsTable = pgTable("activity_events", {
   id: serial("id").primaryKey(),
   businessId: integer("business_id")
     .notNull()
-    .references(() => businessesTable.id),
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   type: text("type").notNull(),
   description: text("description").notNull(),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
