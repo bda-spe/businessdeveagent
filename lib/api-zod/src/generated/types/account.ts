@@ -6,10 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { Business } from './business';
+import type { SetupProgress } from './setupProgress';
 import type { User } from './user';
 
 export interface Account {
   user: User;
   business?: Business | null;
   onboardingComplete: boolean;
+  setupProgress: SetupProgress;
 }

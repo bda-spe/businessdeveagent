@@ -7,7 +7,7 @@ import { useGetMe, useCreateBusiness } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { HardHat } from "lucide-react";
+import logoUrl from "@assets/bda-split_1783453365816.png";
 import { useToast } from "@/hooks/use-toast";
 import {
   Form,
@@ -64,7 +64,7 @@ export default function OnboardingPage() {
             title: "Business Created",
             description: "Welcome to BDA! Let's set up your agent.",
           });
-          setLocation("/dashboard");
+          setLocation("/business");
         },
         onError: (err: any) => {
           toast({
@@ -81,9 +81,11 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
         <div className="p-8 pb-6 border-b border-slate-100 text-center">
-          <div className="inline-flex bg-slate-900 text-white rounded p-2 mb-4">
-            <HardHat className="h-6 w-6" />
-          </div>
+          <img
+            src={logoUrl}
+            alt="BDA — Business Development Agent"
+            className="h-12 w-auto rounded mx-auto mb-4"
+          />
           <h1 className="text-2xl font-bold text-slate-900">Welcome to BDA</h1>
           <p className="text-slate-500 mt-2">Let's get your digital employee set up.</p>
         </div>

@@ -633,7 +633,7 @@ components:
 
     Account:
       type: object
-      required: [user, onboardingComplete]
+      required: [user, onboardingComplete, setupProgress]
       properties:
         user:
           $ref: "#/components/schemas/User"
@@ -642,6 +642,23 @@ components:
             - $ref: "#/components/schemas/Business"
             - type: "null"
         onboardingComplete:
+          type: boolean
+        setupProgress:
+          $ref: "#/components/schemas/SetupProgress"
+
+    SetupProgress:
+      type: object
+      required: [businessProfile, services, pricing, widget, testAgent]
+      properties:
+        businessProfile:
+          type: boolean
+        services:
+          type: boolean
+        pricing:
+          type: boolean
+        widget:
+          type: boolean
+        testAgent:
           type: boolean
 
     User:

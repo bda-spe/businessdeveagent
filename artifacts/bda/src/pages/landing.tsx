@@ -1,18 +1,18 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, MessageSquare, Calculator, Zap, ArrowRight, Activity, HardHat } from "lucide-react";
+import { ShieldCheck, MessageSquare, Calculator, Zap, ArrowRight } from "lucide-react";
+import logoUrl from "@assets/bda-split_1783453365816.png";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900">
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-slate-900 text-white rounded p-1.5">
-              <HardHat className="h-5 w-5" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">BDA</span>
-          </div>
+          <img
+            src={logoUrl}
+            alt="BDA — Business Development Agent"
+            className="h-11 w-auto rounded"
+          />
           <div className="flex items-center gap-4">
             <Link href="/sign-in" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               Sign In
@@ -61,7 +61,7 @@ export default function LandingPage() {
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold tracking-tight mb-4">How BDA works for your business</h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                Stop losing jobs because you couldn't answer the phone. Your agent handles the busywork so you can focus on the actual work.
+                Every visitor to your website is your next job. Your agent greets them instantly, quotes the work, and wins the business — even while you're out on a job site.
               </p>
             </div>
             
@@ -97,34 +97,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Pricing Teaser */}
-        <section className="py-24 bg-slate-900 text-white">
-          <div className="container mx-auto px-4 max-w-4xl text-center">
-            <h2 className="text-3xl font-bold mb-6">Professional tools, simple pricing.</h2>
-            <p className="text-slate-400 text-lg mb-10 max-w-xl mx-auto">
-              Start generating more revenue with an AI employee that costs less than a single bad lead.
-            </p>
-            <div className="inline-block bg-slate-800 p-8 rounded-3xl border border-slate-700 text-left">
-              <div className="flex items-center gap-4 mb-6">
-                <Activity className="h-8 w-8 text-blue-400" />
-                <div>
-                  <div className="text-sm font-medium text-slate-400 uppercase tracking-wider">Pro Agent</div>
-                  <div className="text-3xl font-bold">$99<span className="text-lg text-slate-500 font-normal">/mo</span></div>
-                </div>
-              </div>
-              <ul className="space-y-3 mb-8 text-slate-300">
-                <li className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-emerald-400" /> Unlimited conversations</li>
-                <li className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-emerald-400" /> Custom pricing rules</li>
-                <li className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-emerald-400" /> Embeddable website widget</li>
-              </ul>
-              <Link href="/sign-up">
-                <Button className="w-full bg-white text-slate-900 hover:bg-slate-100 h-12 text-base">
-                  Start Your Build
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
 
       <footer className="py-8 bg-slate-950 text-slate-500 text-sm border-t border-slate-800">

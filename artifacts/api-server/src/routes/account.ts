@@ -1,6 +1,13 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
-import { db, businessesTable, usersTable } from "@workspace/db";
+import { and, eq, inArray } from "drizzle-orm";
+import {
+  db,
+  businessesTable,
+  usersTable,
+  servicesTable,
+  sandboxTestsTable,
+  activityEventsTable,
+} from "@workspace/db";
 import {
   GetMeResponse,
   CreateBusinessBody,
@@ -22,11 +29,56 @@ const router: IRouter = Router();
 router.get("/me", async (req, res): Promise<void> => {
   const user = req.appUser!;
   const business = req.business ?? null;
+
+  let setupProgress = {
+    businessProfile: false,
+    services: false,
+    pricing: false,
+    widget: false,
+    testAgent: false,
+  };
+
+  if (business) {
+    const [services, sandboxTests, savedEvents] = await Promise.all([
+      db
+        .select({ id: servicesTable.id })
+        .from(servicesTable)
+        .where(eq(servicesTable.businessId, business.id))
+        .limit(1),
+      db
+        .select({ id: sandboxTestsTable.id })
+        .from(sandboxTestsTable)
+        .where(eq(sandboxTestsTable.businessId, business.id))
+        .limit(1),
+      db
+        .select({ type: activityEventsTable.type })
+        .from(activityEventsTable)
+        .where(
+          and(
+            eq(activityEventsTable.businessId, business.id),
+            inArray(activityEventsTable.type, [
+              "pricing_updated",
+              "widget_updated",
+            ]),
+          ),
+        ),
+    ]);
+    const eventTypes = new Set(savedEvents.map((e) => e.type));
+    setupProgress = {
+      businessProfile: !!(business.industry && business.serviceArea),
+      services: services.length > 0,
+      pricing: eventTypes.has("pricing_updated"),
+      widget: eventTypes.has("widget_updated"),
+      testAgent: sandboxTests.length > 0,
+    };
+  }
+
   res.json(
     GetMeResponse.parse({
       user: { id: user.id, email: user.email, ownerName: user.ownerName },
       business,
       onboardingComplete: !!business,
+      setupProgress,
     }),
   );
 });

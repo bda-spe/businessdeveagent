@@ -41,7 +41,14 @@ export const GetMeResponse = zod.object({
   "profileApproved": zod.boolean(),
   "createdAt": zod.string().optional()
 }),zod.null()]).optional(),
-  "onboardingComplete": zod.boolean()
+  "onboardingComplete": zod.boolean(),
+  "setupProgress": zod.object({
+  "businessProfile": zod.boolean(),
+  "services": zod.boolean(),
+  "pricing": zod.boolean(),
+  "widget": zod.boolean(),
+  "testAgent": zod.boolean()
+})
 })
 
 

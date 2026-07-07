@@ -34,6 +34,7 @@ export * from './sandboxTestInput';
 export * from './service';
 export * from './serviceInput';
 export * from './serviceUpdate';
+export * from './setupProgress';
 export * from './uploadedFile';
 export * from './uploadedFileInput';
 export * from './user';

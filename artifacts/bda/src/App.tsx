@@ -3,7 +3,13 @@ import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  MutationCache,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { getGetMeQueryKey } from "@workspace/api-client-react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -14,14 +20,20 @@ import DashboardPage from "./pages/dashboard";
 import BusinessPage from "./pages/business";
 import ServicesPage from "./pages/services";
 import PricingPage from "./pages/pricing";
-import RequirementsPage from "./pages/requirements";
-import KnowledgePage from "./pages/knowledge";
 import TrainingPage from "./pages/training";
 import LeadsPage from "./pages/leads";
 import WidgetPage from "./pages/widget";
 import BillingPage from "./pages/billing";
 
-const queryClient = new QueryClient();
+// Any successful mutation may unlock the next setup step in the sidebar, so
+// refresh the account (which carries setupProgress) after every mutation.
+const queryClient: QueryClient = new QueryClient({
+  mutationCache: new MutationCache({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+    },
+  }),
+});
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -191,8 +203,6 @@ function ClerkProviderWithRoutes() {
             <Route path="/business"><ProtectedApp><BusinessPage /></ProtectedApp></Route>
             <Route path="/services"><ProtectedApp><ServicesPage /></ProtectedApp></Route>
             <Route path="/pricing"><ProtectedApp><PricingPage /></ProtectedApp></Route>
-            <Route path="/requirements"><ProtectedApp><RequirementsPage /></ProtectedApp></Route>
-            <Route path="/knowledge"><ProtectedApp><KnowledgePage /></ProtectedApp></Route>
             <Route path="/training"><ProtectedApp><TrainingPage /></ProtectedApp></Route>
             <Route path="/leads"><ProtectedApp><LeadsPage /></ProtectedApp></Route>
             <Route path="/widget"><ProtectedApp><WidgetPage /></ProtectedApp></Route>

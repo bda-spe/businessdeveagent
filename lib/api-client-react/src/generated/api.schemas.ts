@@ -39,10 +39,19 @@ export interface Business {
   createdAt?: string;
 }
 
+export interface SetupProgress {
+  businessProfile: boolean;
+  services: boolean;
+  pricing: boolean;
+  widget: boolean;
+  testAgent: boolean;
+}
+
 export interface Account {
   user: User;
   business?: Business | null;
   onboardingComplete: boolean;
+  setupProgress: SetupProgress;
 }
 
 export interface BusinessCreateInput {

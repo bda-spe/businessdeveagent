@@ -43,6 +43,8 @@ export function computeRequirementStatus(
   ctx: { business: Business; servicesCount: number; pricing: Pricing | null },
 ): string {
   const { business, servicesCount, pricing } = ctx;
+  // A manually entered value always counts as completed, regardless of key.
+  if (row.value) return "completed";
   switch (row.key) {
     case "business_info": {
       const filled = [

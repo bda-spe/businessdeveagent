@@ -41,8 +41,11 @@ Multi-tenant SaaS where local blue-collar service businesses create, train, test
 
 ## Product
 
-- Onboarding creates a business (tenant) and marks onboarding complete.
-- Owners manage business profile, services, pricing rules, lead requirements, and a knowledge base; test the agent in a sandbox; review a leads inbox; configure and embed the widget; manage billing.
+- Onboarding creates a business (tenant) and marks onboarding complete; the user is then dropped at `/business` to begin setup.
+- Sidebar has two sections: setup steps above a divider (Business Profile → Services → Pricing Rules → Widget Settings → Test Agent at `/training`) unlocked sequentially, and Dashboard / Leads Inbox / Billing below the divider, unlocked only when all 5 setup steps are done.
+- `GET /api/me` returns `setupProgress` (businessProfile = industry + serviceArea set; services = ≥1 service; pricing/widget = `pricing_updated`/`widget_updated` activity events; testAgent = ≥1 sandbox test). AppShell redirects locked routes to the first incomplete step; a global MutationCache hook invalidates `/api/me` after every mutation so nav unlocks live.
+- Knowledge Base and Requirements pages were removed; every app page shows a right rail with an upload-docs card (top) and a compressed requirements pane (`upload-docs-card.tsx`, `requirements-pane.tsx`). A requirement with a manually saved value is always treated as completed (`computeRequirementStatus`).
+- Logo image: `attached_assets/bda-split_1783453365816.png` via the `@assets` alias (used in landing header, onboarding card, sidebar).
 
 ## User preferences
 
