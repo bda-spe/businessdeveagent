@@ -357,6 +357,7 @@ export default function TrainingPage() {
                           }),
                           estimate: activeTest.estimate,
                           policies: invoiceSettings ?? {},
+                          brandColor: invoiceSettings?.brandColor ?? undefined,
                         }}
                       />
                     </div>

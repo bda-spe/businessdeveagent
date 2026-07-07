@@ -135,6 +135,7 @@ export const invoiceSettingsTable = pgTable("invoice_settings", {
   replyToEmail: text("reply_to_email"),
   ccOwner: boolean("cc_owner").notNull().default(true),
   attachPdf: boolean("attach_pdf").notNull().default(true),
+  brandColor: text("brand_color").notNull().default("#1e3a5f"),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 

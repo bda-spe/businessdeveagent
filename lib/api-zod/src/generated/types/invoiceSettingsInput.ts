@@ -36,4 +36,9 @@ export interface InvoiceSettingsInput {
   replyToEmail?: string | null;
   ccOwner?: boolean;
   attachPdf?: boolean;
+  /**
+     * Hex brand color for invoice headers and PDF accent
+     * @nullable
+     */
+  brandColor?: string | null;
 }

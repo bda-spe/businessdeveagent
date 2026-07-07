@@ -44,6 +44,9 @@ export async function getOrCreateSettings(businessId: number) {
       emailClosing: row.emailClosing ?? DEFAULT_EMAIL_SETTINGS.emailClosing,
     };
   }
+  if (row.brandColor == null) {
+    row = { ...row, brandColor: DEFAULT_EMAIL_SETTINGS.brandColor };
+  }
   return row;
 }
 
@@ -66,9 +69,14 @@ router.put(
       return;
     }
     await getOrCreateSettings(req.business!.id);
+    const updateData: Record<string, unknown> = {
+      ...parsed.data,
+      updatedAt: new Date().toISOString(),
+    };
+    if (updateData.brandColor == null) delete updateData.brandColor;
     const [row] = await db
       .update(invoiceSettingsTable)
-      .set({ ...parsed.data, updatedAt: new Date().toISOString() })
+      .set(updateData)
       .where(eq(invoiceSettingsTable.businessId, req.business!.id))
       .returning();
     await logActivity(

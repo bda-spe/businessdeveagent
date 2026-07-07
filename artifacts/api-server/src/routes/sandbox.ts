@@ -169,6 +169,7 @@ async function buildPdfForTest(
     settings: {
       selectedTemplate: settings.selectedTemplate,
       includedSections,
+      brandColor: settings.brandColor,
       cancellationPolicy: settings.cancellationPolicy,
       paymentTerms: settings.paymentTerms,
       estimateDisclaimer: settings.estimateDisclaimer,

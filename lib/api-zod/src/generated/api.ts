@@ -304,7 +304,8 @@ export const GetInvoiceSettingsResponse = zod.object({
   "emailClosing": zod.string().nullish(),
   "replyToEmail": zod.string().nullish(),
   "ccOwner": zod.boolean().optional(),
-  "attachPdf": zod.boolean().optional()
+  "attachPdf": zod.boolean().optional(),
+  "brandColor": zod.string().nullish().describe('Hex brand color for invoice headers and PDF accent')
 })
 
 
@@ -327,7 +328,8 @@ export const SaveInvoiceSettingsBody = zod.object({
   "emailClosing": zod.string().nullish(),
   "replyToEmail": zod.string().nullish(),
   "ccOwner": zod.boolean().optional(),
-  "attachPdf": zod.boolean().optional()
+  "attachPdf": zod.boolean().optional(),
+  "brandColor": zod.string().nullish().describe('Hex brand color for invoice headers and PDF accent')
 })
 
 export const SaveInvoiceSettingsResponse = zod.object({
@@ -347,7 +349,8 @@ export const SaveInvoiceSettingsResponse = zod.object({
   "emailClosing": zod.string().nullish(),
   "replyToEmail": zod.string().nullish(),
   "ccOwner": zod.boolean().optional(),
-  "attachPdf": zod.boolean().optional()
+  "attachPdf": zod.boolean().optional(),
+  "brandColor": zod.string().nullish().describe('Hex brand color for invoice headers and PDF accent')
 })
 
 

@@ -1,13 +1,14 @@
 import PDFDocument from "pdfkit";
 import type { Estimate, EstimateLineItem } from "./aiService";
 
-const NAVY = "#1e3a5f";
+const DEFAULT_NAVY = "#1e3a5f";
 const SLATE = "#475569";
 const LIGHT = "#94a3b8";
 
 export interface InvoicePdfSettings {
   selectedTemplate: string;
   includedSections: string[];
+  brandColor?: string | null;
   cancellationPolicy?: string | null;
   paymentTerms?: string | null;
   estimateDisclaimer?: string | null;
@@ -67,6 +68,8 @@ export function buildInvoicePdf(opts: {
     settings.selectedTemplate === "detailed_agreement" ||
     settings.selectedTemplate === "professional_proposal";
 
+  const brandColor = settings.brandColor || DEFAULT_NAVY;
+
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 54 });
     const chunks: Buffer[] = [];
@@ -75,7 +78,7 @@ export function buildInvoicePdf(opts: {
     doc.on("error", reject);
 
     // Header band
-    doc.rect(0, 0, doc.page.width, 110).fill(NAVY);
+    doc.rect(0, 0, doc.page.width, 110).fill(brandColor);
     doc
       .fillColor("#ffffff")
       .font("Helvetica-Bold")
@@ -104,7 +107,7 @@ export function buildInvoicePdf(opts: {
 
     const writeHeading = (label: string) => {
       doc.moveDown(0.8);
-      doc.font("Helvetica-Bold").fontSize(11).fillColor(NAVY).text(label);
+      doc.font("Helvetica-Bold").fontSize(11).fillColor(brandColor).text(label);
       doc.moveDown(0.2);
       doc.font("Helvetica").fontSize(9.5).fillColor(SLATE);
     };
@@ -147,7 +150,7 @@ export function buildInvoicePdf(opts: {
       doc.x = tableX;
     }
     const total = subtotal + (sections.includes("taxes_fees") ? estimate.taxes : 0);
-    doc.font("Helvetica-Bold").fillColor(NAVY);
+    doc.font("Helvetica-Bold").fillColor(brandColor);
     doc.text("Estimated Total", tableX, doc.y + 4);
     doc.moveUp();
     doc.text(money(total), priceX, doc.y, { width: 80, align: "right" });
@@ -223,7 +226,15 @@ export function buildInvoicePdf(opts: {
     for (const block of policyBlocks) {
       if (!sections.includes(block.key) || !block.body) continue;
       if (!detailed && block.key === "terms_conditions") continue;
-      writeHeading(block.label);
+      if (block.key === "terms_conditions") {
+        // Accent the terms heading with the brand color for contract emphasis
+        doc.moveDown(0.8);
+        doc.font("Helvetica-Bold").fontSize(11).fillColor(brandColor).text(block.label);
+        doc.moveDown(0.2);
+        doc.font("Helvetica").fontSize(9.5).fillColor(SLATE);
+      } else {
+        writeHeading(block.label);
+      }
       doc.text(block.body, { width: doc.page.width - 108 });
     }
 

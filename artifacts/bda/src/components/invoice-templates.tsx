@@ -75,6 +75,7 @@ export interface InvoiceRenderData {
   date: string;
   estimate: InvoiceEstimateData;
   policies: InvoicePolicyData;
+  brandColor?: string;
 }
 
 function money(n: number | null | undefined): string {
@@ -181,9 +182,10 @@ function SimpleSummary({ data }: { data: InvoiceRenderData }) {
 
 function ModernEstimateCard({ data }: { data: InvoiceRenderData }) {
   const { estimate, policies } = data;
+  const brand = data.brandColor || "#1e3a5f";
   return (
     <div className="bg-white text-xs text-slate-700">
-      <div className="bg-slate-900 text-white p-5">
+      <div className="text-white p-5" style={{ backgroundColor: brand }}>
         <p className="text-base font-bold">{data.businessName}</p>
         <p className="text-slate-300">Service Estimate</p>
         <div className="mt-3">
@@ -250,10 +252,11 @@ function ModernEstimateCard({ data }: { data: InvoiceRenderData }) {
 
 function DetailedAgreement({ data }: { data: InvoiceRenderData }) {
   const { estimate, policies } = data;
+  const brand = data.brandColor || "#1e3a5f";
   return (
     <div className="bg-white text-xs text-slate-700 p-5 space-y-4">
-      <div className="border-b-2 border-slate-900 pb-3">
-        <p className="text-base font-bold text-slate-900">{data.businessName}</p>
+      <div className="border-b-2 pb-3" style={{ borderColor: brand }}>
+        <p className="text-base font-bold" style={{ color: brand }}>{data.businessName}</p>
         <p className="text-slate-500">Detailed Service Estimate &amp; Agreement</p>
       </div>
       <div>
@@ -322,9 +325,10 @@ function DetailedAgreement({ data }: { data: InvoiceRenderData }) {
 
 function ProfessionalProposal({ data }: { data: InvoiceRenderData }) {
   const { estimate, policies } = data;
+  const brand = data.brandColor || "#1e3a5f";
   return (
     <div className="bg-white text-xs text-slate-700">
-      <div className="bg-gradient-to-r from-slate-900 to-slate-700 text-white p-5">
+      <div className="text-white p-5" style={{ background: `linear-gradient(to right, ${brand}, #334155)` }}>
         <p className="text-base font-bold">{data.businessName}</p>
         <p className="text-slate-300">Professional Service Proposal</p>
       </div>

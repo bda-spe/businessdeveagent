@@ -962,6 +962,9 @@ components:
           type: boolean
         attachPdf:
           type: boolean
+        brandColor:
+          type: ["string", "null"]
+          description: Hex brand color for invoice headers and PDF accent
 
     InvoiceSettingsInput:
       type: object
@@ -1001,6 +1004,9 @@ components:
           type: boolean
         attachPdf:
           type: boolean
+        brandColor:
+          type: ["string", "null"]
+          description: Hex brand color for invoice headers and PDF accent
 
     Requirement:
       type: object

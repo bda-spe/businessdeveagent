@@ -47,6 +47,7 @@ export async function seedBusinessDefaults(businessId: number): Promise<void> {
     ...DEFAULT_INVOICE_LANGUAGE,
     ...DEFAULT_EMAIL_SETTINGS,
     includedSections: ALL_INVOICE_SECTIONS,
+    brandColor: DEFAULT_EMAIL_SETTINGS.brandColor,
   });
 }
 

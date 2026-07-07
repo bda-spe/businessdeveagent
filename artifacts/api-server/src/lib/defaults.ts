@@ -51,6 +51,7 @@ export const DEFAULT_EMAIL_SETTINGS = {
   replyToEmail: null as string | null,
   ccOwner: true,
   attachPdf: true,
+  brandColor: "#1e3a5f",
 };
 
 export const BILLING_PLANS: {
