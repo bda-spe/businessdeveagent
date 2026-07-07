@@ -37,18 +37,13 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
+import { ColorPickerPopover } from "@/components/color-picker";
 import {
   FileText,
   CheckCircle2,
   ScrollText,
   ListChecks,
   Mail,
-  Palette,
 } from "lucide-react";
 import {
   InvoiceTemplatePreview,
@@ -495,75 +490,13 @@ export default function InvoiceFormattingPage() {
                   Select the layout your customers will see.
                 </p>
               </div>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                  >
-                    <div
-                      className="w-5 h-5 rounded border border-slate-200"
-                      style={{ backgroundColor: watched.brandColor }}
-                    />
-                    {watched.brandColor}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-72 p-4 space-y-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-                    <Palette className="h-4 w-4 text-blue-600" />
-                    Brand Color
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="brandColor"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center gap-2">
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value ?? "#1e3a5f"}
-                              className="font-mono"
-                              data-testid="input-brand-color"
-                              onChange={(e) => {
-                                field.onChange(e.target.value);
-                              }}
-                            />
-                          </FormControl>
-                          <div
-                            className="w-10 h-10 rounded-lg border border-slate-200 shrink-0"
-                            style={{ backgroundColor: field.value }}
-                          />
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div>
-                    <p className="text-xs text-slate-500 mb-2">Presets</p>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        "#1e3a5f",
-                        "#0f172a",
-                        "#1d4ed8",
-                        "#0d9488",
-                        "#7c3aed",
-                        "#be185d",
-                        "#b45309",
-                        "#1f2937",
-                      ].map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          className="w-8 h-8 rounded-full border border-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                          style={{ backgroundColor: c }}
-                          onClick={() => form.setValue("brandColor", c)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <ColorPickerPopover
+                value={watched.brandColor ?? "#1e3a5f"}
+                onChange={(c) =>
+                  form.setValue("brandColor", c, { shouldDirty: true })
+                }
+                testId="button-brand-color"
+              />
             </div>
             <div className="grid gap-6 md:grid-cols-2">
               {TEMPLATE_OPTIONS.map((tpl) => {

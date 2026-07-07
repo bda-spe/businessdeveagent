@@ -43,6 +43,7 @@ import {
   Plus,
   Download,
   CheckCircle2,
+  RotateCcw,
 } from "lucide-react";
 import type { SandboxTest } from "@workspace/api-client-react";
 
@@ -84,15 +85,19 @@ export default function TrainingPage() {
   const [feedbackNotes, setFeedbackNotes] = useState("");
   const [emailStatus, setEmailStatus] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const hasAutoLoaded = useRef(false);
 
   const form = useForm<z.infer<typeof testSchema>>({
     resolver: zodResolver(testSchema),
     defaultValues: { prompt: "" },
   });
 
-  // Load most recent test by default if exists
+  // Load most recent test by default on first visit only, so
+  // "New Conversation" doesn't immediately re-select the old chat.
   useEffect(() => {
+    if (hasAutoLoaded.current) return;
     if (history && history.length > 0 && !activeTest) {
+      hasAutoLoaded.current = true;
       selectTest(history[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,11 +123,35 @@ export default function TrainingPage() {
   };
 
   const startNew = () => {
+    hasAutoLoaded.current = true;
     setActiveTest(null);
     setFeedbackRating(0);
     setFeedbackNotes("");
     setEmailStatus(null);
     form.reset();
+  };
+
+  const handleTryAgain = () => {
+    if (!activeTest) return;
+    const prompt = activeTest.prompt;
+    startNew();
+    runTest.mutate(
+      { data: { prompt } },
+      {
+        onSuccess: (data) => {
+          setActiveTest(data);
+          queryClient.invalidateQueries({
+            queryKey: getListSandboxTestsQueryKey(),
+          });
+          scrollToBottom();
+        },
+        onError: () =>
+          toast({
+            title: "Could not restart the conversation. Try again.",
+            variant: "destructive",
+          }),
+      },
+    );
   };
 
   const isSending = runTest.isPending || sendMessage.isPending;
@@ -442,16 +471,40 @@ export default function TrainingPage() {
                         className="bg-white h-20 text-sm"
                         data-testid="input-feedback-notes"
                       />
-                      <Button
-                        onClick={handleSaveFeedback}
-                        disabled={feedbackRating < 1 || saveFeedback.isPending}
-                        size="sm"
-                        data-testid="button-save-feedback"
-                      >
-                        {saveFeedback.isPending
-                          ? "Saving..."
-                          : "Save Feedback & Improve Agent"}
-                      </Button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          onClick={handleSaveFeedback}
+                          disabled={
+                            feedbackRating < 1 || saveFeedback.isPending
+                          }
+                          size="sm"
+                          data-testid="button-save-feedback"
+                        >
+                          {saveFeedback.isPending
+                            ? "Saving..."
+                            : "Save Feedback & Improve Agent"}
+                        </Button>
+                        {activeTest.rating != null && activeTest.rating > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleTryAgain}
+                            disabled={isSending || saveFeedback.isPending}
+                            data-testid="button-try-again"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                            {isSending
+                              ? "Restarting..."
+                              : "Try Again with Updated Feedback"}
+                          </Button>
+                        )}
+                      </div>
+                      {activeTest.rating != null && activeTest.rating > 0 && (
+                        <p className="text-xs text-slate-500">
+                          Your feedback is saved. Try the same scenario again
+                          to see how your agent improved.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

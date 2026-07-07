@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ColorPickerPopover } from "@/components/color-picker";
 import { Code, LayoutTemplate, Palette, Copy, Check, MessageSquare } from "lucide-react";
 
 const widgetSchema = z.object({
@@ -140,15 +141,13 @@ export default function WidgetPage() {
                       name="primaryColor"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Brand Color (Hex)</FormLabel>
-                          <div className="flex gap-2">
-                            <div 
-                              className="w-10 h-10 rounded border border-slate-200 shrink-0" 
-                              style={{ backgroundColor: field.value }}
+                          <FormLabel>Brand Color</FormLabel>
+                          <div>
+                            <ColorPickerPopover
+                              value={field.value}
+                              onChange={field.onChange}
+                              testId="button-widget-color"
                             />
-                            <FormControl>
-                              <Input {...field} placeholder="#000000" />
-                            </FormControl>
                           </div>
                           <FormMessage />
                         </FormItem>
