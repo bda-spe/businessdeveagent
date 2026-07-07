@@ -24,35 +24,56 @@ export default function UploadDocsCard() {
   const deleteFile = useDeleteFile();
   const scanDocuments = useScanDocuments();
 
+  const isBinaryType = (file: File) =>
+    file.type === "application/pdf" ||
+    file.name.toLowerCase().endsWith(".pdf") ||
+    file.type.includes("word") ||
+    file.name.toLowerCase().endsWith(".doc") ||
+    file.name.toLowerCase().endsWith(".docx");
+
+  const doUpload = (textContent: string, file: File) => {
+    uploadFile.mutate(
+      {
+        data: {
+          filename: file.name,
+          sizeBytes: file.size,
+          fileType: file.type || "application/octet-stream",
+          textContent,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListFilesQueryKey() });
+          toast({ title: "Document uploaded" });
+        },
+        onError: () => {
+          toast({ title: "Upload failed", variant: "destructive" });
+        },
+      },
+    );
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = "";
+
+    // Binary formats (PDF, Word) can't be read as text in the browser.
+    // Store the metadata now; text content is extracted server-side during scanning.
+    if (isBinaryType(file)) {
+      doUpload("", file);
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const content = event.target?.result as string;
-      uploadFile.mutate(
-        {
-          data: {
-            filename: file.name,
-            sizeBytes: file.size,
-            fileType: file.type || "text/plain",
-            textContent: content?.substring(0, 1000) ?? "",
-          },
-        },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getListFilesQueryKey() });
-            toast({ title: "Document uploaded" });
-          },
-          onError: () => {
-            toast({ title: "Upload failed", variant: "destructive" });
-          },
-        },
-      );
+      const content = (event.target?.result as string) ?? "";
+      doUpload(content.substring(0, 4000), file);
+    };
+    reader.onerror = () => {
+      toast({ title: "Could not read file", variant: "destructive" });
     };
     reader.readAsText(file);
-    e.target.value = "";
   };
 
   const handleScan = () => {
