@@ -131,10 +131,39 @@ router.post("/files/scan", requireBusiness, async (req, res): Promise<void> => {
     )
     .returning();
 
+  // Auto-apply high-confidence extractions (>=70) back into requirementsTable
+  const highConfidence = inserted.filter(
+    (e) => e.confidenceScore >= 70 && e.extractedValue,
+  );
+  if (highConfidence.length > 0) {
+    await Promise.all(
+      highConfidence.map((e) =>
+        db
+          .update(requirementsTable)
+          .set({ value: e.extractedValue })
+          .where(
+            and(
+              eq(requirementsTable.businessId, bid),
+              eq(requirementsTable.key, e.requirementKey),
+            ),
+          ),
+      ),
+    );
+    // Mark auto-applied extractions as approved
+    await Promise.all(
+      highConfidence.map((e) =>
+        db
+          .update(extractedValuesTable)
+          .set({ approved: true })
+          .where(eq(extractedValuesTable.id, e.id)),
+      ),
+    );
+  }
+
   await logActivity(
     bid,
     "documents_scanned",
-    `BDA scanned ${files.length} document(s) and extracted ${inserted.length} value(s)`,
+    `BDA scanned ${files.length} document(s), extracted ${inserted.length} value(s), auto-applied ${highConfidence.length} high-confidence value(s)`,
   );
   res.json(ScanDocumentsResponse.parse(inserted));
 });

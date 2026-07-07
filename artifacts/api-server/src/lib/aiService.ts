@@ -2,8 +2,11 @@ import OpenAI from "openai";
 import { logger } from "./logger";
 
 const apiKey = process.env.OPENAI_API_KEY;
+if (!apiKey) {
+  logger.warn("OPENAI_API_KEY is not set — AI features will use fallbacks");
+}
 const client = apiKey ? new OpenAI({ apiKey }) : null;
-const MODEL = "gpt-4o-mini";
+const MODEL = "gpt-4o";
 
 export interface EstimateLineItem {
   description: string;
