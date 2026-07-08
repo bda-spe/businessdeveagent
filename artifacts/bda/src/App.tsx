@@ -89,6 +89,7 @@ const clerkAppearance = {
     identityPreviewEditButton: "text-slate-500 hover:text-slate-900",
     formFieldSuccessText: "text-emerald-600",
     alertText: "text-red-600",
+    formButtonPrimary: "text-background",
   },
 };
 
