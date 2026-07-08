@@ -691,6 +691,62 @@ paths:
               schema:
                 $ref: "#/components/schemas/AssistantChatResult"
 
+  /agent-preferences:
+    get:
+      operationId: getAgentPreferences
+      tags: [agentPreferences]
+      summary: Get agent preferences for the current business
+      responses:
+        "200":
+          description: Agent preferences (all-null sections if never generated)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentPreferences"
+    put:
+      operationId: saveAgentPreferences
+      tags: [agentPreferences]
+      summary: Save edited agent preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentPreferencesInput"
+      responses:
+        "200":
+          description: Saved agent preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentPreferences"
+
+  /agent-preferences/generate:
+    post:
+      operationId: generateAgentPreferences
+      tags: [agentPreferences]
+      summary: Generate agent preferences from setup data and test agent history
+      responses:
+        "200":
+          description: Generated agent preferences (not yet confirmed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentPreferences"
+
+  /agent-preferences/confirm:
+    post:
+      operationId: confirmAgentPreferences
+      tags: [agentPreferences]
+      summary: Confirm agent preferences and mark the widget ready
+      responses:
+        "200":
+          description: Confirmed agent preferences with updated business flags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfirmAgentPreferencesResult"
+
   /business/estimate-rules:
     get:
       operationId: getEstimateRules
@@ -1076,6 +1132,10 @@ components:
           type: string
           description: onboarding or active
         profileApproved:
+          type: boolean
+        agentPreferencesConfirmed:
+          type: boolean
+        widgetReady:
           type: boolean
         createdAt:
           type: string
@@ -1903,6 +1963,71 @@ components:
       properties:
         reply:
           type: string
+
+    AgentPreferences:
+      type: object
+      required: [businessId, clientId, confirmed]
+      properties:
+        businessId:
+          type: integer
+        clientId:
+          type: string
+        customerTone:
+          type: ["string", "null"]
+        requiredIntakeQuestions:
+          type: ["string", "null"]
+        estimatingStandards:
+          type: ["string", "null"]
+        invoicePolicyStandards:
+          type: ["string", "null"]
+        lowConfidenceRules:
+          type: ["string", "null"]
+        servicesNotToQuote:
+          type: ["string", "null"]
+        finalCustomerDisclaimer:
+          type: ["string", "null"]
+        confirmed:
+          type: boolean
+        confirmedAt:
+          type: ["string", "null"]
+        updatedAt:
+          type: ["string", "null"]
+
+    AgentPreferencesInput:
+      type: object
+      properties:
+        customerTone:
+          type: ["string", "null"]
+          maxLength: 4000
+        requiredIntakeQuestions:
+          type: ["string", "null"]
+          maxLength: 4000
+        estimatingStandards:
+          type: ["string", "null"]
+          maxLength: 4000
+        invoicePolicyStandards:
+          type: ["string", "null"]
+          maxLength: 4000
+        lowConfidenceRules:
+          type: ["string", "null"]
+          maxLength: 4000
+        servicesNotToQuote:
+          type: ["string", "null"]
+          maxLength: 4000
+        finalCustomerDisclaimer:
+          type: ["string", "null"]
+          maxLength: 4000
+
+    ConfirmAgentPreferencesResult:
+      type: object
+      required: [preferences, agentPreferencesConfirmed, widgetReady]
+      properties:
+        preferences:
+          $ref: "#/components/schemas/AgentPreferences"
+        agentPreferencesConfirmed:
+          type: boolean
+        widgetReady:
+          type: boolean
 
     EstimateRules:
       type: object

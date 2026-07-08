@@ -40,6 +40,10 @@ export const businessesTable = pgTable("businesses", {
   addressZip: text("address_zip"),
   status: text("status").notNull().default("onboarding"),
   profileApproved: boolean("profile_approved").notNull().default(false),
+  agentPreferencesConfirmed: boolean("agent_preferences_confirmed")
+    .notNull()
+    .default(false),
+  widgetReady: boolean("widget_ready").notNull().default(false),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 
@@ -328,6 +332,26 @@ export const billingSubscriptionsTable = pgTable("billing_subscriptions", {
   status: text("status").notNull().default("inactive"),
   active: boolean("active").notNull().default(false),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const agentPreferencesTable = pgTable("agent_preferences", {
+  id: serial("id").primaryKey(),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id, { onDelete: "cascade" })
+    .unique(),
+  clientId: text("client_id").notNull(),
+  customerTone: text("customer_tone"),
+  requiredIntakeQuestions: text("required_intake_questions"),
+  estimatingStandards: text("estimating_standards"),
+  invoicePolicyStandards: text("invoice_policy_standards"),
+  lowConfidenceRules: text("low_confidence_rules"),
+  servicesNotToQuote: text("services_not_to_quote"),
+  finalCustomerDisclaimer: text("final_customer_disclaimer"),
+  sourceTestAgentFeedback: jsonb("source_test_agent_feedback"),
+  confirmedAt: timestamp("confirmed_at", { mode: "string" }),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
 export const activityEventsTable = pgTable("activity_events", {

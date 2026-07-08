@@ -1,5 +1,18 @@
 import { useState, useEffect } from "react";
-import { useGetWidgetSettings, useSaveWidgetSettings, getGetWidgetSettingsQueryKey, useGetBusiness } from "@workspace/api-client-react";
+import {
+  useGetWidgetSettings,
+  useSaveWidgetSettings,
+  getGetWidgetSettingsQueryKey,
+  useGetBusiness,
+  getGetBusinessQueryKey,
+  useGetMe,
+  getGetMeQueryKey,
+  useGetAgentPreferences,
+  getGetAgentPreferencesQueryKey,
+  useGenerateAgentPreferences,
+  useSaveAgentPreferences,
+  useConfirmAgentPreferences,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,12 +21,25 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ColorPickerPopover } from "@/components/color-picker";
-import { Code, LayoutTemplate, Palette, Copy, Check, MessageSquare } from "lucide-react";
+import {
+  Code,
+  LayoutTemplate,
+  Palette,
+  Copy,
+  Check,
+  MessageSquare,
+  Sparkles,
+  Save,
+  ShieldCheck,
+  Lock,
+  CheckCircle2,
+} from "lucide-react";
 
 const widgetSchema = z.object({
   greeting: z.string().min(1, "Greeting is required"),
@@ -22,14 +48,86 @@ const widgetSchema = z.object({
   enabled: z.boolean(),
 });
 
+const PREF_SECTIONS = [
+  {
+    key: "customerTone",
+    label: "Customer Tone",
+    description: "How your agent speaks to customers — voice, formality, and warmth.",
+  },
+  {
+    key: "requiredIntakeQuestions",
+    label: "Required Intake Questions",
+    description: "What the agent must ask before producing an estimate.",
+  },
+  {
+    key: "estimatingStandards",
+    label: "Estimating Standards",
+    description: "How conservative or aggressive estimates should be, and when to defer to a site visit.",
+  },
+  {
+    key: "invoicePolicyStandards",
+    label: "Invoice & Policy Standards",
+    description: "Deposits, payment, cancellation, and warranty practices the agent should respect.",
+  },
+  {
+    key: "lowConfidenceRules",
+    label: "Low-Confidence Rules",
+    description: "How the agent handles jobs it can't estimate confidently.",
+  },
+  {
+    key: "servicesNotToQuote",
+    label: "Services Not to Quote",
+    description: "Job types your agent should never price, and what to say instead.",
+  },
+  {
+    key: "finalCustomerDisclaimer",
+    label: "Final Customer Disclaimer",
+    description: "The closing disclaimer shown to customers with every estimate.",
+  },
+] as const;
+
+type PrefKey = (typeof PREF_SECTIONS)[number]["key"];
+type PrefValues = Record<PrefKey, string>;
+
+const emptyPrefs: PrefValues = {
+  customerTone: "",
+  requiredIntakeQuestions: "",
+  estimatingStandards: "",
+  invoicePolicyStandards: "",
+  lowConfidenceRules: "",
+  servicesNotToQuote: "",
+  finalCustomerDisclaimer: "",
+};
+
+// Decide whether white or navy text is readable on the given background color.
+function headerTextColor(hex: string): string {
+  const m = /^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.exec(hex ?? "");
+  if (!m) return "#ffffff";
+  let h = m[1];
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? "#1e3a5f" : "#ffffff";
+}
+
 export default function WidgetPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: settings, isLoading } = useGetWidgetSettings();
   const { data: business } = useGetBusiness();
+  const { data: me } = useGetMe();
   const saveSettings = useSaveWidgetSettings();
 
+  const { data: prefs, isLoading: prefsLoading } = useGetAgentPreferences();
+  const generatePrefs = useGenerateAgentPreferences();
+  const savePrefs = useSaveAgentPreferences();
+  const confirmPrefs = useConfirmAgentPreferences();
+
   const [copied, setCopied] = useState(false);
+  const [prefValues, setPrefValues] = useState<PrefValues>(emptyPrefs);
+  const [prefsDirty, setPrefsDirty] = useState(false);
 
   const form = useForm<z.infer<typeof widgetSchema>>({
     resolver: zodResolver(widgetSchema),
@@ -52,16 +150,101 @@ export default function WidgetPage() {
     }
   }, [settings, form]);
 
+  useEffect(() => {
+    if (prefs && !prefsDirty) {
+      setPrefValues({
+        customerTone: prefs.customerTone ?? "",
+        requiredIntakeQuestions: prefs.requiredIntakeQuestions ?? "",
+        estimatingStandards: prefs.estimatingStandards ?? "",
+        invoicePolicyStandards: prefs.invoicePolicyStandards ?? "",
+        lowConfidenceRules: prefs.lowConfidenceRules ?? "",
+        servicesNotToQuote: prefs.servicesNotToQuote ?? "",
+        finalCustomerDisclaimer: prefs.finalCustomerDisclaimer ?? "",
+      });
+    }
+  }, [prefs, prefsDirty]);
+
+  const hasGenerated = PREF_SECTIONS.some((s) => prefValues[s.key].trim().length > 0);
+  const isConfirmed = !!prefs?.confirmed;
+  const widgetUnlocked = !!business?.widgetReady && !!business?.agentPreferencesConfirmed;
+  const testAgentDone = !!me?.setupProgress?.testAgent;
+
   const onSubmit = (values: z.infer<typeof widgetSchema>) => {
     saveSettings.mutate({ data: values }, {
       onSuccess: (data) => {
         queryClient.setQueryData(getGetWidgetSettingsQueryKey(), data);
+        queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
         toast({ title: "Widget settings saved" });
       }
     });
   };
 
+  const handleGenerate = () => {
+    generatePrefs.mutate(undefined, {
+      onSuccess: (data) => {
+        queryClient.setQueryData(getGetAgentPreferencesQueryKey(), data);
+        setPrefsDirty(false);
+        toast({
+          title: hasGenerated ? "Preferences regenerated" : "Preferences generated",
+          description: "Review each section and edit anything you'd like to change.",
+        });
+      },
+      onError: () => {
+        toast({
+          title: "Generation failed",
+          description: "Could not generate preferences right now. Please try again.",
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  const toNullable = (v: PrefValues) =>
+    Object.fromEntries(
+      PREF_SECTIONS.map((s) => [s.key, v[s.key].trim() ? v[s.key] : null]),
+    );
+
+  const handleSave = () => {
+    savePrefs.mutate({ data: toNullable(prefValues) }, {
+      onSuccess: (data) => {
+        queryClient.setQueryData(getGetAgentPreferencesQueryKey(), data);
+        setPrefsDirty(false);
+        toast({ title: "Agent preferences saved" });
+      },
+      onError: () => {
+        toast({ title: "Save failed", description: "Please try again.", variant: "destructive" });
+      },
+    });
+  };
+
+  const handleConfirm = () => {
+    // Persist any edits first, then confirm.
+    savePrefs.mutate({ data: toNullable(prefValues) }, {
+      onSuccess: () => {
+        confirmPrefs.mutate(undefined, {
+          onSuccess: (data) => {
+            queryClient.setQueryData(getGetAgentPreferencesQueryKey(), data.preferences);
+            queryClient.invalidateQueries({ queryKey: getGetBusinessQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+            setPrefsDirty(false);
+            toast({
+              title: "Agent confirmed",
+              description: "Your widget is now ready to install on your website.",
+            });
+          },
+          onError: () => {
+            toast({ title: "Confirmation failed", description: "Please try again.", variant: "destructive" });
+          },
+        });
+      },
+      onError: () => {
+        toast({ title: "Confirmation failed", description: "Could not save your edits.", variant: "destructive" });
+      },
+    });
+  };
+
   const currentValues = form.watch();
+  const previewTextColor = headerTextColor(currentValues.primaryColor);
 
   const scriptSrc = `${window.location.origin}${import.meta.env.BASE_URL}widget.js`;
   const embedCode = `<script src="${scriptSrc}" data-client-id="${business?.clientId ?? "YOUR_CLIENT_ID"}"></script>`;
@@ -73,10 +256,11 @@ export default function WidgetPage() {
     toast({ title: "Copied to clipboard" });
   };
 
-  if (isLoading) {
+  if (isLoading || prefsLoading) {
     return (
       <div className="max-w-5xl mx-auto space-y-6">
         <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-[400px] rounded-xl" />
         <div className="grid md:grid-cols-2 gap-6">
           <Skeleton className="h-[500px] rounded-xl" />
           <Skeleton className="h-[500px] rounded-xl" />
@@ -85,12 +269,122 @@ export default function WidgetPage() {
     );
   }
 
+  const generating = generatePrefs.isPending;
+  const savingPrefs = savePrefs.isPending;
+  const confirming = confirmPrefs.isPending || (savePrefs.isPending && confirmPrefs.isIdle);
+
   return (
     <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
       <div className="mb-8">
         <h2 className="text-3xl font-bold tracking-tight text-slate-900">Website Widget</h2>
-        <p className="text-slate-500 mt-1">Configure and install the BDA chat widget on your own website.</p>
+        <p className="text-slate-500 mt-1">
+          Review your agent's standards, confirm it's ready, then install the BDA widget on your website.
+        </p>
       </div>
+
+      {/* Agent Preferences & Standards */}
+      <Card className="border-slate-200 shadow-sm mb-8" data-testid="card-agent-preferences">
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-500" /> Agent Preferences &amp; Standards
+              </CardTitle>
+              <CardDescription className="mt-1.5 max-w-2xl">
+                Based on your setup and everything your agent learned during testing, these are the standards
+                it will follow with real customers. Review each section, edit anything you'd like, then confirm.
+              </CardDescription>
+            </div>
+            {isConfirmed && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold px-3 py-1.5" data-testid="badge-prefs-confirmed">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Confirmed
+              </span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!hasGenerated ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+              <Sparkles className="h-8 w-8 text-blue-500 mx-auto mb-3" />
+              <h3 className="font-semibold text-slate-900 mb-1">Generate your agent's standards</h3>
+              <p className="text-sm text-slate-500 max-w-md mx-auto mb-5">
+                {testAgentDone
+                  ? "We'll analyze your business profile, services, pricing, invoice settings, and your Test Agent feedback to draft the standards your agent will follow."
+                  : "Tip: run a few tests in Test Agent first — your feedback there teaches the agent your preferences before we draft its standards."}
+              </p>
+              <Button
+                onClick={handleGenerate}
+                disabled={generating}
+                data-testid="button-generate-preferences"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {generating ? "Generating..." : "Generate Agent Preferences"}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <div className="grid md:grid-cols-2 gap-5">
+                {PREF_SECTIONS.map((section) => (
+                  <div key={section.key} className={section.key === "finalCustomerDisclaimer" ? "md:col-span-2" : ""}>
+                    <label className="text-sm font-semibold text-slate-900">{section.label}</label>
+                    <p className="text-xs text-slate-500 mb-1.5">{section.description}</p>
+                    <Textarea
+                      value={prefValues[section.key]}
+                      onChange={(e) => {
+                        setPrefValues((prev) => ({ ...prev, [section.key]: e.target.value }));
+                        setPrefsDirty(true);
+                      }}
+                      rows={5}
+                      maxLength={4000}
+                      className="resize-y bg-white"
+                      data-testid={`textarea-pref-${section.key}`}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 pt-5">
+                <Button
+                  variant="outline"
+                  onClick={handleGenerate}
+                  disabled={generating || savingPrefs || confirming}
+                  data-testid="button-regenerate-preferences"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {generating ? "Regenerating..." : "Regenerate"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleSave}
+                  disabled={generating || savingPrefs || confirming}
+                  data-testid="button-save-preferences"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {savingPrefs && !confirmPrefs.isPending ? "Saving..." : "Save Agent Preferences"}
+                </Button>
+                <Button
+                  onClick={handleConfirm}
+                  disabled={generating || savingPrefs || confirmPrefs.isPending}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white ml-auto"
+                  data-testid="button-confirm-preferences"
+                >
+                  <ShieldCheck className="h-4 w-4 mr-2" />
+                  {confirmPrefs.isPending
+                    ? "Confirming..."
+                    : isConfirmed
+                      ? "Re-confirm Agent"
+                      : "Confirm — Agent is Ready"}
+                </Button>
+              </div>
+              {!isConfirmed && (
+                <p className="text-xs text-slate-500">
+                  Your widget installation code unlocks once you confirm your agent is ready.
+                </p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Configuration Form */}
@@ -185,32 +479,47 @@ export default function WidgetPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 shadow-sm bg-slate-900 text-white">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Code className="h-5 w-5 text-blue-400" /> Installation Code
-              </CardTitle>
-              <CardDescription className="text-slate-400">
-                Paste this snippet just before the closing &lt;/body&gt; tag on your website.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="relative">
-                <pre className="p-4 bg-slate-950 rounded-lg text-sm font-mono text-emerald-400 overflow-x-auto border border-slate-800">
-                  {embedCode}
-                </pre>
-                <Button 
-                  size="sm" 
-                  variant="secondary" 
-                  className="absolute top-2 right-2 bg-slate-800 hover:bg-slate-700 text-white border-none"
-                  onClick={copyToClipboard}
-                >
-                  {copied ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
-                  {copied ? "Copied" : "Copy"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          {widgetUnlocked ? (
+            <Card className="border-slate-200 shadow-sm bg-slate-900 text-white" data-testid="card-embed-code">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Code className="h-5 w-5 text-blue-400" /> Installation Code
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Paste this snippet just before the closing &lt;/body&gt; tag on your website.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <pre className="p-4 bg-slate-950 rounded-lg text-sm font-mono text-emerald-400 overflow-x-auto border border-slate-800">
+                    {embedCode}
+                  </pre>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="absolute top-2 right-2 bg-slate-800 hover:bg-slate-700 text-white border-none"
+                    onClick={copyToClipboard}
+                    data-testid="button-copy-embed"
+                  >
+                    {copied ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
+                    {copied ? "Copied" : "Copy"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-slate-200 border-dashed shadow-none bg-slate-50" data-testid="card-embed-locked">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-slate-500">
+                  <Lock className="h-5 w-5" /> Installation Code
+                </CardTitle>
+                <CardDescription>
+                  Your installation code will appear here once you confirm your agent preferences above.
+                  This makes sure your agent goes live with the standards you approved.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
         </div>
 
         {/* Live Preview */}
@@ -239,34 +548,36 @@ export default function WidgetPage() {
                 {/* Chat window */}
                 <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col h-[400px] animate-in slide-in-from-bottom-8">
                   {/* Header */}
-                  <div 
-                    className="p-4 text-white flex items-center gap-3"
-                    style={{ backgroundColor: currentValues.primaryColor }}
+                  <div
+                    className="p-4 flex items-center gap-3"
+                    style={{ backgroundColor: currentValues.primaryColor, color: previewTextColor }}
                   >
                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
                       <MessageSquare className="h-5 w-5" />
                     </div>
-                    <div>
-                      <h4 className="font-semibold leading-tight">Virtual Assistant</h4>
-                      <p className="text-xs opacity-80 leading-tight">Typically replies instantly</p>
+                    <div className="min-w-0">
+                      <h4 className="font-semibold leading-tight truncate">{business?.name ?? "Your Business"}</h4>
+                      <p className="text-xs italic leading-tight" style={{ opacity: 0.85 }}>
+                        Business Development Agent &copy;
+                      </p>
                     </div>
                   </div>
-                  
+
                   {/* Messages area */}
                   <div className="flex-1 p-4 bg-slate-50 flex flex-col gap-4">
                     <div className="flex gap-2">
-                      <div 
-                        className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-white text-[10px]"
-                        style={{ backgroundColor: currentValues.primaryColor }}
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px]"
+                        style={{ backgroundColor: currentValues.primaryColor, color: previewTextColor }}
                       >
-                        VA
+                        {(business?.name ?? "BA").split(/\s+/).map((w) => w.charAt(0)).join("").slice(0, 2).toUpperCase()}
                       </div>
                       <div className="bg-white p-3 rounded-2xl rounded-tl-sm text-sm text-slate-700 shadow-sm border border-slate-100">
                         {currentValues.greeting}
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Input area */}
                   <div className="p-3 bg-white border-t border-slate-100">
                     <div className="bg-slate-100 rounded-full px-4 py-2 text-sm text-slate-400">
@@ -276,9 +587,9 @@ export default function WidgetPage() {
                 </div>
 
                 {/* Launcher button */}
-                <div 
-                  className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white cursor-pointer ${currentValues.position === 'bottom-left' ? 'self-start' : 'self-end'}`}
-                  style={{ backgroundColor: currentValues.primaryColor }}
+                <div
+                  className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center cursor-pointer ${currentValues.position === 'bottom-left' ? 'self-start' : 'self-end'}`}
+                  style={{ backgroundColor: currentValues.primaryColor, color: previewTextColor }}
                 >
                   <MessageSquare className="h-6 w-6" />
                 </div>

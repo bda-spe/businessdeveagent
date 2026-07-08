@@ -23,6 +23,8 @@ import type {
   AcceptPolicyInput,
   Account,
   ActivityEvent,
+  AgentPreferences,
+  AgentPreferencesInput,
   AiDraftPolicyInput,
   AiDraftPolicyResult,
   AssistantChatInput,
@@ -39,6 +41,7 @@ import type {
   BusinessToneInput,
   BusinessUpdate,
   CheckoutInput,
+  ConfirmAgentPreferencesResult,
   DashboardSummary,
   EstimateRules,
   EstimateRulesInput,
@@ -2929,6 +2932,293 @@ export const useAssistantChat = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getAssistantChatMutationOptions(options));
+    }
+
+export const getGetAgentPreferencesUrl = () => {
+
+
+
+
+  return `/api/agent-preferences`
+}
+
+/**
+ * @summary Get agent preferences for the current business
+ */
+export const getAgentPreferences = async ( options?: RequestInit): Promise<AgentPreferences> => {
+
+  return customFetch<AgentPreferences>(getGetAgentPreferencesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAgentPreferencesQueryKey = () => {
+    return [
+    `/api/agent-preferences`
+    ] as const;
+    }
+
+
+export const getGetAgentPreferencesQueryOptions = <TData = Awaited<ReturnType<typeof getAgentPreferences>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAgentPreferences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAgentPreferencesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAgentPreferences>>> = ({ signal }) => getAgentPreferences({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAgentPreferences>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAgentPreferencesQueryResult = NonNullable<Awaited<ReturnType<typeof getAgentPreferences>>>
+export type GetAgentPreferencesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get agent preferences for the current business
+ */
+
+export function useGetAgentPreferences<TData = Awaited<ReturnType<typeof getAgentPreferences>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAgentPreferences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAgentPreferencesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveAgentPreferencesUrl = () => {
+
+
+
+
+  return `/api/agent-preferences`
+}
+
+/**
+ * @summary Save edited agent preferences
+ */
+export const saveAgentPreferences = async (agentPreferencesInput: AgentPreferencesInput, options?: RequestInit): Promise<AgentPreferences> => {
+
+  return customFetch<AgentPreferences>(getSaveAgentPreferencesUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(agentPreferencesInput)
+  }
+);}
+
+
+
+
+export const getSaveAgentPreferencesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveAgentPreferences>>, TError,{data: BodyType<AgentPreferencesInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveAgentPreferences>>, TError,{data: BodyType<AgentPreferencesInput>}, TContext> => {
+
+const mutationKey = ['saveAgentPreferences'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveAgentPreferences>>, {data: BodyType<AgentPreferencesInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveAgentPreferences(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveAgentPreferencesMutationResult = NonNullable<Awaited<ReturnType<typeof saveAgentPreferences>>>
+    export type SaveAgentPreferencesMutationBody = BodyType<AgentPreferencesInput>
+    export type SaveAgentPreferencesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save edited agent preferences
+ */
+export const useSaveAgentPreferences = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveAgentPreferences>>, TError,{data: BodyType<AgentPreferencesInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveAgentPreferences>>,
+        TError,
+        {data: BodyType<AgentPreferencesInput>},
+        TContext
+      > => {
+      return useMutation(getSaveAgentPreferencesMutationOptions(options));
+    }
+
+export const getGenerateAgentPreferencesUrl = () => {
+
+
+
+
+  return `/api/agent-preferences/generate`
+}
+
+/**
+ * @summary Generate agent preferences from setup data and test agent history
+ */
+export const generateAgentPreferences = async ( options?: RequestInit): Promise<AgentPreferences> => {
+
+  return customFetch<AgentPreferences>(getGenerateAgentPreferencesUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGenerateAgentPreferencesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateAgentPreferences>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateAgentPreferences>>, TError,void, TContext> => {
+
+const mutationKey = ['generateAgentPreferences'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateAgentPreferences>>, void> = () => {
+
+
+          return  generateAgentPreferences(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateAgentPreferencesMutationResult = NonNullable<Awaited<ReturnType<typeof generateAgentPreferences>>>
+
+    export type GenerateAgentPreferencesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate agent preferences from setup data and test agent history
+ */
+export const useGenerateAgentPreferences = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateAgentPreferences>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateAgentPreferences>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getGenerateAgentPreferencesMutationOptions(options));
+    }
+
+export const getConfirmAgentPreferencesUrl = () => {
+
+
+
+
+  return `/api/agent-preferences/confirm`
+}
+
+/**
+ * @summary Confirm agent preferences and mark the widget ready
+ */
+export const confirmAgentPreferences = async ( options?: RequestInit): Promise<ConfirmAgentPreferencesResult> => {
+
+  return customFetch<ConfirmAgentPreferencesResult>(getConfirmAgentPreferencesUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getConfirmAgentPreferencesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmAgentPreferences>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmAgentPreferences>>, TError,void, TContext> => {
+
+const mutationKey = ['confirmAgentPreferences'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmAgentPreferences>>, void> = () => {
+
+
+          return  confirmAgentPreferences(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmAgentPreferencesMutationResult = NonNullable<Awaited<ReturnType<typeof confirmAgentPreferences>>>
+
+    export type ConfirmAgentPreferencesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Confirm agent preferences and mark the widget ready
+ */
+export const useConfirmAgentPreferences = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmAgentPreferences>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof confirmAgentPreferences>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getConfirmAgentPreferencesMutationOptions(options));
     }
 
 export const getGetEstimateRulesUrl = () => {

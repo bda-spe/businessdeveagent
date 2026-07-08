@@ -593,8 +593,24 @@
     );
   }
 
+  // White text on dark brand colors, navy on light brand colors.
+  function brandTextColor(hex) {
+    var m = /^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.exec(hex || "");
+    if (!m) return "#ffffff";
+    var h = m[1];
+    if (h.length === 3) h = h.charAt(0) + h.charAt(0) + h.charAt(1) + h.charAt(1) + h.charAt(2) + h.charAt(2);
+    var r = parseInt(h.slice(0, 2), 16);
+    var g = parseInt(h.slice(2, 4), 16);
+    var b = parseInt(h.slice(4, 6), 16);
+    var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.6 ? "#1e3a5f" : "#ffffff";
+  }
+
+  var BRANDING = "Business Development Agent \u00A9";
+
   function render() {
     var side = config.position === "bottom-left" ? "left:16px;" : "right:16px;";
+    var textColor = brandTextColor(config.primaryColor);
 
     root = el(
       "div",
@@ -603,13 +619,26 @@
 
     launcher = el(
       "button",
-      "display:flex;align-items:center;gap:8px;background:" +
+      "display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:" +
         config.primaryColor +
-        ";color:#fff;border:none;border-radius:9999px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(15,23,42,0.28);" +
+        ";color:" +
+        textColor +
+        ";border:none;border-radius:16px;padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;text-align:left;box-shadow:0 8px 24px rgba(15,23,42,0.28);" +
         FONT,
       { type: "button" }
     );
-    launcher.textContent = "Get an estimate";
+    var launcherLabel = text(
+      "span",
+      "display:block;font-size:15px;font-weight:600;color:" + textColor + ";",
+      "Get an estimate"
+    );
+    var launcherBrand = text(
+      "span",
+      "display:block;font-size:10.5px;font-style:italic;opacity:0.85;font-weight:400;color:" + textColor + ";",
+      BRANDING
+    );
+    launcher.appendChild(launcherLabel);
+    launcher.appendChild(launcherBrand);
 
     panel = el(
       "div",
@@ -620,16 +649,22 @@
       "div",
       "background:" +
         config.primaryColor +
-        ";color:#fff;padding:14px 18px;"
-    );
-    header.appendChild(
-      text("p", "margin:0;font-size:15px;font-weight:700;", config.businessName)
+        ";color:" +
+        textColor +
+        ";padding:14px 18px;"
     );
     header.appendChild(
       text(
         "p",
-        "margin:2px 0 0;font-size:12px;opacity:0.8;",
-        "Free instant estimate"
+        "margin:0;font-size:15px;font-weight:700;color:" + textColor + ";",
+        config.businessName
+      )
+    );
+    header.appendChild(
+      text(
+        "p",
+        "margin:2px 0 0;font-size:12px;font-style:italic;opacity:0.85;color:" + textColor + ";",
+        BRANDING
       )
     );
 
@@ -644,7 +679,7 @@
     launcher.addEventListener("click", function () {
       state.open = !state.open;
       panel.style.display = state.open ? "flex" : "none";
-      launcher.textContent = state.open ? "Close" : "Get an estimate";
+      launcherLabel.textContent = state.open ? "Close" : "Get an estimate";
       if (state.open) renderStep();
     });
 

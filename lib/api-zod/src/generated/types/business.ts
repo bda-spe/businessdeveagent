@@ -39,5 +39,7 @@ export interface Business {
   /** onboarding or active */
   status: string;
   profileApproved: boolean;
+  agentPreferencesConfirmed?: boolean;
+  widgetReady?: boolean;
   createdAt?: string;
 }

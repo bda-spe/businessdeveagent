@@ -18,6 +18,7 @@ export interface SetupProgress {
 export async function computeSetupProgress(business: {
   id: number;
   profileApproved: boolean;
+  widgetReady: boolean;
 }): Promise<SetupProgress> {
   const [services, sandboxTests, savedEvents] = await Promise.all([
     db
@@ -50,7 +51,9 @@ export async function computeSetupProgress(business: {
     services: services.length > 0,
     pricing: eventTypes.has("pricing_updated"),
     invoiceFormatting: eventTypes.has("invoice_settings_updated"),
-    widget: eventTypes.has("widget_updated"),
+    // The Widget Settings step is only complete once the business has saved
+    // widget settings AND confirmed its agent preferences (widgetReady).
+    widget: eventTypes.has("widget_updated") && business.widgetReady,
     testAgent: sandboxTests.length > 0,
   };
 }

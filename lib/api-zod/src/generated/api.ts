@@ -45,6 +45,8 @@ export const GetMeResponse = zod.object({
   "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
+  "agentPreferencesConfirmed": zod.boolean().optional(),
+  "widgetReady": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 }),zod.null()]).optional(),
   "onboardingComplete": zod.boolean(),
@@ -90,6 +92,8 @@ export const CreateBusinessResponse = zod.object({
   "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
+  "agentPreferencesConfirmed": zod.boolean().optional(),
+  "widgetReady": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
 
@@ -116,6 +120,8 @@ export const GetBusinessResponse = zod.object({
   "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
+  "agentPreferencesConfirmed": zod.boolean().optional(),
+  "widgetReady": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
 
@@ -159,6 +165,8 @@ export const UpdateBusinessResponse = zod.object({
   "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
+  "agentPreferencesConfirmed": zod.boolean().optional(),
+  "widgetReady": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
 
@@ -185,6 +193,8 @@ export const ApproveBusinessProfileResponse = zod.object({
   "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
+  "agentPreferencesConfirmed": zod.boolean().optional(),
+  "widgetReady": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
 
@@ -1214,6 +1224,112 @@ export const AssistantChatResponse = zod.object({
 
 
 /**
+ * @summary Get agent preferences for the current business
+ */
+export const GetAgentPreferencesResponse = zod.object({
+  "businessId": zod.number(),
+  "clientId": zod.string(),
+  "customerTone": zod.string().nullish(),
+  "requiredIntakeQuestions": zod.string().nullish(),
+  "estimatingStandards": zod.string().nullish(),
+  "invoicePolicyStandards": zod.string().nullish(),
+  "lowConfidenceRules": zod.string().nullish(),
+  "servicesNotToQuote": zod.string().nullish(),
+  "finalCustomerDisclaimer": zod.string().nullish(),
+  "confirmed": zod.boolean(),
+  "confirmedAt": zod.string().nullish(),
+  "updatedAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Save edited agent preferences
+ */
+export const saveAgentPreferencesBodyCustomerToneMax = 4000;
+
+export const saveAgentPreferencesBodyRequiredIntakeQuestionsMax = 4000;
+
+export const saveAgentPreferencesBodyEstimatingStandardsMax = 4000;
+
+export const saveAgentPreferencesBodyInvoicePolicyStandardsMax = 4000;
+
+export const saveAgentPreferencesBodyLowConfidenceRulesMax = 4000;
+
+export const saveAgentPreferencesBodyServicesNotToQuoteMax = 4000;
+
+export const saveAgentPreferencesBodyFinalCustomerDisclaimerMax = 4000;
+
+
+
+export const SaveAgentPreferencesBody = zod.object({
+  "customerTone": zod.string().max(saveAgentPreferencesBodyCustomerToneMax).nullish(),
+  "requiredIntakeQuestions": zod.string().max(saveAgentPreferencesBodyRequiredIntakeQuestionsMax).nullish(),
+  "estimatingStandards": zod.string().max(saveAgentPreferencesBodyEstimatingStandardsMax).nullish(),
+  "invoicePolicyStandards": zod.string().max(saveAgentPreferencesBodyInvoicePolicyStandardsMax).nullish(),
+  "lowConfidenceRules": zod.string().max(saveAgentPreferencesBodyLowConfidenceRulesMax).nullish(),
+  "servicesNotToQuote": zod.string().max(saveAgentPreferencesBodyServicesNotToQuoteMax).nullish(),
+  "finalCustomerDisclaimer": zod.string().max(saveAgentPreferencesBodyFinalCustomerDisclaimerMax).nullish()
+})
+
+export const SaveAgentPreferencesResponse = zod.object({
+  "businessId": zod.number(),
+  "clientId": zod.string(),
+  "customerTone": zod.string().nullish(),
+  "requiredIntakeQuestions": zod.string().nullish(),
+  "estimatingStandards": zod.string().nullish(),
+  "invoicePolicyStandards": zod.string().nullish(),
+  "lowConfidenceRules": zod.string().nullish(),
+  "servicesNotToQuote": zod.string().nullish(),
+  "finalCustomerDisclaimer": zod.string().nullish(),
+  "confirmed": zod.boolean(),
+  "confirmedAt": zod.string().nullish(),
+  "updatedAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Generate agent preferences from setup data and test agent history
+ */
+export const GenerateAgentPreferencesResponse = zod.object({
+  "businessId": zod.number(),
+  "clientId": zod.string(),
+  "customerTone": zod.string().nullish(),
+  "requiredIntakeQuestions": zod.string().nullish(),
+  "estimatingStandards": zod.string().nullish(),
+  "invoicePolicyStandards": zod.string().nullish(),
+  "lowConfidenceRules": zod.string().nullish(),
+  "servicesNotToQuote": zod.string().nullish(),
+  "finalCustomerDisclaimer": zod.string().nullish(),
+  "confirmed": zod.boolean(),
+  "confirmedAt": zod.string().nullish(),
+  "updatedAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Confirm agent preferences and mark the widget ready
+ */
+export const ConfirmAgentPreferencesResponse = zod.object({
+  "preferences": zod.object({
+  "businessId": zod.number(),
+  "clientId": zod.string(),
+  "customerTone": zod.string().nullish(),
+  "requiredIntakeQuestions": zod.string().nullish(),
+  "estimatingStandards": zod.string().nullish(),
+  "invoicePolicyStandards": zod.string().nullish(),
+  "lowConfidenceRules": zod.string().nullish(),
+  "servicesNotToQuote": zod.string().nullish(),
+  "finalCustomerDisclaimer": zod.string().nullish(),
+  "confirmed": zod.boolean(),
+  "confirmedAt": zod.string().nullish(),
+  "updatedAt": zod.string().nullish()
+}),
+  "agentPreferencesConfirmed": zod.boolean(),
+  "widgetReady": zod.boolean()
+})
+
+
+/**
  * @summary Get estimate rules
  */
 export const GetEstimateRulesResponse = zod.object({
@@ -1304,6 +1420,8 @@ export const ConfirmBusinessProfileResponse = zod.object({
   "addressZip": zod.string().nullish(),
   "status": zod.string().describe('onboarding or active'),
   "profileApproved": zod.boolean(),
+  "agentPreferencesConfirmed": zod.boolean().optional(),
+  "widgetReady": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
 

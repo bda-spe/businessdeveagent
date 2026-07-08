@@ -9,6 +9,7 @@ import {
   pricingRulesTable,
   businessPoliciesTable,
   estimateRulesTable,
+  agentPreferencesTable,
 } from "@workspace/db";
 import {
   GetWidgetSettingsResponse,
@@ -141,7 +142,12 @@ widgetPublicRouter.get("/widget/config", async (req, res): Promise<void> => {
       greeting: settings.greeting,
       primaryColor: settings.primaryColor,
       position: settings.position,
-      enabled: settings.enabled,
+      // The widget only goes live after the business confirms its agent
+      // preferences. Until then it stays hidden on host sites.
+      enabled:
+        settings.enabled &&
+        business.widgetReady &&
+        business.agentPreferencesConfirmed,
     }),
   );
 });
@@ -194,8 +200,14 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
     res.status(404).json({ error: "Widget not found" });
     return;
   }
+  if (!business.widgetReady || !business.agentPreferencesConfirmed) {
+    res.status(403).json({
+      error: "This widget is not live yet. The business must confirm its agent before the widget can take requests.",
+    });
+    return;
+  }
 
-  const [services, pricingRows, policyRows, estimateRuleRows] =
+  const [services, pricingRows, policyRows, estimateRuleRows, prefRows] =
     await Promise.all([
       db
         .select()
@@ -213,7 +225,25 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
         .select()
         .from(estimateRulesTable)
         .where(eq(estimateRulesTable.businessId, business.id)),
+      db
+        .select()
+        .from(agentPreferencesTable)
+        .where(eq(agentPreferencesTable.businessId, business.id)),
     ]);
+
+  const prefRow = prefRows[0];
+  const confirmedPreferences =
+    prefRow && prefRow.confirmedAt
+      ? {
+          customerTone: prefRow.customerTone,
+          requiredIntakeQuestions: prefRow.requiredIntakeQuestions,
+          estimatingStandards: prefRow.estimatingStandards,
+          invoicePolicyStandards: prefRow.invoicePolicyStandards,
+          lowConfidenceRules: prefRow.lowConfidenceRules,
+          servicesNotToQuote: prefRow.servicesNotToQuote,
+          finalCustomerDisclaimer: prefRow.finalCustomerDisclaimer,
+        }
+      : null;
 
   const [{ agentResponse, estimate }, requestSummary] = await Promise.all([
     generateAgentResponse({
@@ -238,6 +268,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
       laborAssumption: parsed.data.laborAssumption ?? null,
       policies: policyRows[0] ?? null,
       estimateRules: estimateRuleRows[0] ?? null,
+      agentPreferences: confirmedPreferences,
     }),
     summarizeLead(parsed.data.projectDescription),
   ]);

@@ -18,6 +18,7 @@ import leadsRouter from "./leads";
 import billingRouter from "./billing";
 import dashboardRouter from "./dashboard";
 import assistantRouter from "./assistant";
+import agentPreferencesRouter from "./agentPreferences";
 
 const router: IRouter = Router();
 
@@ -44,5 +45,6 @@ router.use(widgetSettingsRouter);
 router.use(billingRouter);
 router.use(dashboardRouter);
 router.use(assistantRouter);
+router.use(agentPreferencesRouter);
 
 export default router;

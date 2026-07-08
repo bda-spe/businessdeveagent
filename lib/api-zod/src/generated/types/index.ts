@@ -9,6 +9,8 @@
 export * from './acceptPolicyInput';
 export * from './account';
 export * from './activityEvent';
+export * from './agentPreferences';
+export * from './agentPreferencesInput';
 export * from './aiDraftPolicyInput';
 export * from './aiDraftPolicyResult';
 export * from './assistantChatInput';
@@ -31,6 +33,7 @@ export * from './businessUpdate';
 export * from './chatMessage';
 export * from './chatMessageRole';
 export * from './checkoutInput';
+export * from './confirmAgentPreferencesResult';
 export * from './dashboardSummary';
 export * from './estimate';
 export * from './estimateRules';

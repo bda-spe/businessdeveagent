@@ -122,7 +122,7 @@ export async function generateAssistantReply(params: {
 
 You are talking to the business owner inside their BDA dashboard. Help them with anything:
 - Questions about their own setup (business profile, services, pricing rules, policies, estimate rules, widget).
-- How BDA works: the setup steps are Business Profile, Services, Pricing Rules, Invoice Formatting, Widget Settings, and Test Agent; after setup they unlock the Dashboard, Leads Inbox, and Billing tabs. The widget is embedded on their website with a script tag from Widget Settings.
+- How BDA works: the setup steps are Business Profile, Services, Pricing Rules, Invoice Formatting, Test Agent, and Widget Settings; on the Widget Settings page they generate, review, and confirm their agent's "Preferences & Standards" — the widget embed code only unlocks after confirmation. After setup they unlock the Dashboard, Leads Inbox, and Billing tabs. The widget is embedded on their website with a script tag from Widget Settings.
 - General business advice (pricing strategy, handling leads, writing policies).
 
 Context about this business (may be incomplete — if something is missing, point them to the tab where they can fill it in):
@@ -154,6 +154,97 @@ Rules:
     logger.error({ err }, "Assistant chat request failed");
     return fallbackReply;
   }
+}
+
+export interface AgentPreferenceSections {
+  customerTone: string;
+  requiredIntakeQuestions: string;
+  estimatingStandards: string;
+  invoicePolicyStandards: string;
+  lowConfidenceRules: string;
+  servicesNotToQuote: string;
+  finalCustomerDisclaimer: string;
+}
+
+export async function generateAgentPreferences(params: {
+  business: BusinessContext;
+  services: ServiceContext[];
+  pricing: PricingContext | null;
+  invoiceSettings?: Record<string, unknown> | null;
+  policies?: Record<string, unknown> | null;
+  estimateRules?: Record<string, unknown> | null;
+  tone?: Record<string, unknown> | null;
+  sandboxTests: {
+    prompt: string;
+    agentResponse: string;
+    messages?: unknown;
+    rating?: number | null;
+    feedbackNotes?: string | null;
+  }[];
+}): Promise<AgentPreferenceSections | null> {
+  const {
+    business,
+    services,
+    pricing,
+    invoiceSettings,
+    policies,
+    estimateRules,
+    tone,
+    sandboxTests,
+  } = params;
+  if (!client) return null;
+
+  const system = `You write the operating standards ("Agent Preferences & Standards") for an AI business development agent that talks to customers on a service business's website and produces price estimates. You are given the business's full setup data plus transcripts and owner feedback from test runs of the agent. Distill everything into clear, actionable standards the agent must follow with real customers. Weight the owner's test feedback and corrections heavily — they show client-specific preferences learned during testing. Never use emojis.
+
+Respond ONLY with a JSON object of shape:
+{"customerTone": string, "requiredIntakeQuestions": string, "estimatingStandards": string, "invoicePolicyStandards": string, "lowConfidenceRules": string, "servicesNotToQuote": string, "finalCustomerDisclaimer": string}
+
+Section guidance:
+- customerTone: how the agent should speak to customers (voice, formality, warmth, phrases to use or avoid).
+- requiredIntakeQuestions: what the agent must ask before estimating, and which customer details (name, contact, location, job specifics) are required before generating an estimate.
+- estimatingStandards: when to give a price range, how conservative or aggressive to be, when to recommend an on-site visit instead of a firm number.
+- invoicePolicyStandards: deposits, payment, cancellation, warranty and invoice practices the agent should mention or respect.
+- lowConfidenceRules: exactly how to handle low-confidence or out-of-scope requests, including the required preliminary-range disclaimer.
+- servicesNotToQuote: services or job types the agent should never quote and what to say instead.
+- finalCustomerDisclaimer: the closing disclaimer shown to customers with every estimate.
+Each section: plain text, may use short "- " bullet lines, 2-6 lines, specific to THIS business.`;
+
+  const trimmedTests = sandboxTests.slice(-15).map((t) => ({
+    prompt: t.prompt.slice(0, 1500),
+    agentResponse: t.agentResponse.slice(0, 1500),
+    messages:
+      typeof t.messages === "object" && t.messages
+        ? JSON.stringify(t.messages).slice(0, 2000)
+        : null,
+    rating: t.rating ?? null,
+    feedbackNotes: t.feedbackNotes ? t.feedbackNotes.slice(0, 1000) : null,
+  }));
+
+  const user = [
+    `Business profile: ${JSON.stringify(business)}`,
+    `Services: ${JSON.stringify(services)}`,
+    `Pricing rules: ${JSON.stringify(pricing)}`,
+    `Invoice settings: ${JSON.stringify(invoiceSettings ?? null)}`,
+    `Business policies: ${JSON.stringify(policies ?? null)}`,
+    `Estimate rules: ${JSON.stringify(estimateRules ?? null)}`,
+    `Preferred tone settings: ${JSON.stringify(tone ?? null)}`,
+    `Test agent runs (transcripts, owner ratings 1-5, owner feedback/corrections): ${JSON.stringify(trimmedTests)}`,
+  ].join("\n");
+
+  const data = await chatJSON(system, user);
+  if (!data) return null;
+  const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+  const sections: AgentPreferenceSections = {
+    customerTone: str(data.customerTone),
+    requiredIntakeQuestions: str(data.requiredIntakeQuestions),
+    estimatingStandards: str(data.estimatingStandards),
+    invoicePolicyStandards: str(data.invoicePolicyStandards),
+    lowConfidenceRules: str(data.lowConfidenceRules),
+    servicesNotToQuote: str(data.servicesNotToQuote),
+    finalCustomerDisclaimer: str(data.finalCustomerDisclaimer),
+  };
+  const hasContent = Object.values(sections).some((s) => s.length > 0);
+  return hasContent ? sections : null;
 }
 
 function num(v: unknown, fallback = 0): number {
@@ -291,6 +382,7 @@ export async function generateAgentResponse(params: {
   laborAssumption?: string | null;
   policies?: Record<string, unknown> | null;
   estimateRules?: Record<string, unknown> | null;
+  agentPreferences?: Record<string, unknown> | null;
 }): Promise<{ agentResponse: string; estimate: Estimate }> {
   const {
     business,
@@ -303,6 +395,7 @@ export async function generateAgentResponse(params: {
     laborAssumption,
     policies,
     estimateRules,
+    agentPreferences,
   } = params;
   const fallback = fallbackEstimate(prompt, services, pricing);
 
@@ -329,6 +422,10 @@ Respond ONLY with a JSON object of shape: {"message": string, "estimate": {"cust
   if (policies) lines.push(`Business policies: ${JSON.stringify(policies)}`);
   if (estimateRules)
     lines.push(`Estimate rules: ${JSON.stringify(estimateRules)}`);
+  if (agentPreferences)
+    lines.push(
+      `Confirmed agent preferences & standards (follow these strictly — they override generic behavior; respect the customer tone, required intake questions, estimating standards, invoice/policy standards, low-confidence rules, services not to quote, and include the final customer disclaimer): ${JSON.stringify(agentPreferences)}`,
+    );
   lines.push("");
   if (customerName) lines.push(`Customer name: ${customerName}`);
   lines.push(`Customer's project description: "${prompt}"`);

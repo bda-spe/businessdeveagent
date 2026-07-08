@@ -48,6 +48,8 @@ export interface Business {
   /** onboarding or active */
   status: string;
   profileApproved: boolean;
+  agentPreferencesConfirmed?: boolean;
+  widgetReady?: boolean;
   createdAt?: string;
 }
 
@@ -701,6 +703,74 @@ export interface AssistantChatInput {
 
 export interface AssistantChatResult {
   reply: string;
+}
+
+export interface AgentPreferences {
+  businessId: number;
+  clientId: string;
+  /** @nullable */
+  customerTone?: string | null;
+  /** @nullable */
+  requiredIntakeQuestions?: string | null;
+  /** @nullable */
+  estimatingStandards?: string | null;
+  /** @nullable */
+  invoicePolicyStandards?: string | null;
+  /** @nullable */
+  lowConfidenceRules?: string | null;
+  /** @nullable */
+  servicesNotToQuote?: string | null;
+  /** @nullable */
+  finalCustomerDisclaimer?: string | null;
+  confirmed: boolean;
+  /** @nullable */
+  confirmedAt?: string | null;
+  /** @nullable */
+  updatedAt?: string | null;
+}
+
+export interface AgentPreferencesInput {
+  /**
+     * @maxLength 4000
+     * @nullable
+     */
+  customerTone?: string | null;
+  /**
+     * @maxLength 4000
+     * @nullable
+     */
+  requiredIntakeQuestions?: string | null;
+  /**
+     * @maxLength 4000
+     * @nullable
+     */
+  estimatingStandards?: string | null;
+  /**
+     * @maxLength 4000
+     * @nullable
+     */
+  invoicePolicyStandards?: string | null;
+  /**
+     * @maxLength 4000
+     * @nullable
+     */
+  lowConfidenceRules?: string | null;
+  /**
+     * @maxLength 4000
+     * @nullable
+     */
+  servicesNotToQuote?: string | null;
+  /**
+     * @maxLength 4000
+     * @nullable
+     */
+  finalCustomerDisclaimer?: string | null;
+}
+
+export interface ConfirmAgentPreferencesResult {
+  preferences: AgentPreferences;
+  agentPreferencesConfirmed: boolean;
+  widgetReady: boolean;
 }
 
 export interface EstimateRules {
