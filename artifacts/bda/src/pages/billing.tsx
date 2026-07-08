@@ -152,10 +152,14 @@ export default function BillingPage() {
       onSuccess: (data) => {
         window.location.href = data.url;
       },
-      onError: () => {
+      onError: (err: unknown) => {
+        const apiMsg =
+          (err as { response?: { data?: { error?: string } } })?.response?.data
+            ?.error ?? null;
         toast({
           title: "Could not open billing portal",
           description:
+            apiMsg ??
             "Ensure the Stripe Customer Portal is configured in your dashboard, or contact support.",
           variant: "destructive",
         });

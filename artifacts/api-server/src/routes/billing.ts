@@ -222,17 +222,12 @@ router.post(
     const business = req.business!;
     if (!business.stripeCustomerId) {
       res.status(400).json({
-        error: "No billing account found. Please subscribe first.",
+        error: "This account does not have an active billing profile.",
       });
       return;
     }
 
-    const domain = process.env.REPLIT_DEV_DOMAIN;
-    const returnUrl = domain
-      ? `https://${domain}/bda/billing`
-      : (process.env.APP_BASE_URL
-          ? `${process.env.APP_BASE_URL}/billing`
-          : "https://yourdomain.com/billing");
+    const returnUrl = "https://businessdevelopmentagent.replit.app/billing";
 
     try {
       const session = await getStripe().billingPortal.sessions.create({
