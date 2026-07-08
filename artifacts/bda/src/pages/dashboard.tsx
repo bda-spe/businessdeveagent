@@ -1,9 +1,7 @@
 import { useGetDashboardSummary, useListActivity } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Users, DollarSign, BrainCircuit, CheckCircle2, MessageSquare, Clock, FileText } from "lucide-react";
+import { Activity, Users, DollarSign, MessageSquare, Clock, FileText } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 export default function DashboardPage() {
@@ -13,13 +11,10 @@ export default function DashboardPage() {
   if (isLoadingSummary || isLoadingActivity) {
     return (
       <div className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-          <Skeleton className="h-96 w-full rounded-xl col-span-4" />
-          <Skeleton className="h-96 w-full rounded-xl col-span-3" />
-        </div>
+        <Skeleton className="h-96 w-full rounded-xl" />
       </div>
     );
   }
@@ -44,7 +39,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="shadow-sm border-slate-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-slate-500">Leads Generated</CardTitle>
@@ -77,101 +72,45 @@ export default function DashboardPage() {
             <p className="text-xs text-slate-500 mt-1">Active chats</p>
           </CardContent>
         </Card>
-
-        <Card className="shadow-sm border-slate-200">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-slate-500">Training Score</CardTitle>
-            <BrainCircuit className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-end gap-2">
-              <div className="text-3xl font-bold text-slate-900" data-testid="text-training-score">{summary.trainingScore}%</div>
-            </div>
-            <Progress value={summary.trainingScore} className="h-2 mt-3 bg-slate-100" />
-          </CardContent>
-        </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 shadow-sm border-slate-200 flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-lg">Agent Readiness</CardTitle>
-            <CardDescription>Complete these areas to deploy your agent.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-center gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-700 flex items-center gap-2">
-                  <CheckCircle2 className={`h-4 w-4 ${summary.requirementsComplete === summary.requirementsTotal ? 'text-emerald-500' : 'text-slate-300'}`} />
-                  Business Profile
-                </span>
-                <span className="text-slate-500">{summary.requirementsComplete} / {summary.requirementsTotal}</span>
-              </div>
-              <Progress value={(summary.requirementsComplete / summary.requirementsTotal) * 100} className="h-2" />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-700 flex items-center gap-2">
-                  <BrainCircuit className="h-4 w-4 text-purple-500" />
-                  Knowledge Base Confidence
-                </span>
-                <span className="text-slate-500">{summary.knowledgeScore}%</span>
-              </div>
-              <Progress value={summary.knowledgeScore} className="h-2" />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-700 flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-emerald-500" />
-                  Pricing Accuracy Confidence
-                </span>
-                <span className="text-slate-500">{summary.pricingConfidence}%</span>
-              </div>
-              <Progress value={summary.pricingConfidence} className="h-2" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-3 shadow-sm border-slate-200 flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Activity</CardTitle>
-            <CardDescription>Latest actions and lead generation.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-auto max-h-[300px]">
-            {activities && activities.length > 0 ? (
-              <div className="space-y-6">
-                {activities.map((activity, index) => (
-                  <div key={activity.id} className="flex gap-4 relative">
-                    {index !== activities.length - 1 && (
-                      <div className="absolute left-[11px] top-6 bottom-[-24px] w-[2px] bg-slate-100"></div>
-                    )}
-                    <div className="w-6 h-6 rounded-full bg-blue-50 border-2 border-white flex items-center justify-center shrink-0 z-10">
-                      {activity.type === 'lead_generated' ? <Users className="h-3 w-3 text-blue-600" /> : 
-                       activity.type === 'document_scanned' ? <FileText className="h-3 w-3 text-purple-600" /> :
-                       <Activity className="h-3 w-3 text-slate-600" />}
-                    </div>
-                    <div className="flex flex-col flex-1 pb-1">
-                      <span className="text-sm text-slate-900">{activity.description}</span>
-                      <span className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                        <Clock className="h-3 w-3" />
-                        {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
-                      </span>
-                    </div>
+      <Card className="shadow-sm border-slate-200 flex flex-col">
+        <CardHeader>
+          <CardTitle className="text-lg">Recent Activity</CardTitle>
+          <CardDescription>Latest actions and lead generation.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-auto max-h-[300px]">
+          {activities && activities.length > 0 ? (
+            <div className="space-y-6">
+              {activities.map((activity, index) => (
+                <div key={activity.id} className="flex gap-4 relative">
+                  {index !== activities.length - 1 && (
+                    <div className="absolute left-[11px] top-6 bottom-[-24px] w-[2px] bg-slate-100"></div>
+                  )}
+                  <div className="w-6 h-6 rounded-full bg-blue-50 border-2 border-white flex items-center justify-center shrink-0 z-10">
+                    {activity.type === 'lead_generated' ? <Users className="h-3 w-3 text-blue-600" /> : 
+                     activity.type === 'document_scanned' ? <FileText className="h-3 w-3 text-purple-600" /> :
+                     <Activity className="h-3 w-3 text-slate-600" />}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                <Activity className="h-10 w-10 text-slate-200 mb-3" />
-                <p className="text-sm font-medium text-slate-900">No activity yet</p>
-                <p className="text-xs text-slate-500 mt-1">Activities will appear here once your agent starts working.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  <div className="flex flex-col flex-1 pb-1">
+                    <span className="text-sm text-slate-900">{activity.description}</span>
+                    <span className="text-xs text-slate-500 flex items-center gap-1 mt-1">
+                      <Clock className="h-3 w-3" />
+                      {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center py-8">
+              <Activity className="h-10 w-10 text-slate-200 mb-3" />
+              <p className="text-sm font-medium text-slate-900">No activity yet</p>
+              <p className="text-xs text-slate-500 mt-1">Activities will appear here once your agent starts working.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

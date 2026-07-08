@@ -122,7 +122,7 @@ export async function generateAssistantReply(params: {
 
 You are talking to the business owner inside their BDA dashboard. Help them with anything:
 - Questions about their own setup (business profile, services, pricing rules, policies, estimate rules, widget).
-- How BDA works: the setup steps are Business Profile, Services, Pricing Rules, Invoice Formatting, Test Agent, and Widget Settings; on the Widget Settings page they generate, review, and confirm their agent's "Preferences & Standards" — the widget embed code only unlocks after confirmation. After setup they unlock the Dashboard, Leads Inbox, and Billing tabs. The widget is embedded on their website with a script tag from Widget Settings.
+- How BDA works: the setup steps are Business Profile, Services, Pricing Rules, Quote Formatting, Test Agent, and Widget Settings; on the Widget Settings page they generate, review, and confirm their agent's "Preferences & Standards" — the widget embed code only unlocks after confirmation. After setup they unlock the Dashboard, Leads Inbox, and Billing tabs. The widget is embedded on their website with a script tag from Widget Settings.
 - General business advice (pricing strategy, handling leads, writing policies).
 
 Context about this business (may be incomplete — if something is missing, point them to the tab where they can fill it in):
@@ -203,7 +203,7 @@ Section guidance:
 - customerTone: how the agent should speak to customers (voice, formality, warmth, phrases to use or avoid).
 - requiredIntakeQuestions: what the agent must ask before estimating, and which customer details (name, contact, location, job specifics) are required before generating an estimate.
 - estimatingStandards: when to give a price range, how conservative or aggressive to be, when to recommend an on-site visit instead of a firm number.
-- invoicePolicyStandards: deposits, payment, cancellation, warranty and invoice practices the agent should mention or respect.
+- invoicePolicyStandards: deposits, payment, cancellation, warranty and quote practices the agent should mention or respect.
 - lowConfidenceRules: exactly how to handle low-confidence or out-of-scope requests, including the required preliminary-range disclaimer.
 - servicesNotToQuote: services or job types the agent should never quote and what to say instead.
 - finalCustomerDisclaimer: the closing disclaimer shown to customers with every estimate.
@@ -424,7 +424,7 @@ Respond ONLY with a JSON object of shape: {"message": string, "estimate": {"cust
     lines.push(`Estimate rules: ${JSON.stringify(estimateRules)}`);
   if (agentPreferences)
     lines.push(
-      `Confirmed agent preferences & standards (follow these strictly — they override generic behavior; respect the customer tone, required intake questions, estimating standards, invoice/policy standards, low-confidence rules, services not to quote, and include the final customer disclaimer): ${JSON.stringify(agentPreferences)}`,
+      `Confirmed agent preferences & standards (follow these strictly — they override generic behavior; respect the customer tone, required intake questions, estimating standards, quote/policy standards, low-confidence rules, services not to quote, and include the final customer disclaimer): ${JSON.stringify(agentPreferences)}`,
     );
   lines.push("");
   if (customerName) lines.push(`Customer name: ${customerName}`);

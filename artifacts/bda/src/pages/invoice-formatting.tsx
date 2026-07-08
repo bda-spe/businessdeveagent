@@ -116,8 +116,8 @@ const POLICY_FIELDS: {
   },
   {
     name: "footerNote",
-    label: "Invoice Footer Note",
-    description: "A short closing line at the bottom of every invoice.",
+    label: "Quote Footer Note",
+    description: "A short closing line at the bottom of every quote.",
   },
 ];
 
@@ -440,12 +440,12 @@ export default function InvoiceFormattingPage() {
       {
         onSuccess: (data) => {
           queryClient.setQueryData(getGetInvoiceSettingsQueryKey(), data);
-          toast({ title: "Invoice format saved." });
+          toast({ title: "Quote format saved." });
           setLocation("/widget");
         },
         onError: () => {
           toast({
-            title: "Error saving invoice format.",
+            title: "Error saving quote format.",
             variant: "destructive",
           });
         },
@@ -469,10 +469,10 @@ export default function InvoiceFormattingPage() {
     <div className="max-w-6xl mx-auto animate-in fade-in duration-500 pb-16">
       <div className="mb-10">
         <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-          Invoice Formatting
+          Quote Formatting
         </h2>
         <p className="text-slate-500 mt-2 max-w-2xl">
-          Choose how your agent presents estimates and invoices to customers.
+          Choose how your agent presents estimates and quotes to customers.
           Previews use your real business name, services, and pricing.
         </p>
       </div>
@@ -484,7 +484,7 @@ export default function InvoiceFormattingPage() {
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">
-                  Invoice Template
+                  Quote Template
                 </h3>
                 <p className="text-sm text-slate-500 mt-1">
                   Select the layout your customers will see.
@@ -554,14 +554,14 @@ export default function InvoiceFormattingPage() {
             </div>
           </section>
 
-          {/* Invoice sections */}
+          {/* Quote sections */}
           <section>
             <div className="mb-5">
               <h3 className="text-lg font-semibold text-slate-900">
-                Invoice Sections
+                Quote Sections
               </h3>
               <p className="text-sm text-slate-500 mt-1">
-                Choose which sections appear on estimates and invoices. The
+                Choose which sections appear on estimates and quotes. The
                 template previews above update as you change these.
               </p>
             </div>
@@ -804,7 +804,7 @@ export default function InvoiceFormattingPage() {
                       render={({ field }) => (
                         <FormItem className="flex items-center justify-between gap-4">
                           <div>
-                            <FormLabel>Attach PDF invoice</FormLabel>
+                            <FormLabel>Attach PDF quote</FormLabel>
                             <FormDescription>
                               Include the formatted estimate as a PDF
                               attachment.
@@ -852,7 +852,7 @@ export default function InvoiceFormattingPage() {
                       {previewBody && <p>{previewBody}</p>}
                       <div className="bg-slate-50 border border-slate-200 rounded-md p-3 text-xs space-y-1">
                         <p className="font-semibold text-slate-800">
-                          Estimate summary:
+                          Quote summary:
                         </p>
                         {lineItems.map((li) => (
                           <p key={li.description} className="flex justify-between">
@@ -894,7 +894,7 @@ export default function InvoiceFormattingPage() {
             >
               {saveSettings.isPending
                 ? "Saving..."
-                : "Save Invoice Format & Continue"}
+                : "Save Quote Format & Continue"}
             </Button>
           </div>
         </form>

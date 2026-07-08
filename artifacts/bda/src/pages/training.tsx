@@ -229,7 +229,7 @@ export default function TrainingPage() {
       URL.revokeObjectURL(url);
     } catch {
       toast({
-        title: "Could not download the PDF invoice.",
+        title: "Could not download the PDF quote.",
         variant: "destructive",
       });
     }
@@ -365,7 +365,7 @@ export default function TrainingPage() {
                           data-testid="button-download-pdf"
                         >
                           <Download className="h-3.5 w-3.5 mr-1.5" /> PDF
-                          Invoice
+                          Quote
                         </Button>
                       </div>
                       <InvoiceTemplatePreview

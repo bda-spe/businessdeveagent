@@ -346,12 +346,12 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
     }
     const result = await sendEstimateEmail({
       to: customerEmail,
-      cc: settings.ccOwner ? business.email : null,
+      cc: business.email ?? null,
       replyTo: settings.replyToEmail,
       subject: composed.subject,
       text: composed.body,
       attachment: pdfBuffer
-        ? { filename: "estimate.pdf", content: pdfBuffer }
+        ? { filename: "quote.pdf", content: pdfBuffer }
         : null,
     });
     emailSent = result.sent;

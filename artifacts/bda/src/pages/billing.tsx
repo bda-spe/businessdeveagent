@@ -121,7 +121,7 @@ export default function BillingPage() {
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-                    <span>Automated estimates/invoices</span>
+                    <span>Automated estimates/quotes</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="h-4 w-4 text-emerald-500 shrink-0" />

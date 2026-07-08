@@ -42,9 +42,9 @@ export function filterLineItems(
 }
 
 const TEMPLATE_TITLES: Record<string, string> = {
-  simple_summary: "Estimate Summary",
-  modern_estimate_card: "Service Estimate",
-  detailed_agreement: "Detailed Service Estimate & Agreement",
+  simple_summary: "Quote Summary",
+  modern_estimate_card: "Service Quote",
+  detailed_agreement: "Detailed Service Quote & Agreement",
   professional_proposal: "Professional Service Proposal",
 };
 

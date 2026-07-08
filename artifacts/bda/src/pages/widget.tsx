@@ -66,7 +66,7 @@ const PREF_SECTIONS = [
   },
   {
     key: "invoicePolicyStandards",
-    label: "Invoice & Policy Standards",
+    label: "Quote & Policy Standards",
     description: "Deposits, payment, cancellation, and warranty practices the agent should respect.",
   },
   {
@@ -309,7 +309,7 @@ export default function WidgetPage() {
               <h3 className="font-semibold text-slate-900 mb-1">Generate your agent's standards</h3>
               <p className="text-sm text-slate-500 max-w-md mx-auto mb-5">
                 {testAgentDone
-                  ? "We'll analyze your business profile, services, pricing, invoice settings, and your Test Agent feedback to draft the standards your agent will follow."
+                  ? "We'll analyze your business profile, services, pricing, quote settings, and your Test Agent feedback to draft the standards your agent will follow."
                   : "Tip: run a few tests in Test Agent first — your feedback there teaches the agent your preferences before we draft its standards."}
               </p>
               <Button

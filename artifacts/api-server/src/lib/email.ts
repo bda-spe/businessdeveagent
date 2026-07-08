@@ -51,7 +51,7 @@ export function composeEstimateEmail(opts: {
     "",
     replacePlaceholders(emailBodyText || "", vars),
     "",
-    "Estimate summary:",
+    "Quote summary:",
     ...items.map((li) => `- ${li.description}: $${li.total.toFixed(2)}`),
   ];
   if (taxes > 0) lines.push(`- Taxes & fees: $${taxes.toFixed(2)}`);

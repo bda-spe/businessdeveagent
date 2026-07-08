@@ -17,7 +17,6 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import UploadDocsCard from "@/components/upload-docs-card";
 import AssistantChat from "@/components/assistant-chat";
 import logoUrl from "@assets/bda-split_1783453365816.png";
 
@@ -34,7 +33,7 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
     { href: "/business", label: "Business Profile", icon: Building2, done: !!sp?.businessProfile },
     { href: "/services", label: "Services", icon: Wrench, done: !!sp?.services },
     { href: "/pricing", label: "Pricing Rules", icon: DollarSign, done: !!sp?.pricing },
-    { href: "/invoice-formatting", label: "Invoice Formatting", icon: FileText, done: !!sp?.invoiceFormatting },
+    { href: "/invoice-formatting", label: "Quote Formatting", icon: FileText, done: !!sp?.invoiceFormatting },
     { href: "/training", label: "Test Agent", icon: BrainCircuit, done: !!sp?.testAgent },
     { href: "/widget", label: "Widget Settings", icon: Puzzle, done: !!sp?.widget },
   ];
@@ -187,7 +186,6 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
           <div className="flex flex-col xl:flex-row gap-8 items-start">
             <div className="flex-1 min-w-0 w-full">{children}</div>
             <div className="w-full xl:w-80 shrink-0 space-y-6 xl:sticky xl:top-24">
-              <UploadDocsCard />
               <AssistantChat />
             </div>
           </div>

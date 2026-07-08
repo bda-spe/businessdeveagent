@@ -14,7 +14,7 @@ export const TEMPLATE_OPTIONS: {
 }[] = [
   {
     id: "simple_summary",
-    name: "Simple Summary Invoice",
+    name: "Simple Summary Quote",
     tagline: "Short, clean itemized pricing with a brief policy note.",
     detailed: false,
   },
@@ -26,7 +26,7 @@ export const TEMPLATE_OPTIONS: {
   },
   {
     id: "detailed_agreement",
-    name: "Detailed Service Agreement Invoice",
+    name: "Detailed Service Agreement",
     tagline: "Full terms, cancellation policy, and acceptance language.",
     detailed: true,
   },
@@ -118,7 +118,7 @@ function SimpleSummary({ data }: { data: InvoiceRenderData }) {
     <div className="bg-white text-xs text-slate-700 p-5 space-y-4">
       <div className="border-b border-slate-200 pb-3">
         <p className="text-base font-bold text-slate-900">{data.businessName}</p>
-        <p className="text-slate-500">Estimate / Invoice Preview</p>
+        <p className="text-slate-500">Quote Preview</p>
       </div>
       <div className="space-y-0.5">
         {data.customerName && (
