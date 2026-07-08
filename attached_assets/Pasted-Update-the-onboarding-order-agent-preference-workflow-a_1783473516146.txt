@@ -1,0 +1,117 @@
+Update the onboarding order, agent preference workflow, and widget branding.
+
+Current order:
+Business Profile
+Services
+Pricing Rules
+Invoice Formatting
+Widget Settings
+Test Agent
+
+Change order to:
+1. Business Profile
+2. Services
+3. Pricing Rules
+4. Invoice Formatting
+5. Test Agent
+6. Widget Settings
+
+Reason:
+The client should test and refine the BDA before receiving website integration instructions.
+
+Test Agent should continue saving feedback from test runs. Feedback should be stored per business/client, not globally.
+
+After Test Agent is completed, Widget Settings should include a new section called “Agent Preferences & Standards.”
+
+On the Widget Settings page:
+- Keep current widget customization:
+  - Widget color
+  - Widget side/position
+  - Greeting message
+  - Enabled/disabled toggle
+- Add generated Agent Preferences & Standards summary.
+
+This summary should be generated from:
+- Business profile
+- Services
+- Pricing rules
+- Invoice settings
+- Test Agent conversations
+- Test Agent feedback
+- Accepted corrections
+- Preferred tone
+- Estimate rules
+
+The generated summary should include:
+- How the BDA should speak to customers
+- What questions the BDA should ask before estimating
+- When the BDA should provide a price range
+- When the BDA should recommend an on-site visit
+- How conservative or aggressive estimates should be
+- How it should handle low-confidence requests
+- What disclaimers should be included
+- What services it should avoid quoting
+- What customer details are required before generating an estimate
+- Any client-specific preferences learned during testing
+
+Show this summary in editable sections:
+1. Customer Tone
+2. Required Intake Questions
+3. Estimating Standards
+4. Invoice/Policy Standards
+5. Low-Confidence Rules
+6. Services Not to Quote
+7. Final Customer Disclaimer
+
+Each section should be editable by the user.
+
+Add buttons:
+- Generate Preferences from Testing
+- Regenerate Summary
+- Save Agent Preferences
+- Confirm Agent & Generate Widget
+
+Once confirmed:
+- Save finalized preferences to the database per business/client
+- Mark agent_preferences_confirmed = true
+- Mark widget_ready = true
+- Show the unique embed code:
+  <script src="https://yourdomain.com/widget.js" data-client-id="CLIENT_ID"></script>
+
+Widget branding:
+- Every embedded website widget must include subtle BDA branding in the widget header.
+- Display this exact text in italics:
+  Business Development Agent ©
+- The branding should appear small and tasteful in the header area of the widget.
+- It should not overpower the client’s business name or widget greeting.
+- It should remain visible on all widget states: closed launcher preview, open intake flow, estimate result, and confirmation screen.
+- Keep the branding white or light text when the widget header uses a dark/custom color.
+- If the widget header uses a light/custom color, use navy text.
+- Do not display “Sean Pelillo Enterprises” on the widget.
+- Sean Pelillo Enterprises should only appear in legal/T&Cs areas, not customer-facing widget branding.
+
+Database:
+Add or update a table called agent_preferences with:
+- id
+- business_id
+- client_id
+- customer_tone
+- required_intake_questions
+- estimating_standards
+- invoice_policy_standards
+- low_confidence_rules
+- services_not_to_quote
+- final_customer_disclaimer
+- source_test_agent_feedback
+- confirmed_at
+- created_at
+- updated_at
+
+Important:
+- Agent preferences must be unique per business/client.
+- Do not store these globally.
+- Do not create separate OpenAI API keys per client.
+- Use the one existing OPENAI_API_KEY server-side.
+- When the live widget generates estimates, include the finalized agent_preferences in the AI context.
+- The widget should only become available after preferences are confirmed.
+- Keep the UI clean, white, navy-accented, and simple.
