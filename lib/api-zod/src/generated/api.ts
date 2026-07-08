@@ -1710,7 +1710,8 @@ export const ListBillingPlansResponseItem = zod.object({
   "name": zod.string(),
   "price": zod.number(),
   "interval": zod.string().describe('month, year, or one-time'),
-  "description": zod.string().nullish()
+  "description": zod.string().nullish(),
+  "setupFee": zod.number().nullish().describe('One-time setup fee charged on the first checkout only')
 })
 export const ListBillingPlansResponse = zod.array(ListBillingPlansResponseItem)
 
@@ -1729,13 +1730,26 @@ export const GetSubscriptionResponse = zod.object({
 
 
 /**
- * @summary Placeholder checkout that activates the business
+ * @summary Create a Stripe Embedded Checkout session for the selected plan
  */
 export const CheckoutBody = zod.object({
   "planId": zod.string()
 })
 
 export const CheckoutResponse = zod.object({
+  "clientSecret": zod.string().describe('Stripe Embedded Checkout client secret'),
+  "sessionId": zod.string()
+})
+
+
+/**
+ * @summary Verify a completed checkout session and activate the subscription
+ */
+export const ConfirmCheckoutBody = zod.object({
+  "sessionId": zod.string()
+})
+
+export const ConfirmCheckoutResponse = zod.object({
   "id": zod.number().nullish(),
   "planId": zod.string().nullish(),
   "planName": zod.string().nullish(),

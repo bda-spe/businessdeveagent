@@ -976,6 +976,11 @@ export interface BillingPlan {
   interval: string;
   /** @nullable */
   description?: string | null;
+  /**
+     * One-time setup fee charged on the first checkout only
+     * @nullable
+     */
+  setupFee?: number | null;
 }
 
 export interface BillingSubscription {
@@ -993,6 +998,16 @@ export interface BillingSubscription {
 
 export interface CheckoutInput {
   planId: string;
+}
+
+export interface CheckoutSession {
+  /** Stripe Embedded Checkout client secret */
+  clientSecret: string;
+  sessionId: string;
+}
+
+export interface ConfirmCheckoutInput {
+  sessionId: string;
 }
 
 export interface DashboardSummary {

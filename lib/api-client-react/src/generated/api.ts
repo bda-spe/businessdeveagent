@@ -41,7 +41,9 @@ import type {
   BusinessToneInput,
   BusinessUpdate,
   CheckoutInput,
+  CheckoutSession,
   ConfirmAgentPreferencesResult,
+  ConfirmCheckoutInput,
   DashboardSummary,
   EstimateRules,
   EstimateRulesInput,
@@ -4414,11 +4416,11 @@ export const getCheckoutUrl = () => {
 }
 
 /**
- * @summary Placeholder checkout that activates the business
+ * @summary Create a Stripe Embedded Checkout session for the selected plan
  */
-export const checkout = async (checkoutInput: CheckoutInput, options?: RequestInit): Promise<BillingSubscription> => {
+export const checkout = async (checkoutInput: CheckoutInput, options?: RequestInit): Promise<CheckoutSession> => {
 
-  return customFetch<BillingSubscription>(getCheckoutUrl(),
+  return customFetch<CheckoutSession>(getCheckoutUrl(),
   {
     ...options,
     method: 'POST',
@@ -4462,7 +4464,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CheckoutMutationError = ErrorType<unknown>
 
     /**
- * @summary Placeholder checkout that activates the business
+ * @summary Create a Stripe Embedded Checkout session for the selected plan
  */
 export const useCheckout = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkout>>, TError,{data: BodyType<CheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -4473,6 +4475,76 @@ export const useCheckout = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCheckoutMutationOptions(options));
+    }
+
+export const getConfirmCheckoutUrl = () => {
+
+
+
+
+  return `/api/billing/checkout/confirm`
+}
+
+/**
+ * @summary Verify a completed checkout session and activate the subscription
+ */
+export const confirmCheckout = async (confirmCheckoutInput: ConfirmCheckoutInput, options?: RequestInit): Promise<BillingSubscription> => {
+
+  return customFetch<BillingSubscription>(getConfirmCheckoutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(confirmCheckoutInput)
+  }
+);}
+
+
+
+
+export const getConfirmCheckoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmCheckout>>, TError,{data: BodyType<ConfirmCheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmCheckout>>, TError,{data: BodyType<ConfirmCheckoutInput>}, TContext> => {
+
+const mutationKey = ['confirmCheckout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmCheckout>>, {data: BodyType<ConfirmCheckoutInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  confirmCheckout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof confirmCheckout>>>
+    export type ConfirmCheckoutMutationBody = BodyType<ConfirmCheckoutInput>
+    export type ConfirmCheckoutMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Verify a completed checkout session and activate the subscription
+ */
+export const useConfirmCheckout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmCheckout>>, TError,{data: BodyType<ConfirmCheckoutInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof confirmCheckout>>,
+        TError,
+        {data: BodyType<ConfirmCheckoutInput>},
+        TContext
+      > => {
+      return useMutation(getConfirmCheckoutMutationOptions(options));
     }
 
 export const getGetDashboardSummaryUrl = () => {

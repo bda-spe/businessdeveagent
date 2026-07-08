@@ -72,12 +72,15 @@ export const DEFAULT_EMAIL_SETTINGS = {
   brandColor: "#1e3a5f",
 };
 
+export const SETUP_FEE = 29;
+
 export const BILLING_PLANS: {
   id: string;
   name: string;
   price: number;
   interval: string;
   description: string;
+  setupFee: number;
 }[] = [
   {
     id: "monthly",
@@ -85,6 +88,7 @@ export const BILLING_PLANS: {
     price: 99,
     interval: "month",
     description: "Full BDA access billed monthly.",
+    setupFee: SETUP_FEE,
   },
   {
     id: "yearly",
@@ -92,12 +96,6 @@ export const BILLING_PLANS: {
     price: 799,
     interval: "year",
     description: "Full BDA access billed annually. Save over monthly.",
-  },
-  {
-    id: "build_fee",
-    name: "One-time build fee",
-    price: 129,
-    interval: "one-time",
-    description: "Initial agent build and setup.",
+    setupFee: SETUP_FEE,
   },
 ];

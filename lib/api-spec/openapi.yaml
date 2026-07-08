@@ -1015,13 +1015,32 @@ paths:
     post:
       operationId: checkout
       tags: [billing]
-      summary: Placeholder checkout that activates the business
+      summary: Create a Stripe Embedded Checkout session for the selected plan
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CheckoutInput"
+      responses:
+        "200":
+          description: Embedded checkout session credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSession"
+
+  /billing/checkout/confirm:
+    post:
+      operationId: confirmCheckout
+      tags: [billing]
+      summary: Verify a completed checkout session and activate the subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmCheckoutInput"
       responses:
         "200":
           description: Updated subscription
@@ -2409,6 +2428,9 @@ components:
           description: month, year, or one-time
         description:
           type: ["string", "null"]
+        setupFee:
+          type: ["number", "null"]
+          description: One-time setup fee charged on the first checkout only
 
     BillingSubscription:
       type: object
@@ -2432,6 +2454,23 @@ components:
       required: [planId]
       properties:
         planId:
+          type: string
+
+    CheckoutSession:
+      type: object
+      required: [clientSecret, sessionId]
+      properties:
+        clientSecret:
+          type: string
+          description: Stripe Embedded Checkout client secret
+        sessionId:
+          type: string
+
+    ConfirmCheckoutInput:
+      type: object
+      required: [sessionId]
+      properties:
+        sessionId:
           type: string
 
     DashboardSummary:

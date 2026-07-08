@@ -9,6 +9,7 @@ import {
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
+import { stripeWebhookHandler } from "./routes/stripe-webhook";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -79,6 +80,14 @@ app.use(
     },
   }),
 );
+// Stripe webhook needs the raw request body for signature verification, so it
+// is mounted before the global JSON body parser.
+app.post(
+  "/api/stripe/webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhookHandler,
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

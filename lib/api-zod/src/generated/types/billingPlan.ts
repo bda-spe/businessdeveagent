@@ -14,4 +14,9 @@ export interface BillingPlan {
   interval: string;
   /** @nullable */
   description?: string | null;
+  /**
+     * One-time setup fee charged on the first checkout only
+     * @nullable
+     */
+  setupFee?: number | null;
 }

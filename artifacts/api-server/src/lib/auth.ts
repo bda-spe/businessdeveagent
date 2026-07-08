@@ -71,7 +71,9 @@ function parseDbTimestampAsUtc(value: string): Date {
 }
 
 export function isTrialExpired(business: AppBusiness): boolean {
-  if (business.subscriptionStatus === "active") return false;
+  // Only businesses still in their trial can lazily expire. States managed by
+  // Stripe webhooks (active, past_due, canceled) must never be overwritten.
+  if (business.subscriptionStatus !== "trialing") return false;
   if (!business.trialEndsAt) return false;
   return new Date() > parseDbTimestampAsUtc(business.trialEndsAt);
 }
