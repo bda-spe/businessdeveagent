@@ -1,6 +1,10 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
-import { requireAuth, loadContext } from "../lib/auth";
+import {
+  requireAuth,
+  loadContext,
+  requireActiveSubscription,
+} from "../lib/auth";
 import { widgetPublicRouter, widgetSettingsRouter } from "./widget";
 import accountRouter from "./account";
 import servicesRouter from "./services";
@@ -28,7 +32,14 @@ router.use(widgetPublicRouter);
 
 // All routes below require an authenticated Clerk session and a loaded context.
 router.use(requireAuth, loadContext);
+
+// Always accessible (even after trial expiration): account settings + billing.
 router.use(accountRouter);
+router.use(billingRouter);
+
+// Agent Management routes: locked server-side once the trial has expired
+// without an active subscription.
+router.use(requireActiveSubscription);
 router.use(servicesRouter);
 router.use(pricingRouter);
 router.use(invoiceSettingsRouter);
@@ -42,7 +53,6 @@ router.use(estimateRulesRouter);
 router.use(businessToneRouter);
 router.use(leadsRouter);
 router.use(widgetSettingsRouter);
-router.use(billingRouter);
 router.use(dashboardRouter);
 router.use(assistantRouter);
 router.use(agentPreferencesRouter);

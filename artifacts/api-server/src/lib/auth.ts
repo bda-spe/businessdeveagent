@@ -59,6 +59,23 @@ export async function getOrCreateUser(clerkUserId: string): Promise<AppUser> {
   return created;
 }
 
+/**
+ * Postgres `timestamp` columns store UTC wall-clock values without timezone
+ * info (e.g. "2026-08-07 13:25:48.169807"). Parse them explicitly as UTC so
+ * the comparison is correct regardless of the server's local timezone.
+ */
+function parseDbTimestampAsUtc(value: string): Date {
+  const iso = value.includes("T") ? value : value.replace(" ", "T");
+  const hasZone = /(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(iso);
+  return new Date(hasZone ? iso : `${iso}Z`);
+}
+
+export function isTrialExpired(business: AppBusiness): boolean {
+  if (business.subscriptionStatus === "active") return false;
+  if (!business.trialEndsAt) return false;
+  return new Date() > parseDbTimestampAsUtc(business.trialEndsAt);
+}
+
 export async function loadContext(
   req: Request,
   _res: Response,
@@ -70,6 +87,27 @@ export async function loadContext(
     .select()
     .from(businessesTable)
     .where(eq(businessesTable.userId, user.id));
+
+  // Lazily expire the trial: if the trial window has passed and the business
+  // never activated a subscription, mark it expired. Data is preserved.
+  if (
+    business &&
+    isTrialExpired(business) &&
+    (business.active || business.subscriptionStatus !== "expired")
+  ) {
+    const [updated] = await db
+      .update(businessesTable)
+      .set({ active: false, subscriptionStatus: "expired" })
+      .where(eq(businessesTable.id, business.id))
+      .returning();
+    console.log(
+      `[subscription] Trial expired for business ${business.id} (${business.clientId}); access disabled, data preserved`,
+    );
+    req.business = updated;
+    next();
+    return;
+  }
+
   req.business = business ?? null;
   next();
 }
@@ -83,6 +121,28 @@ export function requireBusiness(
     res
       .status(400)
       .json({ error: "No business found. Complete onboarding first." });
+    return;
+  }
+  next();
+}
+
+/**
+ * Blocks access to Agent Management routes when the trial has expired and no
+ * subscription is active. Billing, account settings, and support remain
+ * reachable because their routers are mounted before this gate.
+ */
+export function requireActiveSubscription(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  const business = req.business;
+  if (business && (!business.active || business.subscriptionStatus === "expired")) {
+    res.status(403).json({
+      error:
+        "Your free trial has ended. Keep access to your Business Development Agent by selecting a subscription plan.",
+      code: "subscription_expired",
+    });
     return;
   }
   next();

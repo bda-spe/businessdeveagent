@@ -50,6 +50,15 @@ export interface Business {
   profileApproved: boolean;
   agentPreferencesConfirmed?: boolean;
   widgetReady?: boolean;
+  active?: boolean;
+  /** trialing, active, or expired */
+  subscriptionStatus?: string;
+  /** @nullable */
+  trialStartedAt?: string | null;
+  /** @nullable */
+  trialEndsAt?: string | null;
+  planType?: string;
+  buildFeePaid?: boolean;
   createdAt?: string;
 }
 

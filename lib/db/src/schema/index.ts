@@ -44,6 +44,16 @@ export const businessesTable = pgTable("businesses", {
     .notNull()
     .default(false),
   widgetReady: boolean("widget_ready").notNull().default(false),
+  active: boolean("active").notNull().default(true),
+  subscriptionStatus: varchar("subscription_status", { length: 32 })
+    .notNull()
+    .default("trialing"),
+  trialStartedAt: timestamp("trial_started_at", { mode: "string" }),
+  trialEndsAt: timestamp("trial_ends_at", { mode: "string" }),
+  planType: varchar("plan_type", { length: 64 }).notNull().default("none"),
+  buildFeePaid: boolean("build_fee_paid").notNull().default(false),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 

@@ -47,6 +47,12 @@ export const GetMeResponse = zod.object({
   "profileApproved": zod.boolean(),
   "agentPreferencesConfirmed": zod.boolean().optional(),
   "widgetReady": zod.boolean().optional(),
+  "active": zod.boolean().optional(),
+  "subscriptionStatus": zod.string().optional().describe('trialing, active, or expired'),
+  "trialStartedAt": zod.string().nullish(),
+  "trialEndsAt": zod.string().nullish(),
+  "planType": zod.string().optional(),
+  "buildFeePaid": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 }),zod.null()]).optional(),
   "onboardingComplete": zod.boolean(),
@@ -94,6 +100,12 @@ export const CreateBusinessResponse = zod.object({
   "profileApproved": zod.boolean(),
   "agentPreferencesConfirmed": zod.boolean().optional(),
   "widgetReady": zod.boolean().optional(),
+  "active": zod.boolean().optional(),
+  "subscriptionStatus": zod.string().optional().describe('trialing, active, or expired'),
+  "trialStartedAt": zod.string().nullish(),
+  "trialEndsAt": zod.string().nullish(),
+  "planType": zod.string().optional(),
+  "buildFeePaid": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
 
@@ -122,6 +134,12 @@ export const GetBusinessResponse = zod.object({
   "profileApproved": zod.boolean(),
   "agentPreferencesConfirmed": zod.boolean().optional(),
   "widgetReady": zod.boolean().optional(),
+  "active": zod.boolean().optional(),
+  "subscriptionStatus": zod.string().optional().describe('trialing, active, or expired'),
+  "trialStartedAt": zod.string().nullish(),
+  "trialEndsAt": zod.string().nullish(),
+  "planType": zod.string().optional(),
+  "buildFeePaid": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
 
@@ -167,6 +185,12 @@ export const UpdateBusinessResponse = zod.object({
   "profileApproved": zod.boolean(),
   "agentPreferencesConfirmed": zod.boolean().optional(),
   "widgetReady": zod.boolean().optional(),
+  "active": zod.boolean().optional(),
+  "subscriptionStatus": zod.string().optional().describe('trialing, active, or expired'),
+  "trialStartedAt": zod.string().nullish(),
+  "trialEndsAt": zod.string().nullish(),
+  "planType": zod.string().optional(),
+  "buildFeePaid": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
 
@@ -195,6 +219,12 @@ export const ApproveBusinessProfileResponse = zod.object({
   "profileApproved": zod.boolean(),
   "agentPreferencesConfirmed": zod.boolean().optional(),
   "widgetReady": zod.boolean().optional(),
+  "active": zod.boolean().optional(),
+  "subscriptionStatus": zod.string().optional().describe('trialing, active, or expired'),
+  "trialStartedAt": zod.string().nullish(),
+  "trialEndsAt": zod.string().nullish(),
+  "planType": zod.string().optional(),
+  "buildFeePaid": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
 
@@ -1422,6 +1452,12 @@ export const ConfirmBusinessProfileResponse = zod.object({
   "profileApproved": zod.boolean(),
   "agentPreferencesConfirmed": zod.boolean().optional(),
   "widgetReady": zod.boolean().optional(),
+  "active": zod.boolean().optional(),
+  "subscriptionStatus": zod.string().optional().describe('trialing, active, or expired'),
+  "trialStartedAt": zod.string().nullish(),
+  "trialEndsAt": zod.string().nullish(),
+  "planType": zod.string().optional(),
+  "buildFeePaid": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
 

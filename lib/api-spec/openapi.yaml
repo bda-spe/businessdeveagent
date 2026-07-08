@@ -1156,6 +1156,19 @@ components:
           type: boolean
         widgetReady:
           type: boolean
+        active:
+          type: boolean
+        subscriptionStatus:
+          type: string
+          description: trialing, active, or expired
+        trialStartedAt:
+          type: ["string", "null"]
+        trialEndsAt:
+          type: ["string", "null"]
+        planType:
+          type: string
+        buildFeePaid:
+          type: boolean
         createdAt:
           type: string
 

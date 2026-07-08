@@ -17,7 +17,7 @@ import {
   UpdateBusinessResponse,
   ApproveBusinessProfileResponse,
 } from "@workspace/api-zod";
-import { requireBusiness } from "../lib/auth";
+import { requireBusiness, requireActiveSubscription } from "../lib/auth";
 import {
   generateClientId,
   seedBusinessDefaults,
@@ -71,6 +71,8 @@ router.post("/onboarding/business", async (req, res): Promise<void> => {
     .set({ ownerName: parsed.data.ownerName })
     .where(eq(usersTable.id, user.id));
 
+  const now = new Date();
+  const trialEnds = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
   const [business] = await db
     .insert(businessesTable)
     .values({
@@ -78,6 +80,13 @@ router.post("/onboarding/business", async (req, res): Promise<void> => {
       clientId: generateClientId(),
       name: parsed.data.businessName,
       email: user.email || null,
+      active: true,
+      subscriptionStatus: "trialing",
+      trialStartedAt: now.toISOString(),
+      trialEndsAt: trialEnds.toISOString(),
+      planType: "none",
+      buildFeePaid: false,
+      widgetReady: false,
     })
     .returning();
 
@@ -95,24 +104,36 @@ router.get("/business", requireBusiness, async (req, res): Promise<void> => {
   res.json(GetBusinessResponse.parse(req.business));
 });
 
-router.patch("/business", requireBusiness, async (req, res): Promise<void> => {
-  const parsed = UpdateBusinessBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-  const [updated] = await db
-    .update(businessesTable)
-    .set(parsed.data)
-    .where(eq(businessesTable.id, req.business!.id))
-    .returning();
-  await logActivity(req.business!.id, "business_updated", "Business info updated");
-  res.json(UpdateBusinessResponse.parse(updated));
-});
+// Business profile mutations are Agent Management actions: locked once the
+// trial has expired without an active subscription.
+router.patch(
+  "/business",
+  requireBusiness,
+  requireActiveSubscription,
+  async (req, res): Promise<void> => {
+    const parsed = UpdateBusinessBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const [updated] = await db
+      .update(businessesTable)
+      .set(parsed.data)
+      .where(eq(businessesTable.id, req.business!.id))
+      .returning();
+    await logActivity(
+      req.business!.id,
+      "business_updated",
+      "Business info updated",
+    );
+    res.json(UpdateBusinessResponse.parse(updated));
+  },
+);
 
 router.post(
   "/business/approve",
   requireBusiness,
+  requireActiveSubscription,
   async (req, res): Promise<void> => {
     const [updated] = await db
       .update(businessesTable)
@@ -131,6 +152,7 @@ router.post(
 router.post(
   "/business/profile/confirm",
   requireBusiness,
+  requireActiveSubscription,
   async (req, res): Promise<void> => {
     const [updated] = await db
       .update(businessesTable)

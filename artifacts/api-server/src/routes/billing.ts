@@ -79,7 +79,12 @@ router.post(
 
     await db
       .update(businessesTable)
-      .set({ status: "active" })
+      .set({
+        status: "active",
+        active: true,
+        subscriptionStatus: "active",
+        planType: plan.id,
+      })
       .where(eq(businessesTable.id, bid));
 
     await logActivity(bid, "subscription_activated", `Activated ${plan.name} plan`);

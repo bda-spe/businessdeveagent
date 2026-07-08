@@ -251,9 +251,11 @@ widgetPublicRouter.get("/widget/config", async (req, res): Promise<void> => {
       position: settings.position,
       budgetRanges,
       // The widget only goes live after the business confirms its agent
-      // preferences. Until then it stays hidden on host sites.
+      // preferences, and it stays hidden if the business account is inactive
+      // (e.g. trial expired without a subscription).
       enabled:
         settings.enabled &&
+        business.active &&
         business.widgetReady &&
         business.agentPreferencesConfirmed,
     }),
@@ -272,6 +274,10 @@ widgetPublicRouter.post("/widget/questions", widgetRateLimit, async (req, res): 
     .where(eq(businessesTable.clientId, parsed.data.clientId));
   if (!business) {
     res.status(404).json({ error: "Widget not found" });
+    return;
+  }
+  if (!business.active) {
+    res.status(403).json({ error: "This widget is currently unavailable." });
     return;
   }
   const services = await db
@@ -364,6 +370,10 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
     .where(eq(businessesTable.clientId, parsed.data.clientId));
   if (!business) {
     res.status(404).json({ error: "Widget not found" });
+    return;
+  }
+  if (!business.active) {
+    res.status(403).json({ error: "This widget is currently unavailable." });
     return;
   }
   if (!business.widgetReady || !business.agentPreferencesConfirmed) {

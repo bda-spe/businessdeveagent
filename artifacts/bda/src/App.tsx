@@ -25,6 +25,7 @@ import TrainingPage from "./pages/training";
 import LeadsPage from "./pages/leads";
 import WidgetPage from "./pages/widget";
 import BillingPage from "./pages/billing";
+import TrialLockGate from "./components/trial-lock-gate";
 
 // Any successful mutation may unlock the next setup step in the sidebar, so
 // refresh the account (which carries setupProgress) after every mutation.
@@ -202,14 +203,14 @@ function ClerkProviderWithRoutes() {
               </Show>
             </Route>
 
-            <Route path="/dashboard"><ProtectedApp><DashboardPage /></ProtectedApp></Route>
-            <Route path="/business"><ProtectedApp><BusinessPage /></ProtectedApp></Route>
-            <Route path="/services"><ProtectedApp><ServicesPage /></ProtectedApp></Route>
-            <Route path="/pricing"><ProtectedApp><PricingPage /></ProtectedApp></Route>
-            <Route path="/invoice-formatting"><ProtectedApp><InvoiceFormattingPage /></ProtectedApp></Route>
-            <Route path="/training"><ProtectedApp><TrainingPage /></ProtectedApp></Route>
-            <Route path="/leads"><ProtectedApp><LeadsPage /></ProtectedApp></Route>
-            <Route path="/widget"><ProtectedApp><WidgetPage /></ProtectedApp></Route>
+            <Route path="/dashboard"><ProtectedApp><TrialLockGate><DashboardPage /></TrialLockGate></ProtectedApp></Route>
+            <Route path="/business"><ProtectedApp><TrialLockGate><BusinessPage /></TrialLockGate></ProtectedApp></Route>
+            <Route path="/services"><ProtectedApp><TrialLockGate><ServicesPage /></TrialLockGate></ProtectedApp></Route>
+            <Route path="/pricing"><ProtectedApp><TrialLockGate><PricingPage /></TrialLockGate></ProtectedApp></Route>
+            <Route path="/invoice-formatting"><ProtectedApp><TrialLockGate><InvoiceFormattingPage /></TrialLockGate></ProtectedApp></Route>
+            <Route path="/training"><ProtectedApp><TrialLockGate><TrainingPage /></TrialLockGate></ProtectedApp></Route>
+            <Route path="/leads"><ProtectedApp><TrialLockGate><LeadsPage /></TrialLockGate></ProtectedApp></Route>
+            <Route path="/widget"><ProtectedApp><TrialLockGate><WidgetPage /></TrialLockGate></ProtectedApp></Route>
             <Route path="/billing"><ProtectedApp><BillingPage /></ProtectedApp></Route>
             
             <Route>
