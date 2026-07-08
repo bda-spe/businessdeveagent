@@ -102,4 +102,55 @@ app.use(
 
 app.use("/api", router);
 
+// Trial ending reminder: runs every hour, sends an email exactly once per
+// business in the 24-25 hour window before trial_ends_at.
+(function scheduleTrialReminders() {
+  const sent = new Set<number>();
+
+  async function checkTrials() {
+    try {
+      const { db: _db, businessesTable: bt } = await import("@workspace/db");
+      const { eq, and, lte, gte, isNotNull } = await import("drizzle-orm");
+      const { sendTrialEndingEmail } = await import("./lib/system-emails");
+      const { usersTable: ut } = await import("@workspace/db");
+
+      const now = Date.now();
+      const windowStart = new Date(now + 23 * 60 * 60 * 1000).toISOString();
+      const windowEnd = new Date(now + 25 * 60 * 60 * 1000).toISOString();
+
+      const businesses = await _db
+        .select()
+        .from(bt)
+        .where(
+          and(
+            eq(bt.subscriptionStatus, "trialing"),
+            isNotNull(bt.trialEndsAt),
+            gte(bt.trialEndsAt, windowStart),
+            lte(bt.trialEndsAt, windowEnd),
+          ),
+        );
+
+      for (const business of businesses) {
+        if (sent.has(business.id)) continue;
+        sent.add(business.id);
+        const [user] = await _db.select().from(ut).where(eq(ut.id, business.userId));
+        if (!user) continue;
+        sendTrialEndingEmail({
+          to: user.email,
+          ownerName: user.ownerName,
+          businessName: business.name,
+          trialEndsAt: business.trialEndsAt,
+        }).catch(() => {});
+      }
+    } catch (err) {
+      console.error("[trial-reminder] Error checking trial expirations:", err);
+    }
+  }
+
+  // Run once on startup (catches cases where server restarted in the window)
+  setTimeout(checkTrials, 10_000);
+  // Then every hour
+  setInterval(checkTrials, 60 * 60 * 1000);
+})();
+
 export default app;

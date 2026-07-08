@@ -15,19 +15,21 @@ import {
   LayoutDashboard,
   Lock,
   CheckCircle2,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AssistantChat from "@/components/assistant-chat";
 import logoUrl from "@assets/header-dashboard.png";
+import { isSubscriptionLocked } from "@/components/trial-lock-gate";
 
 export default function AppShell({ children }: { children?: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const { signOut } = useClerk();
 
-  // Only query once the user is signed in (which is guaranteed by the ProtectedApp router component)
   const { data: me, isLoading } = useGetMe();
 
   const sp = me?.setupProgress;
+  const subLocked = isSubscriptionLocked(me?.business);
 
   const setupSteps = [
     { href: "/business", label: "Business Profile", icon: Building2, done: !!sp?.businessProfile },
@@ -41,15 +43,18 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
   const firstIncompleteIndex = setupSteps.findIndex((s) => !s.done);
   const allSetupDone = firstIncompleteIndex === -1;
 
+  // Setup-step locking (incomplete prereqs) is suppressed when the subscription
+  // is locked — the gate card explains the situation better than redirecting.
   const setupItems = setupSteps.map((step, index) => ({
     ...step,
-    locked: firstIncompleteIndex !== -1 && index > firstIncompleteIndex,
+    locked: !subLocked && firstIncompleteIndex !== -1 && index > firstIncompleteIndex,
+    subLocked: subLocked,
   }));
 
   const operateItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, locked: !allSetupDone },
-    { href: "/leads", label: "Leads Inbox", icon: Users, locked: !allSetupDone },
-    { href: "/billing", label: "Billing", icon: CreditCard, locked: !allSetupDone },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, locked: !subLocked && !allSetupDone, subLocked },
+    { href: "/leads", label: "Leads Inbox", icon: Users, locked: !subLocked && !allSetupDone, subLocked },
+    { href: "/billing", label: "Billing", icon: CreditCard, locked: false, subLocked: false },
   ];
 
   const allItems = [...setupItems, ...operateItems];
@@ -62,11 +67,11 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
     }
   }, [me, isLoading, setLocation]);
 
-  // If the current route is locked, send the user to the next step in the setup flow.
+  // Only redirect for setup-step locks (not subscription locks — TrialLockGate handles those)
   const currentItem = allItems.find((item) => item.href === location);
   const nextStepHref =
     firstIncompleteIndex === -1 ? "/dashboard" : setupSteps[firstIncompleteIndex].href;
-  const shouldRedirectToNextStep = !isLoading && !!me?.business && !!currentItem?.locked;
+  const shouldRedirectToNextStep = !isLoading && !!me?.business && !!currentItem?.locked && !subLocked;
 
   useEffect(() => {
     if (shouldRedirectToNextStep) {
@@ -82,7 +87,6 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
     );
   }
 
-  // If we're redirecting to onboarding, don't flash the shell
   if (!me?.business || !me?.onboardingComplete) {
     return null;
   }
@@ -96,15 +100,18 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
     label: string;
     icon: typeof Building2;
     locked: boolean;
+    subLocked?: boolean;
     done?: boolean;
   }) => {
     const Icon = item.icon;
-    if (item.locked) {
+    const isSubLocked = item.subLocked && item.href !== "/billing";
+
+    if (item.locked || isSubLocked) {
       return (
         <span
           key={item.href}
           aria-disabled="true"
-          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-slate-600 opacity-50 cursor-not-allowed select-none"
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-slate-600 opacity-40 cursor-not-allowed select-none"
           data-testid={`nav-locked-${item.href.slice(1)}`}
         >
           <Icon className="h-4 w-4" />
@@ -123,7 +130,7 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
         >
           <Icon className="h-4 w-4" />
           <span className="flex-1">{item.label}</span>
-          {item.done && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />}
+          {item.done && !subLocked && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />}
         </span>
       </Link>
     );
@@ -145,6 +152,14 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
 
         <div className="flex-1 overflow-y-auto py-6 px-3">
           <div className="px-3">
+            {subLocked && (
+              <div className="mb-4 px-3 py-2 rounded-md bg-amber-900/40 border border-amber-700/50">
+                <p className="text-xs font-semibold text-amber-400 flex items-center gap-1.5">
+                  <Lock className="h-3 w-3" /> Account Inactive
+                </p>
+                <p className="text-xs text-amber-300/80 mt-0.5">Visit Billing to reactivate.</p>
+              </div>
+            )}
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
               Agent Management
             </p>

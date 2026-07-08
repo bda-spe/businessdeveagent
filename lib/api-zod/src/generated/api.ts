@@ -1725,6 +1725,8 @@ export const GetSubscriptionResponse = zod.object({
   "planName": zod.string().nullish(),
   "status": zod.string(),
   "active": zod.boolean(),
+  "currentPeriodEnd": zod.string().nullish().describe('ISO timestamp of the next billing date (from Stripe)'),
+  "cancelAtPeriodEnd": zod.boolean().nullish().describe('Whether the subscription is scheduled to cancel at period end'),
   "createdAt": zod.string().nullish()
 })
 
@@ -1755,7 +1757,25 @@ export const ConfirmCheckoutResponse = zod.object({
   "planName": zod.string().nullish(),
   "status": zod.string(),
   "active": zod.boolean(),
+  "currentPeriodEnd": zod.string().nullish().describe('ISO timestamp of the next billing date (from Stripe)'),
+  "cancelAtPeriodEnd": zod.boolean().nullish().describe('Whether the subscription is scheduled to cancel at period end'),
   "createdAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Create a Stripe Customer Portal session and return the redirect URL
+ */
+export const GetBillingPortalResponse = zod.object({
+  "url": zod.string()
+})
+
+
+/**
+ * @summary Cancel the active Stripe subscription at period end
+ */
+export const CancelSubscriptionResponse = zod.object({
+  "success": zod.boolean()
 })
 
 

@@ -1,0 +1,238 @@
+Implement subscription management, account access control, and automated customer emails.
+
+Subscription Management
+
+On the Billing page, add a new section titled "Subscription Management."
+
+Display:
+- Current plan
+- Subscription status
+- Trial status (if applicable)
+- Trial expiration date
+- Next billing date (if subscribed)
+
+Buttons:
+- Manage Billing
+- Cancel Subscription
+
+Manage Billing:
+- If Stripe Customer Portal is configured, generate a Customer Portal session server-side and redirect the user.
+- Otherwise keep the existing billing workflow.
+
+Cancel Subscription:
+- Require a confirmation modal before canceling.
+- Explain that cancellation removes access to the Business Development Agent but preserves all business data.
+- Do NOT delete:
+  - business profile
+  - services
+  - pricing
+  - quote templates
+  - uploaded documents
+  - agent preferences
+  - widget configuration
+  - client_id
+- Cancel the Stripe subscription.
+- Allow the Stripe webhook to act as the source of truth.
+- When customer.subscription.deleted is received:
+  - subscription_status = "canceled"
+  - active = false
+
+--------------------------------------------------
+
+Inactive Account Experience
+
+Whenever:
+- subscription_status = "expired"
+- subscription_status = "canceled"
+- subscription_status = "past_due"
+- active = false
+
+the user may still log in.
+
+However:
+
+Lock all Agent Management pages except:
+- Billing
+- Account
+- Help
+
+When a locked page is opened:
+
+Replace the page content with a clean white card centered on the page.
+
+Display:
+
+Account Access Required
+
+Your Business Development Agent is currently inactive.
+
+Reactivate your subscription to continue managing your business profile, quotes, services, pricing, testing, and website widget.
+
+Button:
+Continue to Billing
+
+Sidebar navigation should remain visible, but locked pages should appear disabled with a lock icon.
+
+--------------------------------------------------
+
+Widget Behavior
+
+If:
+
+active = false
+
+or
+
+subscription_status IN
+(
+expired,
+canceled,
+past_due
+)
+
+then:
+
+- widget endpoint should return enabled = false
+- hide widget completely on customer websites
+- preserve all widget configuration
+- preserve client_id
+- preserve embed code
+- preserve styling preferences
+
+Upon reactivation:
+
+- immediately restore widget functionality
+- continue using the existing client_id
+- do not generate a new widget
+
+--------------------------------------------------
+
+Automated Email Notifications
+
+Using the existing Gmail integration, automatically send professional HTML emails for the following events.
+
+1. Welcome Email
+
+Trigger:
+Immediately after successful account creation.
+
+Subject:
+Welcome to Business Development Agent
+
+Include:
+- Welcome message
+- Trial expiration date
+- Link to continue onboarding
+- Link to Billing page
+- Support contact
+
+--------------------------------------------------
+
+2. Subscription Activated
+
+Trigger:
+checkout.session.completed / successful Stripe activation
+
+Subject:
+Subscription Activated
+
+Include:
+- Selected plan
+- Billing confirmation
+- Confirmation that the Business Development Agent is active
+- Link to Dashboard
+
+--------------------------------------------------
+
+3. Subscription Cancellation Confirmation
+
+Trigger:
+customer.subscription.deleted webhook
+
+Subject:
+Subscription Cancelled
+
+Include:
+- Confirmation of cancellation
+- Confirmation that business data has been preserved
+- Explanation that the widget has been disabled
+- Link to Billing if they wish to reactivate
+
+--------------------------------------------------
+
+4. Trial Ending Reminder
+
+Trigger:
+Exactly 1 day before trial_ends_at
+
+Subject:
+Your Free Trial Ends Tomorrow
+
+Include:
+- Reminder that access will pause unless a subscription is selected
+- Explain that business setup and agent configuration are preserved
+- Link directly to Billing
+
+Avoid language like:
+"Your account will be deleted."
+
+Instead use:
+
+"Your Business Development Agent will become inactive until a subscription is selected."
+
+--------------------------------------------------
+
+5. Subscription Reactivated
+
+Trigger:
+Successful payment after expiration or cancellation.
+
+Subject:
+Welcome Back
+
+Include:
+- Confirmation that the Business Development Agent has been reactivated
+- Confirmation that the website widget is live again
+- Link to Dashboard
+
+--------------------------------------------------
+
+Email Design
+
+Use the Business Development Agent branding.
+
+Style:
+- White background
+- Navy accents
+- Clean card layout
+- Professional SaaS appearance
+- Mobile responsive
+
+Each email should contain:
+- Business Development Agent logo
+- Clear heading
+- Short descriptive body
+- Primary action button
+- Billing page link
+- Support email
+
+--------------------------------------------------
+
+Architecture
+
+Continue using:
+- one OpenAI API key
+- one Stripe integration
+- one multi-tenant application
+
+Keep all subscription enforcement server-side.
+
+Continue using Stripe webhooks as the source of truth for subscription status.
+
+Preserve all business data regardless of subscription status.
+
+I would also add one more email that SaaS users expect:
+
+Payment Failed (invoice.payment_failed)
+Subject: Action Required: Update Your Payment Method
+Explains the payment couldn't be processed, that the BDA will remain active for any grace period you choose, and includes a button linking directly to the Billing page to update payment information.

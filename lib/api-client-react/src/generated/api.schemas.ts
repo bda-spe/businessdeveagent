@@ -992,6 +992,16 @@ export interface BillingSubscription {
   planName?: string | null;
   status: string;
   active: boolean;
+  /**
+     * ISO timestamp of the next billing date (from Stripe)
+     * @nullable
+     */
+  currentPeriodEnd?: string | null;
+  /**
+     * Whether the subscription is scheduled to cancel at period end
+     * @nullable
+     */
+  cancelAtPeriodEnd?: boolean | null;
   /** @nullable */
   createdAt?: string | null;
 }
@@ -1032,5 +1042,13 @@ export interface ActivityEvent {
 
 export type GetWidgetConfigParams = {
 clientId: string;
+};
+
+export type GetBillingPortal200 = {
+  url: string;
+};
+
+export type CancelSubscription200 = {
+  success: boolean;
 };
 

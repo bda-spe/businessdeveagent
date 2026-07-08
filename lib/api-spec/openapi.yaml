@@ -1049,6 +1049,40 @@ paths:
               schema:
                 $ref: "#/components/schemas/BillingSubscription"
 
+  /billing/portal:
+    post:
+      operationId: getBillingPortal
+      tags: [billing]
+      summary: Create a Stripe Customer Portal session and return the redirect URL
+      responses:
+        "200":
+          description: Customer Portal session URL
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url]
+                properties:
+                  url:
+                    type: string
+
+  /billing/cancel:
+    post:
+      operationId: cancelSubscription
+      tags: [billing]
+      summary: Cancel the active Stripe subscription at period end
+      responses:
+        "200":
+          description: Cancellation queued
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+
   /dashboard/summary:
     get:
       operationId: getDashboardSummary
@@ -2446,6 +2480,12 @@ components:
           type: string
         active:
           type: boolean
+        currentPeriodEnd:
+          type: ["string", "null"]
+          description: ISO timestamp of the next billing date (from Stripe)
+        cancelAtPeriodEnd:
+          type: ["boolean", "null"]
+          description: Whether the subscription is scheduled to cancel at period end
         createdAt:
           type: ["string", "null"]
 

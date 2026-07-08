@@ -1,10 +1,28 @@
 import type Stripe from "stripe";
 import { eq } from "drizzle-orm";
-import { db, billingSubscriptionsTable, businessesTable } from "@workspace/db";
+import { db, billingSubscriptionsTable, businessesTable, usersTable } from "@workspace/db";
 import { logActivity } from "./business";
 import { BILLING_PLANS } from "./defaults";
+import {
+  sendWelcomeEmail,
+  sendSubscriptionActivatedEmail,
+  sendSubscriptionCanceledEmail,
+  sendSubscriptionReactivatedEmail,
+  sendPaymentFailedEmail,
+} from "./system-emails";
 
 type AppBusiness = typeof businessesTable.$inferSelect;
+
+async function getOwnerContact(
+  business: AppBusiness,
+): Promise<{ email: string; ownerName: string } | null> {
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, business.userId));
+  if (!user) return null;
+  return { email: user.email, ownerName: user.ownerName };
+}
 
 async function upsertBillingSubscription(
   businessId: number,
@@ -73,6 +91,9 @@ export async function activateFromCheckoutSession(
     return null;
   }
 
+  const prevStatus = business.subscriptionStatus;
+  const alreadyActive = prevStatus === "active";
+
   const customerId =
     typeof session.customer === "string"
       ? session.customer
@@ -110,12 +131,38 @@ export async function activateFromCheckoutSession(
     "subscription_activated",
     `Subscribed to the ${plan.name} plan`,
   );
+
+  if (!alreadyActive) {
+    const contact = await getOwnerContact(business);
+    if (contact) {
+      const isReactivation = prevStatus === "canceled" || prevStatus === "past_due" || prevStatus === "expired";
+      if (isReactivation) {
+        sendSubscriptionReactivatedEmail({
+          to: contact.email,
+          ownerName: contact.ownerName,
+          businessName: business.name,
+          planName: plan.name,
+        }).catch(() => {});
+      } else {
+        sendSubscriptionActivatedEmail({
+          to: contact.email,
+          ownerName: contact.ownerName,
+          businessName: business.name,
+          planName: plan.name,
+        }).catch(() => {});
+      }
+    }
+  }
+
   return row;
 }
 
 export async function markSubscriptionActive(
   business: AppBusiness,
 ): Promise<void> {
+  const prevStatus = business.subscriptionStatus;
+  const alreadyActive = prevStatus === "active";
+
   await db
     .update(businessesTable)
     .set({ active: true, subscriptionStatus: "active", status: "active" })
@@ -127,6 +174,22 @@ export async function markSubscriptionActive(
   console.log(
     `[stripe] Business ${business.id} (${business.clientId}) subscription marked active`,
   );
+
+  if (!alreadyActive) {
+    const contact = await getOwnerContact(business);
+    if (contact) {
+      const planName =
+        BILLING_PLANS.find((p) => p.id === business.planType)?.name ??
+        business.planType ??
+        "your plan";
+      sendSubscriptionReactivatedEmail({
+        to: contact.email,
+        ownerName: contact.ownerName,
+        businessName: business.name,
+        planName,
+      }).catch(() => {});
+    }
+  }
 }
 
 export async function markSubscriptionPastDue(
@@ -148,6 +211,15 @@ export async function markSubscriptionPastDue(
     "subscription_past_due",
     "Subscription payment failed",
   );
+
+  const contact = await getOwnerContact(business);
+  if (contact) {
+    sendPaymentFailedEmail({
+      to: contact.email,
+      ownerName: contact.ownerName,
+      businessName: business.name,
+    }).catch(() => {});
+  }
 }
 
 export async function markSubscriptionCanceled(
@@ -169,4 +241,27 @@ export async function markSubscriptionCanceled(
     "subscription_canceled",
     "Subscription canceled",
   );
+
+  const contact = await getOwnerContact(business);
+  if (contact) {
+    sendSubscriptionCanceledEmail({
+      to: contact.email,
+      ownerName: contact.ownerName,
+      businessName: business.name,
+    }).catch(() => {});
+  }
+}
+
+export async function sendWelcomeEmailForBusiness(
+  business: AppBusiness,
+): Promise<void> {
+  const contact = await getOwnerContact(business);
+  if (contact) {
+    sendWelcomeEmail({
+      to: contact.email,
+      ownerName: contact.ownerName,
+      businessName: business.name,
+      trialEndsAt: business.trialEndsAt,
+    }).catch(() => {});
+  }
 }

@@ -11,6 +11,8 @@ import {
   useCheckout,
   useConfirmCheckout,
   useGetMe,
+  useGetBillingPortal,
+  useCancelSubscription,
   getGetSubscriptionQueryKey,
 } from "@workspace/api-client-react";
 import {
@@ -27,11 +29,22 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Check, ShieldCheck, HardHat, Loader2, Clock, AlertTriangle } from "lucide-react";
+import {
+  Check,
+  ShieldCheck,
+  HardHat,
+  Loader2,
+  Clock,
+  AlertTriangle,
+  ExternalLink,
+  XCircle,
+  CalendarDays,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function trialDaysRemaining(trialEndsAt?: string | null): number | null {
@@ -43,6 +56,17 @@ function trialDaysRemaining(trialEndsAt?: string | null): number | null {
   const end = new Date(hasZone ? iso : `${iso}Z`).getTime();
   if (Number.isNaN(end)) return null;
   return Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
+}
+
+function formatDate(isoStr?: string | null): string {
+  if (!isoStr) return "—";
+  const d = new Date(isoStr);
+  if (Number.isNaN(d.getTime())) return isoStr;
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as
@@ -66,18 +90,18 @@ export default function BillingPage() {
   const { data: me } = useGetMe();
   const checkout = useCheckout();
   const confirmCheckout = useConfirmCheckout();
+  const getBillingPortal = useGetBillingPortal();
+  const cancelSubscription = useCancelSubscription();
 
-  const [checkoutState, setCheckoutState] = useState<CheckoutState | null>(
-    null,
-  );
+  const [checkoutState, setCheckoutState] = useState<CheckoutState | null>(null);
   const [paymentComplete, setPaymentComplete] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   const handleCheckout = (planId: string, planName: string) => {
     if (!stripePromise) {
       toast({
         title: "Billing unavailable",
-        description:
-          "Payment configuration is missing. Please contact support.",
+        description: "Payment configuration is missing. Please contact support.",
         variant: "destructive",
       });
       return;
@@ -110,9 +134,7 @@ export default function BillingPage() {
       { data: { sessionId } },
       {
         onSettled: () => {
-          queryClient.invalidateQueries({
-            queryKey: getGetSubscriptionQueryKey(),
-          });
+          queryClient.invalidateQueries({ queryKey: getGetSubscriptionQueryKey() });
           queryClient.invalidateQueries();
         },
         onSuccess: () => {
@@ -125,6 +147,44 @@ export default function BillingPage() {
     );
   };
 
+  const handleManageBilling = () => {
+    getBillingPortal.mutate(undefined, {
+      onSuccess: (data) => {
+        window.location.href = data.url;
+      },
+      onError: () => {
+        toast({
+          title: "Could not open billing portal",
+          description:
+            "Ensure the Stripe Customer Portal is configured in your dashboard, or contact support.",
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  const handleCancelConfirm = () => {
+    cancelSubscription.mutate(undefined, {
+      onSuccess: () => {
+        setShowCancelDialog(false);
+        queryClient.invalidateQueries({ queryKey: getGetSubscriptionQueryKey() });
+        queryClient.invalidateQueries();
+        toast({
+          title: "Subscription cancellation scheduled",
+          description:
+            "Your subscription will remain active until the end of the billing period.",
+        });
+      },
+      onError: () => {
+        toast({
+          title: "Could not cancel subscription",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
   const closeCheckout = () => {
     setCheckoutState(null);
     setPaymentComplete(false);
@@ -135,6 +195,7 @@ export default function BillingPage() {
       <div className="max-w-5xl mx-auto space-y-8">
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
         <div className="grid md:grid-cols-2 gap-6">
           <Skeleton className="h-[400px] rounded-xl" />
           <Skeleton className="h-[400px] rounded-xl" />
@@ -168,7 +229,8 @@ export default function BillingPage() {
         </p>
       </div>
 
-      <Card className="mb-10 border-slate-200 shadow-sm bg-slate-900 text-white">
+      {/* Status banner */}
+      <Card className="mb-8 border-slate-200 shadow-sm bg-slate-900 text-white">
         <CardContent className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center shrink-0">
@@ -226,6 +288,102 @@ export default function BillingPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Subscription Management (only when subscribed) */}
+      {isSubscribed && (
+        <Card className="mb-8 border-slate-200 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Subscription Management</CardTitle>
+            <CardDescription>
+              View and manage your current subscription.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                  Current Plan
+                </p>
+                <p className="text-sm font-medium text-slate-900">
+                  {subscription.planName ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                  Status
+                </p>
+                <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-none capitalize">
+                  {subscription.status}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                  <CalendarDays className="h-3 w-3 inline mr-1" />
+                  Next Billing Date
+                </p>
+                <p className="text-sm font-medium text-slate-900">
+                  {subscription.cancelAtPeriodEnd
+                    ? `Cancels ${formatDate(subscription.currentPeriodEnd)}`
+                    : formatDate(subscription.currentPeriodEnd)}
+                </p>
+              </div>
+              {isTrialing && (
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                    Trial Ends
+                  </p>
+                  <p className="text-sm font-medium text-slate-900">
+                    {formatDate(business?.trialEndsAt)}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {subscription.cancelAtPeriodEnd && (
+              <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                <p className="text-sm text-amber-800">
+                  Your subscription is scheduled to cancel on{" "}
+                  <strong>{formatDate(subscription.currentPeriodEnd)}</strong>.
+                  You'll have access until then. Contact support or manage
+                  billing to reverse this.
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                onClick={handleManageBilling}
+                disabled={getBillingPortal.isPending}
+              >
+                {getBillingPortal.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                )}
+                Manage Billing
+              </Button>
+
+              {!subscription.cancelAtPeriodEnd && (
+                <Button
+                  variant="outline"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
+                  onClick={() => setShowCancelDialog(true)}
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Cancel Subscription
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Plan cards */}
+      <h3 className="text-lg font-semibold text-slate-900 mb-4">
+        {isSubscribed ? "Available Plans" : "Choose a Plan"}
+      </h3>
 
       <div className="grid md:grid-cols-2 gap-6">
         {(!plans || plans.length === 0) && (
@@ -317,6 +475,7 @@ export default function BillingPage() {
         })}
       </div>
 
+      {/* Checkout dialog */}
       <Dialog
         open={checkoutState !== null}
         onOpenChange={(open) => {
@@ -371,6 +530,65 @@ export default function BillingPage() {
               </EmbeddedCheckoutProvider>
             )
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel subscription confirmation dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-700">
+              <XCircle className="h-5 w-5" />
+              Cancel Subscription?
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-slate-600 text-sm leading-relaxed">
+              Canceling will deactivate your Business Development Agent at the
+              end of your current billing period.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 space-y-2">
+            <p className="font-semibold text-slate-800">
+              All your data is preserved:
+            </p>
+            <ul className="space-y-1 text-slate-600">
+              {[
+                "Business profile & services",
+                "Pricing rules & quote templates",
+                "Agent preferences & training",
+                "Widget configuration & embed code",
+                "Leads & conversations",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-2">
+                  <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className="text-slate-500 pt-1">
+              You can reactivate at any time and your widget will resume using
+              the same embed code.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelDialog(false)}
+            >
+              Keep Subscription
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelConfirm}
+              disabled={cancelSubscription.isPending}
+            >
+              {cancelSubscription.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              Yes, Cancel
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

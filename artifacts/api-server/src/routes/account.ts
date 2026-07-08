@@ -97,6 +97,11 @@ router.post("/onboarding/business", async (req, res): Promise<void> => {
     `Business "${business.name}" created`,
   );
 
+  // Fire-and-forget — never block account creation on email delivery
+  import("../lib/subscription").then(({ sendWelcomeEmailForBusiness }) => {
+    sendWelcomeEmailForBusiness(business).catch(() => {});
+  });
+
   res.status(201).json(CreateBusinessResponse.parse(business));
 });
 

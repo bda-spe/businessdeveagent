@@ -33,14 +33,17 @@ export default function TrialLockGate({
             <Lock className="h-6 w-6 text-slate-500" />
           </div>
           <h2 className="text-xl font-bold text-slate-900">
-            Your free trial has ended.
+            Account Access Required
           </h2>
           <p className="mt-2 text-slate-600">
-            Keep access to your Business Development Agent by selecting a
-            subscription plan.
+            Your Business Development Agent is currently inactive.
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            Reactivate your subscription to continue managing your business
+            profile, quotes, services, pricing, testing, and website widget.
           </p>
           <Button className="mt-6" onClick={() => setLocation("/billing")}>
-            View Plans
+            Continue to Billing
           </Button>
         </div>
       </div>

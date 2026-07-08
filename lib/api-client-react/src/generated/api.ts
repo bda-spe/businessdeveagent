@@ -40,6 +40,7 @@ import type {
   BusinessTone,
   BusinessToneInput,
   BusinessUpdate,
+  CancelSubscription200,
   CheckoutInput,
   CheckoutSession,
   ConfirmAgentPreferencesResult,
@@ -49,6 +50,7 @@ import type {
   EstimateRulesInput,
   ExtractedValue,
   ExtractedValueUpdate,
+  GetBillingPortal200,
   GetWidgetConfigParams,
   HealthStatus,
   InvoiceSettings,
@@ -4545,6 +4547,146 @@ export const useConfirmCheckout = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getConfirmCheckoutMutationOptions(options));
+    }
+
+export const getGetBillingPortalUrl = () => {
+
+
+
+
+  return `/api/billing/portal`
+}
+
+/**
+ * @summary Create a Stripe Customer Portal session and return the redirect URL
+ */
+export const getBillingPortal = async ( options?: RequestInit): Promise<GetBillingPortal200> => {
+
+  return customFetch<GetBillingPortal200>(getGetBillingPortalUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGetBillingPortalMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getBillingPortal>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof getBillingPortal>>, TError,void, TContext> => {
+
+const mutationKey = ['getBillingPortal'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof getBillingPortal>>, void> = () => {
+
+
+          return  getBillingPortal(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GetBillingPortalMutationResult = NonNullable<Awaited<ReturnType<typeof getBillingPortal>>>
+
+    export type GetBillingPortalMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a Stripe Customer Portal session and return the redirect URL
+ */
+export const useGetBillingPortal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getBillingPortal>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof getBillingPortal>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getGetBillingPortalMutationOptions(options));
+    }
+
+export const getCancelSubscriptionUrl = () => {
+
+
+
+
+  return `/api/billing/cancel`
+}
+
+/**
+ * @summary Cancel the active Stripe subscription at period end
+ */
+export const cancelSubscription = async ( options?: RequestInit): Promise<CancelSubscription200> => {
+
+  return customFetch<CancelSubscription200>(getCancelSubscriptionUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCancelSubscriptionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSubscription>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelSubscription>>, TError,void, TContext> => {
+
+const mutationKey = ['cancelSubscription'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelSubscription>>, void> = () => {
+
+
+          return  cancelSubscription(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof cancelSubscription>>>
+
+    export type CancelSubscriptionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Cancel the active Stripe subscription at period end
+ */
+export const useCancelSubscription = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSubscription>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelSubscription>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCancelSubscriptionMutationOptions(options));
     }
 
 export const getGetDashboardSummaryUrl = () => {

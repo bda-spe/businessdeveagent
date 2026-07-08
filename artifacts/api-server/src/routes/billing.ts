@@ -39,7 +39,33 @@ router.get(
       );
       return;
     }
-    res.json(GetSubscriptionResponse.parse(row));
+
+    let currentPeriodEnd: string | null = null;
+    let cancelAtPeriodEnd: boolean | null = null;
+
+    const stripeSubId = req.business!.stripeSubscriptionId;
+    if (row.active && stripeSubId && isStripeConfigured()) {
+      try {
+        const stripeSub = await getStripe().subscriptions.retrieve(stripeSubId);
+        const periodEnd = (stripeSub as unknown as { current_period_end?: number }).current_period_end;
+        if (typeof periodEnd === "number") {
+          currentPeriodEnd = new Date(periodEnd * 1000).toISOString();
+        }
+        cancelAtPeriodEnd = stripeSub.cancel_at_period_end ?? null;
+      } catch (err) {
+        console.warn(
+          `[billing] Could not fetch Stripe subscription details for business ${req.business!.id}: ${err}`,
+        );
+      }
+    }
+
+    res.json(
+      GetSubscriptionResponse.parse({
+        ...row,
+        currentPeriodEnd,
+        cancelAtPeriodEnd,
+      }),
+    );
   },
 );
 
@@ -178,6 +204,89 @@ router.post(
       return;
     }
     res.json(GetSubscriptionResponse.parse(row));
+  },
+);
+
+/**
+ * Creates a Stripe Customer Portal session so the user can manage their
+ * payment methods, download invoices, and update billing info.
+ */
+router.post(
+  "/billing/portal",
+  requireBusiness,
+  async (req, res): Promise<void> => {
+    if (!isStripeConfigured()) {
+      res.status(503).json({ error: "Billing is not configured yet." });
+      return;
+    }
+    const business = req.business!;
+    if (!business.stripeCustomerId) {
+      res.status(400).json({
+        error: "No billing account found. Please subscribe first.",
+      });
+      return;
+    }
+
+    const domain = process.env.REPLIT_DEV_DOMAIN;
+    const returnUrl = domain
+      ? `https://${domain}/bda/billing`
+      : (process.env.APP_BASE_URL
+          ? `${process.env.APP_BASE_URL}/billing`
+          : "https://yourdomain.com/billing");
+
+    try {
+      const session = await getStripe().billingPortal.sessions.create({
+        customer: business.stripeCustomerId,
+        return_url: returnUrl,
+      });
+      res.json({ url: session.url });
+    } catch (err) {
+      console.error(
+        `[billing] Customer portal session creation failed for business ${business.id}:`,
+        err,
+      );
+      res.status(502).json({
+        error:
+          "Could not open billing portal. Ensure the Customer Portal is configured in your Stripe dashboard.",
+      });
+    }
+  },
+);
+
+/**
+ * Cancels the business's active Stripe subscription at the end of the current
+ * billing period. Does not immediately deactivate — the webhook
+ * (customer.subscription.deleted) is the source of truth.
+ */
+router.post(
+  "/billing/cancel",
+  requireBusiness,
+  async (req, res): Promise<void> => {
+    if (!isStripeConfigured()) {
+      res.status(503).json({ error: "Billing is not configured yet." });
+      return;
+    }
+    const business = req.business!;
+    if (!business.stripeSubscriptionId) {
+      res.status(400).json({ error: "No active subscription found." });
+      return;
+    }
+
+    try {
+      await getStripe().subscriptions.update(business.stripeSubscriptionId, {
+        cancel_at_period_end: true,
+      });
+      console.log(
+        `[billing] Subscription ${business.stripeSubscriptionId} for business ${business.id} set to cancel at period end`,
+      );
+      res.json({ success: true });
+    } catch (err) {
+      console.error(
+        `[billing] Failed to cancel subscription ${business.stripeSubscriptionId} for business ${business.id}:`,
+        err,
+      );
+      res.status(502).json({ error: "Failed to cancel subscription. Please try again." });
+    }
   },
 );
 
