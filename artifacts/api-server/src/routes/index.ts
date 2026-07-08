@@ -17,6 +17,7 @@ import businessToneRouter from "./businessTone";
 import leadsRouter from "./leads";
 import billingRouter from "./billing";
 import dashboardRouter from "./dashboard";
+import assistantRouter from "./assistant";
 
 const router: IRouter = Router();
 
@@ -42,5 +43,6 @@ router.use(leadsRouter);
 router.use(widgetSettingsRouter);
 router.use(billingRouter);
 router.use(dashboardRouter);
+router.use(assistantRouter);
 
 export default router;

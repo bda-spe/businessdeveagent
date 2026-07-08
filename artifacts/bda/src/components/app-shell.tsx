@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UploadDocsCard from "@/components/upload-docs-card";
-import RequirementsPane from "@/components/requirements-pane";
+import AssistantChat from "@/components/assistant-chat";
 import logoUrl from "@assets/bda-split_1783453365816.png";
 
 export default function AppShell({ children }: { children?: React.ReactNode }) {
@@ -188,7 +188,7 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
             <div className="flex-1 min-w-0 w-full">{children}</div>
             <div className="w-full xl:w-80 shrink-0 space-y-6 xl:sticky xl:top-24">
               <UploadDocsCard />
-              <RequirementsPane />
+              <AssistantChat />
             </div>
           </div>
         </div>

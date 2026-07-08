@@ -23,6 +23,7 @@ import {
   seedBusinessDefaults,
   logActivity,
 } from "../lib/business";
+import { computeSetupProgress } from "../lib/setupProgress";
 
 const router: IRouter = Router();
 
@@ -40,40 +41,7 @@ router.get("/me", async (req, res): Promise<void> => {
   };
 
   if (business) {
-    const [services, sandboxTests, savedEvents] = await Promise.all([
-      db
-        .select({ id: servicesTable.id })
-        .from(servicesTable)
-        .where(eq(servicesTable.businessId, business.id))
-        .limit(1),
-      db
-        .select({ id: sandboxTestsTable.id })
-        .from(sandboxTestsTable)
-        .where(eq(sandboxTestsTable.businessId, business.id))
-        .limit(1),
-      db
-        .select({ type: activityEventsTable.type })
-        .from(activityEventsTable)
-        .where(
-          and(
-            eq(activityEventsTable.businessId, business.id),
-            inArray(activityEventsTable.type, [
-              "pricing_updated",
-              "invoice_settings_updated",
-              "widget_updated",
-            ]),
-          ),
-        ),
-    ]);
-    const eventTypes = new Set(savedEvents.map((e) => e.type));
-    setupProgress = {
-      businessProfile: business.profileApproved,
-      services: services.length > 0,
-      pricing: eventTypes.has("pricing_updated"),
-      invoiceFormatting: eventTypes.has("invoice_settings_updated"),
-      widget: eventTypes.has("widget_updated"),
-      testAgent: sandboxTests.length > 0,
-    };
+    setupProgress = await computeSetupProgress(business);
   }
 
   res.json(

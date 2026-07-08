@@ -1193,6 +1193,27 @@ export const AiDraftPolicyResponse = zod.object({
 
 
 /**
+ * @summary Chat with the in-app AI assistant
+ */
+export const assistantChatBodyMessagesItemContentMax = 4000;
+
+export const assistantChatBodyMessagesMax = 30;
+
+
+
+export const AssistantChatBody = zod.object({
+  "messages": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string().max(assistantChatBodyMessagesItemContentMax)
+})).max(assistantChatBodyMessagesMax)
+})
+
+export const AssistantChatResponse = zod.object({
+  "reply": zod.string()
+})
+
+
+/**
  * @summary Get estimate rules
  */
 export const GetEstimateRulesResponse = zod.object({

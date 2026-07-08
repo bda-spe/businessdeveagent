@@ -680,6 +680,29 @@ export interface AiDraftPolicyResult {
   wording: string;
 }
 
+export type AssistantChatMessageRole = typeof AssistantChatMessageRole[keyof typeof AssistantChatMessageRole];
+
+
+export const AssistantChatMessageRole = {
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export interface AssistantChatMessage {
+  role: AssistantChatMessageRole;
+  /** @maxLength 4000 */
+  content: string;
+}
+
+export interface AssistantChatInput {
+  /** @maxItems 30 */
+  messages: AssistantChatMessage[];
+}
+
+export interface AssistantChatResult {
+  reply: string;
+}
+
 export interface EstimateRules {
   id: number;
   requiredInfoBeforeQuoting?: string[] | null;

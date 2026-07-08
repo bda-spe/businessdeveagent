@@ -672,6 +672,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/AiDraftPolicyResult"
 
+  /assistant/chat:
+    post:
+      operationId: assistantChat
+      tags: [assistant]
+      summary: Chat with the in-app AI assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantChatInput"
+      responses:
+        "200":
+          description: Assistant reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantChatResult"
+
   /business/estimate-rules:
     get:
       operationId: getEstimateRules
@@ -1855,6 +1874,34 @@ components:
       required: [wording]
       properties:
         wording:
+          type: string
+
+    AssistantChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+          maxLength: 4000
+
+    AssistantChatInput:
+      type: object
+      required: [messages]
+      properties:
+        messages:
+          type: array
+          maxItems: 30
+          items:
+            $ref: "#/components/schemas/AssistantChatMessage"
+
+    AssistantChatResult:
+      type: object
+      required: [reply]
+      properties:
+        reply:
           type: string
 
     EstimateRules:

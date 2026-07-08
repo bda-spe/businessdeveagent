@@ -1,2 +1,3 @@
 - [api-server esbuild externals](api-server-esbuild-externals.md) — bundled deps that crash at startup (e.g. pdfkit) must go in build.mjs `external`; backend needs workflow restart, no HMR.
 - [AI behavior enforcement](ai-behavior-enforcement.md) — strict AI output rules (exact sentences, forbidden words) need code post-processing, not just prompts; public AI endpoints need CORS allowlisting + rate limits.
+- [LLM endpoint safety](llm-endpoint-safety.md) — rate-limit every AI route (even authed), scope chat storage per tenant, clip history to schema max length.
