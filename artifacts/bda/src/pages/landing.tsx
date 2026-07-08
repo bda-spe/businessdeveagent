@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, MessageSquare, Calculator, Zap, ArrowRight } from "lucide-react";
-import logoUrl from "@assets/bda-split_1783453365816.png";
+import logoUrl from "@assets/8028a6ee-e049-488f-91c3-bb2de873b6cf.png";
 
 export default function LandingPage() {
   return (
