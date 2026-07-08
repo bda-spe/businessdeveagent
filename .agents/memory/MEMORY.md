@@ -2,3 +2,4 @@
 - [API server dev workflow rebuilds dist](api-server-dev-workflow.md) — restart the workflow after api-server edits; codegen briefly deletes generated api-client files, causing transient vite errors.
 - [AI behavior enforcement](ai-behavior-enforcement.md) — strict AI output rules (exact sentences, forbidden words) need code post-processing, not just prompts; public AI endpoints need CORS allowlisting + rate limits.
 - [LLM endpoint safety](llm-endpoint-safety.md) — rate-limit every AI route (even authed), scope chat storage per tenant, clip history to schema max length.
+- [Stripe webhook subscription linkage](stripe-webhook-linkage.md) — invoice webhooks must match the invoice's subscription id to the stored one; in stripe v18+ it lives at invoice.parent.subscription_details.subscription.

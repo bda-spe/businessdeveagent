@@ -78,6 +78,26 @@ export function isTrialExpired(business: AppBusiness): boolean {
   return new Date() > parseDbTimestampAsUtc(business.trialEndsAt);
 }
 
+/**
+ * A business is suspended when it must not serve its public widget or agent:
+ * deactivated, in a payment-failure/cancellation state managed by Stripe
+ * webhooks, or past the end of an unconverted free trial (even before the
+ * lazy expiry in loadContext has run).
+ */
+const SUSPENDED_SUBSCRIPTION_STATUSES = new Set([
+  "expired",
+  "canceled",
+  "past_due",
+]);
+
+export function isBusinessSuspended(business: AppBusiness): boolean {
+  if (!business.active) return true;
+  if (SUSPENDED_SUBSCRIPTION_STATUSES.has(business.subscriptionStatus)) {
+    return true;
+  }
+  return isTrialExpired(business);
+}
+
 export async function loadContext(
   req: Request,
   _res: Response,

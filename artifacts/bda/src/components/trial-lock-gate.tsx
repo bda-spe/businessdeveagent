@@ -3,12 +3,18 @@ import { useLocation } from "wouter";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const LOCKED_STATUSES = new Set(["expired", "canceled", "past_due"]);
+
 export function isSubscriptionLocked(business?: {
   active?: boolean;
   subscriptionStatus?: string;
 } | null): boolean {
   if (!business) return false;
-  return business.active === false || business.subscriptionStatus === "expired";
+  return (
+    business.active === false ||
+    (business.subscriptionStatus != null &&
+      LOCKED_STATUSES.has(business.subscriptionStatus))
+  );
 }
 
 export default function TrialLockGate({

@@ -10,6 +10,7 @@ import {
   useGetSubscription,
   useCheckout,
   useConfirmCheckout,
+  useGetMe,
   getGetSubscriptionQueryKey,
 } from "@workspace/api-client-react";
 import {
@@ -30,8 +31,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Check, ShieldCheck, HardHat, Loader2 } from "lucide-react";
+import { Check, ShieldCheck, HardHat, Loader2, Clock, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+function trialDaysRemaining(trialEndsAt?: string | null): number | null {
+  if (!trialEndsAt) return null;
+  const iso = trialEndsAt.includes("T")
+    ? trialEndsAt
+    : trialEndsAt.replace(" ", "T");
+  const hasZone = /(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(iso);
+  const end = new Date(hasZone ? iso : `${iso}Z`).getTime();
+  if (Number.isNaN(end)) return null;
+  return Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
+}
 
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as
   | string
@@ -51,6 +63,7 @@ export default function BillingPage() {
   const queryClient = useQueryClient();
   const { data: plans, isLoading: isLoadingPlans } = useListBillingPlans();
   const { data: subscription, isLoading: isLoadingSub } = useGetSubscription();
+  const { data: me } = useGetMe();
   const checkout = useCheckout();
   const confirmCheckout = useConfirmCheckout();
 
@@ -131,6 +144,18 @@ export default function BillingPage() {
   }
 
   const isSubscribed = subscription?.active;
+  const business = me?.business;
+  const subStatus = business?.subscriptionStatus;
+  const isTrialing = !isSubscribed && subStatus === "trialing";
+  const daysRemaining = isTrialing
+    ? trialDaysRemaining(business?.trialEndsAt)
+    : null;
+  const isTrialOver =
+    !isSubscribed &&
+    (subStatus === "expired" ||
+      subStatus === "canceled" ||
+      subStatus === "past_due" ||
+      (isTrialing && daysRemaining === 0));
 
   return (
     <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
@@ -149,16 +174,35 @@ export default function BillingPage() {
             <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center shrink-0">
               {isSubscribed ? (
                 <ShieldCheck className="h-6 w-6 text-emerald-400" />
+              ) : isTrialOver ? (
+                <AlertTriangle className="h-6 w-6 text-amber-400" />
+              ) : isTrialing ? (
+                <Clock className="h-6 w-6 text-blue-400" />
               ) : (
                 <HardHat className="h-6 w-6 text-slate-400" />
               )}
             </div>
             <div>
               <h3 className="font-semibold text-lg flex items-center gap-2">
-                Current Status
+                {isSubscribed
+                  ? "Current Status"
+                  : isTrialOver
+                    ? "Your free trial has ended."
+                    : isTrialing
+                      ? "Free Trial"
+                      : "Current Status"}
                 {isSubscribed ? (
                   <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white border-none">
                     Active
+                  </Badge>
+                ) : isTrialOver ? (
+                  <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-none">
+                    Expired
+                  </Badge>
+                ) : isTrialing && daysRemaining != null ? (
+                  <Badge className="bg-blue-500 hover:bg-blue-600 text-white border-none">
+                    {daysRemaining} {daysRemaining === 1 ? "day" : "days"}{" "}
+                    remaining
                   </Badge>
                 ) : (
                   <Badge
@@ -172,7 +216,11 @@ export default function BillingPage() {
               <p className="text-slate-400 text-sm mt-1">
                 {isSubscribed
                   ? `You are subscribed to the ${subscription.planName} plan.`
-                  : "Upgrade to deploy your agent and start qualifying leads."}
+                  : isTrialOver
+                    ? "Purchase a subscription below to reactivate your Business Development Agent. Your widget, settings, and leads are all saved."
+                    : isTrialing
+                      ? "You're on a free trial. Pick a plan below to keep your agent running after it ends."
+                      : "Upgrade to deploy your agent and start qualifying leads."}
               </p>
             </div>
           </div>

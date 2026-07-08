@@ -22,7 +22,7 @@ import {
   WidgetInteractBody,
   WidgetInteractResponse,
 } from "@workspace/api-zod";
-import { requireBusiness } from "../lib/auth";
+import { requireBusiness, isBusinessSuspended } from "../lib/auth";
 import { logActivity } from "../lib/business";
 import {
   generateAgentResponse,
@@ -251,11 +251,13 @@ widgetPublicRouter.get("/widget/config", async (req, res): Promise<void> => {
       position: settings.position,
       budgetRanges,
       // The widget only goes live after the business confirms its agent
-      // preferences, and it stays hidden if the business account is inactive
-      // (e.g. trial expired without a subscription).
+      // preferences, and it is hidden completely while the business is
+      // suspended (trial expired, payment past due, canceled, or deactivated).
+      // Settings, colors, greeting, and the client_id are preserved — paying
+      // reactivates the existing widget as-is.
       enabled:
         settings.enabled &&
-        business.active &&
+        !isBusinessSuspended(business) &&
         business.widgetReady &&
         business.agentPreferencesConfirmed,
     }),
@@ -276,7 +278,7 @@ widgetPublicRouter.post("/widget/questions", widgetRateLimit, async (req, res): 
     res.status(404).json({ error: "Widget not found" });
     return;
   }
-  if (!business.active) {
+  if (isBusinessSuspended(business)) {
     res.status(403).json({ error: "This widget is currently unavailable." });
     return;
   }
@@ -372,7 +374,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
     res.status(404).json({ error: "Widget not found" });
     return;
   }
-  if (!business.active) {
+  if (isBusinessSuspended(business)) {
     res.status(403).json({ error: "This widget is currently unavailable." });
     return;
   }

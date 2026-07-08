@@ -22,6 +22,12 @@ function customerIdFrom(
   return typeof customer === "string" ? customer : customer.id;
 }
 
+function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const sub = invoice.parent?.subscription_details?.subscription;
+  if (!sub) return null;
+  return typeof sub === "string" ? sub : sub.id;
+}
+
 async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session,
 ): Promise<void> {
@@ -52,6 +58,13 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
     // checkout.session.completed, which also stores the subscription id.
     console.log(
       `[stripe:webhook] invoice.paid for business ${business.id} before subscription is linked; deferring to checkout.session.completed`,
+    );
+    return;
+  }
+  const subscriptionId = invoiceSubscriptionId(invoice);
+  if (!subscriptionId || subscriptionId !== business.stripeSubscriptionId) {
+    console.log(
+      `[stripe:webhook] invoice.paid for subscription ${subscriptionId ?? "none"} but business ${business.id} is linked to ${business.stripeSubscriptionId}; ignoring`,
     );
     return;
   }
@@ -86,6 +99,13 @@ async function handleInvoicePaymentFailed(
     // that is still in its trial — no subscription was ever activated.
     console.log(
       `[stripe:webhook] invoice.payment_failed for business ${business.id} with no linked subscription; ignoring`,
+    );
+    return;
+  }
+  const subscriptionId = invoiceSubscriptionId(invoice);
+  if (!subscriptionId || subscriptionId !== business.stripeSubscriptionId) {
+    console.log(
+      `[stripe:webhook] invoice.payment_failed for subscription ${subscriptionId ?? "none"} but business ${business.id} is linked to ${business.stripeSubscriptionId}; ignoring`,
     );
     return;
   }
