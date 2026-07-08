@@ -134,13 +134,13 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col fixed inset-y-0 left-0 z-10">
         <div className="h-16 flex items-center px-4 border-b border-slate-800 bg-slate-950">
-          <Link href="/">
+          <a href="/landing" target="_blank" rel="noopener noreferrer">
             <img
               src={logoUrl}
               alt="BDA — Business Development Agent"
               className="h-10 w-auto rounded opacity-[1] rounded-tl-[4px] rounded-tr-[4px] rounded-br-[4px] rounded-bl-[4px] mt-[0px] mb-[0px] ml-[-1px] mr-[-1px] cursor-pointer"
             />
-          </Link>
+          </a>
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 px-3">
