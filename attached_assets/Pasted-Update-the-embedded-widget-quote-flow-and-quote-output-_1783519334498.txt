@@ -1,0 +1,105 @@
+Update the embedded widget quote flow and quote output enforcement.
+
+1. Required service address
+Every embedded widget quote request must require the customer to enter the service address before a quote can be generated.
+
+Add required fields:
+- Street address
+- City
+- State
+- ZIP code
+
+The widget should not generate a quote until service address is provided.
+
+Include the service address in:
+- AI quote context
+- Quote summary
+- Quote PDF
+- Business owner email
+- Customer quote email
+- Saved lead/quote record
+
+2. Dynamic customer budget ranges
+The widget budget range options must be dynamic per business.
+
+Do not hardcode generic options like:
+- $0-$250
+- $500-$1,000
+- $5,000+
+
+Instead, generate ranges using the business’s saved pricing profile:
+- typical_low_end_job_cost
+- average_job_cost
+- typical_high_end_job_cost
+- minimum_job_charge
+
+Example:
+If low-end job cost is $35 and high-end job cost is $125, show realistic ranges like:
+- Under $50
+- $50-$75
+- $75-$100
+- $100-$125
+- $125+
+- Not sure
+
+If low/high costs are missing, fallback to industry defaults, but log that fallback was used.
+
+3. Enforce selected quote format
+The quote generated in the widget must use the selected Quote Formatting template saved by the business.
+
+Do not use a generic quote layout if the business has selected a quote format.
+
+When generating and rendering quotes:
+- Fetch selected_quote_template from quote/invoice settings
+- Use that template for widget quote preview
+- Use that template for quote PDF
+- Use that template for quote email
+- Use enabled quote sections/check boxes from quote settings
+- Apply business-specific quote language, policies, disclaimers, and acceptance language
+
+4. Estimate disclaimer language
+All quote outputs must clearly state that the generated quote is a preliminary estimate, not a final service agreement.
+
+Use language similar to:
+“This quote is a preliminary estimate based on the information provided. It is not a final service agreement. Final pricing may change after review, inspection, measurement, material confirmation, or changes to project scope.”
+
+Add this disclaimer to:
+- Widget quote result
+- Quote PDF
+- Quote summary email
+- Business owner copied email
+- Test Agent quote output
+
+5. Terminology
+Continue using “Quote” as the main user-facing term, but the explanatory disclaimer may use “preliminary estimate” to clarify that pricing is not final.
+
+Avoid calling the output an invoice or final agreement.
+
+6. Backend requirements
+Update the AI quote generation context to include:
+- service address
+- business low-end job cost
+- business average job cost
+- business high-end job cost
+- minimum job charge
+- selected quote template
+- enabled quote sections
+- quote disclaimer
+- finalized agent preferences
+
+Add validation so quotes cannot be generated without:
+- client_id
+- customer request
+- service address
+- customer contact info
+- business pricing context
+
+7. Testing
+Add console/server logs for:
+- clientId received
+- business pricing range loaded
+- dynamic budget ranges generated
+- selected quote template loaded
+- service address received
+- quote disclaimer applied
+- quote email sent

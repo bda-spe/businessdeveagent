@@ -14,6 +14,8 @@ export interface Lead {
   /** @nullable */
   phone?: string | null;
   /** @nullable */
+  serviceAddress?: string | null;
+  /** @nullable */
   requestSummary?: string | null;
   /** @nullable */
   projectDescription?: string | null;

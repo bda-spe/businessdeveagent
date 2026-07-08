@@ -42,6 +42,24 @@ export const ALL_INVOICE_SECTIONS = [
   "acceptance_language",
 ];
 
+// Preliminary-estimate disclaimer shown with every quote output (widget
+// result, PDF, emails, Test Agent). Keep the user-facing term "Quote".
+export const PRELIMINARY_ESTIMATE_DISCLAIMER =
+  "This quote is a preliminary estimate based on the information provided. It is not a final service agreement. Final pricing may change after review, inspection, measurement, material confirmation, or changes to project scope.";
+
+// Generic industry-default budget options used only when a business has no
+// usable pricing profile (low/avg/high job costs). A server log records when
+// this fallback is used.
+export const FALLBACK_BUDGET_RANGES = [
+  "Under $250",
+  "$250-$500",
+  "$500-$1,000",
+  "$1,000-$2,500",
+  "$2,500-$5,000",
+  "$5,000+",
+  "Not sure",
+];
+
 export const DEFAULT_EMAIL_SETTINGS = {
   emailSubject: "Your estimate from {business_name}",
   emailGreeting: "Hi {customer_name},",

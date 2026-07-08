@@ -377,12 +377,19 @@ export async function generateAgentResponse(params: {
   pricing: PricingContext | null;
   prompt: string;
   customerName?: string;
+  serviceAddress?: string | null;
   answers?: { question: string; answer: string }[];
   budget?: string | null;
   laborAssumption?: string | null;
   policies?: Record<string, unknown> | null;
   estimateRules?: Record<string, unknown> | null;
   agentPreferences?: Record<string, unknown> | null;
+  quoteFormat?: {
+    selectedTemplate?: string | null;
+    includedSections?: string[] | null;
+    estimateDisclaimer?: string | null;
+    acceptanceLanguage?: string | null;
+  } | null;
 }): Promise<{ agentResponse: string; estimate: Estimate }> {
   const {
     business,
@@ -390,12 +397,14 @@ export async function generateAgentResponse(params: {
     pricing,
     prompt,
     customerName,
+    serviceAddress,
     answers,
     budget,
     laborAssumption,
     policies,
     estimateRules,
     agentPreferences,
+    quoteFormat,
   } = params;
   const fallback = fallbackEstimate(prompt, services, pricing);
 
@@ -426,8 +435,33 @@ Respond ONLY with a JSON object of shape: {"message": string, "estimate": {"cust
     lines.push(
       `Confirmed agent preferences & standards (follow these strictly — they override generic behavior; respect the customer tone, required intake questions, estimating standards, quote/policy standards, low-confidence rules, services not to quote, and include the final customer disclaimer): ${JSON.stringify(agentPreferences)}`,
     );
+  if (quoteFormat) {
+    if (quoteFormat.selectedTemplate)
+      lines.push(
+        `Selected quote template (the business's chosen quote format — structure the quote presentation to match it): ${quoteFormat.selectedTemplate}`,
+      );
+    if (quoteFormat.includedSections && quoteFormat.includedSections.length > 0)
+      lines.push(
+        `Enabled quote sections (only include content relevant to these sections in the quote): ${quoteFormat.includedSections.join(", ")}`,
+      );
+    if (quoteFormat.estimateDisclaimer)
+      lines.push(
+        `Business quote disclaimer (reflect this in the quote): ${quoteFormat.estimateDisclaimer}`,
+      );
+    if (quoteFormat.acceptanceLanguage)
+      lines.push(
+        `Business acceptance language: ${quoteFormat.acceptanceLanguage}`,
+      );
+    lines.push(
+      "Always present the quote as a preliminary estimate, never as a final service agreement or invoice.",
+    );
+  }
   lines.push("");
   if (customerName) lines.push(`Customer name: ${customerName}`);
+  if (serviceAddress)
+    lines.push(
+      `Service address (where the work will be performed — factor in travel/service area): ${serviceAddress}`,
+    );
   lines.push(`Customer's project description: "${prompt}"`);
   if (answers && answers.length > 0) {
     lines.push("Follow-up questions and the customer's answers:");

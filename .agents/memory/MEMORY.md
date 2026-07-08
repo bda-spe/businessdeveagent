@@ -1,3 +1,4 @@
 - [api-server esbuild externals](api-server-esbuild-externals.md) — bundled deps that crash at startup (e.g. pdfkit) must go in build.mjs `external`; backend needs workflow restart, no HMR.
+- [API server dev workflow rebuilds dist](api-server-dev-workflow.md) — restart the workflow after api-server edits; codegen briefly deletes generated api-client files, causing transient vite errors.
 - [AI behavior enforcement](ai-behavior-enforcement.md) — strict AI output rules (exact sentences, forbidden words) need code post-processing, not just prompts; public AI endpoints need CORS allowlisting + rate limits.
 - [LLM endpoint safety](llm-endpoint-safety.md) — rate-limit every AI route (even authed), scope chat storage per tenant, clip history to schema max length.

@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { logger } from "./logger";
 import { filterLineItems } from "./pdf";
+import { PRELIMINARY_ESTIMATE_DISCLAIMER } from "./defaults";
 import type { Estimate } from "./aiService";
 
 export function isEmailConfigured(): boolean {
@@ -19,6 +20,7 @@ export function composeEstimateEmail(opts: {
   customerName: string;
   estimate: Estimate;
   includedSections: string[];
+  serviceAddress?: string | null;
   emailSubject?: string | null;
   emailGreeting?: string | null;
   emailBodyText?: string | null;
@@ -29,6 +31,7 @@ export function composeEstimateEmail(opts: {
     customerName,
     estimate,
     includedSections,
+    serviceAddress,
     emailSubject,
     emailGreeting,
     emailBodyText,
@@ -51,9 +54,14 @@ export function composeEstimateEmail(opts: {
     "",
     replacePlaceholders(emailBodyText || "", vars),
     "",
+  ];
+  if (serviceAddress) {
+    lines.push(`Service address: ${serviceAddress}`, "");
+  }
+  lines.push(
     "Quote summary:",
     ...items.map((li) => `- ${li.description}: $${li.total.toFixed(2)}`),
-  ];
+  );
   if (taxes > 0) lines.push(`- Taxes & fees: $${taxes.toFixed(2)}`);
   lines.push(`Estimated total: $${total.toFixed(2)}`);
   if (
@@ -64,6 +72,7 @@ export function composeEstimateEmail(opts: {
       `Expected range: $${estimate.recommendedPriceLow.toFixed(2)} - $${estimate.recommendedPriceHigh.toFixed(2)}`,
     );
   }
+  lines.push("", PRELIMINARY_ESTIMATE_DISCLAIMER);
   lines.push(
     "",
     replacePlaceholders(

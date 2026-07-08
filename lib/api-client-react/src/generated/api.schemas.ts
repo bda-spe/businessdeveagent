@@ -833,6 +833,8 @@ export interface Lead {
   /** @nullable */
   phone?: string | null;
   /** @nullable */
+  serviceAddress?: string | null;
+  /** @nullable */
   requestSummary?: string | null;
   /** @nullable */
   projectDescription?: string | null;
@@ -859,6 +861,8 @@ export interface LeadDetail {
   email?: string | null;
   /** @nullable */
   phone?: string | null;
+  /** @nullable */
+  serviceAddress?: string | null;
   /** @nullable */
   requestSummary?: string | null;
   /** @nullable */
@@ -908,6 +912,8 @@ export interface WidgetConfig {
   primaryColor: string;
   position: string;
   enabled: boolean;
+  /** Dynamic budget range options derived from the business's pricing profile. */
+  budgetRanges: string[];
 }
 
 export interface WidgetQuestionsInput {
@@ -932,6 +938,14 @@ export interface WidgetInteractInput {
   email?: string;
   phone?: string;
   /** @minLength 1 */
+  serviceStreet: string;
+  /** @minLength 1 */
+  serviceCity: string;
+  /** @minLength 1 */
+  serviceState: string;
+  /** @minLength 1 */
+  serviceZip: string;
+  /** @minLength 1 */
   projectDescription: string;
   answers?: WidgetIntakeAnswer[];
   budget?: string;
@@ -942,6 +956,7 @@ export interface WidgetInteractResult {
   leadId: number;
   message: string;
   estimate: Estimate;
+  disclaimer: string;
 }
 
 export interface BillingPlan {

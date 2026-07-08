@@ -2172,6 +2172,8 @@ components:
           type: ["string", "null"]
         phone:
           type: ["string", "null"]
+        serviceAddress:
+          type: ["string", "null"]
         requestSummary:
           type: ["string", "null"]
         projectDescription:
@@ -2205,6 +2207,8 @@ components:
         email:
           type: ["string", "null"]
         phone:
+          type: ["string", "null"]
+        serviceAddress:
           type: ["string", "null"]
         requestSummary:
           type: ["string", "null"]
@@ -2270,7 +2274,7 @@ components:
 
     WidgetConfig:
       type: object
-      required: [clientId, businessName, greeting, primaryColor, position, enabled]
+      required: [clientId, businessName, greeting, primaryColor, position, enabled, budgetRanges]
       properties:
         clientId:
           type: string
@@ -2284,6 +2288,11 @@ components:
           type: string
         enabled:
           type: boolean
+        budgetRanges:
+          type: array
+          description: Dynamic budget range options derived from the business's pricing profile.
+          items:
+            type: string
 
     WidgetQuestionsInput:
       type: object
@@ -2315,7 +2324,16 @@ components:
 
     WidgetInteractInput:
       type: object
-      required: [clientId, name, projectDescription]
+      required:
+        [
+          clientId,
+          name,
+          projectDescription,
+          serviceStreet,
+          serviceCity,
+          serviceState,
+          serviceZip,
+        ]
       properties:
         clientId:
           type: string
@@ -2326,6 +2344,18 @@ components:
           type: string
         phone:
           type: string
+        serviceStreet:
+          type: string
+          minLength: 1
+        serviceCity:
+          type: string
+          minLength: 1
+        serviceState:
+          type: string
+          minLength: 1
+        serviceZip:
+          type: string
+          minLength: 1
         projectDescription:
           type: string
           minLength: 1
@@ -2340,7 +2370,7 @@ components:
 
     WidgetInteractResult:
       type: object
-      required: [leadId, message, estimate]
+      required: [leadId, message, estimate, disclaimer]
       properties:
         leadId:
           type: integer
@@ -2348,6 +2378,8 @@ components:
           type: string
         estimate:
           $ref: "#/components/schemas/Estimate"
+        disclaimer:
+          type: string
 
     BillingPlan:
       type: object

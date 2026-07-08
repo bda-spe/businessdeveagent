@@ -196,6 +196,12 @@ export default function LeadsPage() {
                       <FileText className="h-4 w-4 text-blue-500" /> Project Summary
                     </h4>
                     <p className="text-slate-700 leading-relaxed">{leadDetail.requestSummary || leadDetail.projectDescription}</p>
+
+                    {leadDetail.serviceAddress && (
+                      <p className="mt-3 text-sm text-slate-600">
+                        <span className="font-medium text-slate-700">Service address:</span> {leadDetail.serviceAddress}
+                      </p>
+                    )}
                     
                     {leadDetail.confidenceScore && (
                       <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">

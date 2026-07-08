@@ -29,8 +29,14 @@
     primaryColor: NAVY,
     position: "bottom-right",
     enabled: true,
+    budgetRanges: null,
   };
 
+  var DISCLAIMER =
+    "This quote is a preliminary estimate based on the information provided. It is not a final service agreement. Final pricing may change after review, inspection, measurement, material confirmation, or changes to project scope.";
+
+  // Fallback only — the server supplies dynamic ranges built from the
+  // business's pricing profile via /widget/config.
   var BUDGET_OPTIONS = [
     "Under $250",
     "$250-$500",
@@ -40,6 +46,12 @@
     "$5,000+",
     "Not sure",
   ];
+
+  function budgetOptions() {
+    return Array.isArray(config.budgetRanges) && config.budgetRanges.length > 0
+      ? config.budgetRanges
+      : BUDGET_OPTIONS;
+  }
 
   var LABOR_OPTIONS = [
     "Not sure",
@@ -63,6 +75,10 @@
     name: "",
     email: "",
     phone: "",
+    street: "",
+    city: "",
+    stateVal: "",
+    zip: "",
     result: null,
   };
 
@@ -317,7 +333,7 @@
       )
     );
     var list = el("div", "display:flex;flex-direction:column;gap:8px;");
-    BUDGET_OPTIONS.forEach(function (opt) {
+    budgetOptions().forEach(function (opt) {
       var b = optionButton(opt, state.budget === opt);
       b.addEventListener("click", function () {
         state.budget = opt;
@@ -362,12 +378,12 @@
     );
   }
 
-  // Step 5: contact info + submit.
+  // Step 5: contact info + required service address + submit.
   function renderContact() {
     body.appendChild(
       stepHeader(
         "Almost done \u2014 where should we send your estimate?",
-        "We'll prepare your estimate right away."
+        "We need the service address to prepare your estimate."
       )
     );
 
@@ -389,12 +405,49 @@
     });
     phoneInput.value = state.phone;
 
+    var addrLabel = text(
+      "p",
+      "margin:4px 0 0;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#64748b;",
+      "Service address (required)"
+    );
+    var streetInput = el("input", inputStyle, {
+      type: "text",
+      placeholder: "Street address",
+      required: "required",
+    });
+    streetInput.value = state.street;
+    var cityInput = el("input", inputStyle, {
+      type: "text",
+      placeholder: "City",
+      required: "required",
+    });
+    cityInput.value = state.city;
+    var row = el("div", "display:flex;gap:10px;");
+    var stateInput = el("input", inputStyle + "flex:1;", {
+      type: "text",
+      placeholder: "State",
+      required: "required",
+    });
+    stateInput.value = state.stateVal;
+    var zipInput = el("input", inputStyle + "flex:1;", {
+      type: "text",
+      placeholder: "ZIP code",
+      required: "required",
+    });
+    zipInput.value = state.zip;
+    row.appendChild(stateInput);
+    row.appendChild(zipInput);
+
     var submit = primaryBtn("Get my estimate");
     submit.setAttribute("type", "submit");
 
     form.appendChild(nameInput);
     form.appendChild(emailInput);
     form.appendChild(phoneInput);
+    form.appendChild(addrLabel);
+    form.appendChild(streetInput);
+    form.appendChild(cityInput);
+    form.appendChild(row);
     form.appendChild(submit);
     body.appendChild(form);
     body.appendChild(
@@ -402,6 +455,10 @@
         state.name = nameInput.value;
         state.email = emailInput.value;
         state.phone = phoneInput.value;
+        state.street = streetInput.value;
+        state.city = cityInput.value;
+        state.stateVal = stateInput.value;
+        state.zip = zipInput.value;
         state.step = 4;
         renderStep();
       })
@@ -410,13 +467,44 @@
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       if (state.busy) return;
+      form.querySelectorAll("p.bda-err").forEach(function (p) { p.remove(); });
+      function fail(input, msg) {
+        var err = text("p", "color:#b91c1c;font-size:13px;margin:0;", msg);
+        err.setAttribute("class", "bda-err");
+        form.appendChild(err);
+        input.focus();
+      }
       if (!nameInput.value.trim()) {
-        nameInput.focus();
+        fail(nameInput, "Please enter your name.");
+        return;
+      }
+      if (!emailInput.value.trim() && !phoneInput.value.trim()) {
+        fail(emailInput, "Please provide an email or phone number so we can follow up.");
+        return;
+      }
+      if (!streetInput.value.trim()) {
+        fail(streetInput, "Please enter the street address for the service location.");
+        return;
+      }
+      if (!cityInput.value.trim()) {
+        fail(cityInput, "Please enter the city.");
+        return;
+      }
+      if (!stateInput.value.trim()) {
+        fail(stateInput, "Please enter the state.");
+        return;
+      }
+      if (!zipInput.value.trim()) {
+        fail(zipInput, "Please enter the ZIP code.");
         return;
       }
       state.name = nameInput.value.trim();
       state.email = emailInput.value.trim();
       state.phone = phoneInput.value.trim();
+      state.street = streetInput.value.trim();
+      state.city = cityInput.value.trim();
+      state.stateVal = stateInput.value.trim();
+      state.zip = zipInput.value.trim();
       state.busy = true;
       submit.textContent = "Preparing your estimate\u2026";
       submit.setAttribute("disabled", "disabled");
@@ -436,6 +524,10 @@
           name: state.name,
           email: state.email || undefined,
           phone: state.phone || undefined,
+          serviceStreet: state.street,
+          serviceCity: state.city,
+          serviceState: state.stateVal,
+          serviceZip: state.zip,
           projectDescription: state.description,
           answers: answers,
           budget: state.budget || undefined,
@@ -443,7 +535,13 @@
         }),
       })
         .then(function (r) {
-          if (!r.ok) throw new Error("Request failed");
+          if (!r.ok) {
+            return r.json().then(function (errData) {
+              throw new Error((errData && errData.error) || "Request failed");
+            }, function () {
+              throw new Error("Request failed");
+            });
+          }
           return r.json();
         })
         .then(function (data) {
@@ -451,11 +549,21 @@
           state.step = 6;
           renderStep();
         })
-        .catch(function () {
+        .catch(function (err) {
           submit.textContent = "Get my estimate";
           submit.removeAttribute("disabled");
-          form.querySelectorAll("p").forEach(function (p) { p.remove(); });
-          showError(form);
+          form.querySelectorAll("p.bda-err").forEach(function (p) { p.remove(); });
+          var msg =
+            err && err.message && err.message !== "Request failed"
+              ? err.message
+              : null;
+          var errEl = text(
+            "p",
+            "color:#b91c1c;font-size:13px;margin:10px 0 0;",
+            msg || "Something went wrong. Please try again in a moment."
+          );
+          errEl.setAttribute("class", "bda-err");
+          form.appendChild(errEl);
         })
         .finally(function () {
           state.busy = false;
@@ -584,6 +692,20 @@
       body.appendChild(nCard);
     }
 
+    // Preliminary-estimate disclaimer (always shown with the quote result).
+    var discCard = el(
+      "div",
+      "background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-top:2px;"
+    );
+    discCard.appendChild(
+      text(
+        "p",
+        "margin:0;font-size:11.5px;color:#64748b;line-height:1.5;",
+        (data.disclaimer || DISCLAIMER)
+      )
+    );
+    body.appendChild(discCard);
+
     body.appendChild(
       text(
         "p",
@@ -700,6 +822,9 @@
         config.primaryColor = data.primaryColor || config.primaryColor;
         config.position = data.position || config.position;
         config.enabled = data.enabled !== false;
+        if (Array.isArray(data.budgetRanges) && data.budgetRanges.length > 0) {
+          config.budgetRanges = data.budgetRanges;
+        }
       }
       if (config.enabled) {
         if (document.body) render();

@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+import { PRELIMINARY_ESTIMATE_DISCLAIMER } from "./defaults";
 import type { Estimate, EstimateLineItem } from "./aiService";
 
 const DEFAULT_NAVY = "#1e3a5f";
@@ -56,13 +57,21 @@ function money(n: number | null | undefined): string {
 export function buildInvoicePdf(opts: {
   businessName: string;
   customerEmail?: string | null;
+  serviceAddress?: string | null;
   projectDescription?: string | null;
   date: string;
   estimate: Estimate;
   settings: InvoicePdfSettings;
 }): Promise<Buffer> {
-  const { businessName, customerEmail, projectDescription, date, estimate, settings } =
-    opts;
+  const {
+    businessName,
+    customerEmail,
+    serviceAddress,
+    projectDescription,
+    date,
+    estimate,
+    settings,
+  } = opts;
   const sections = settings.includedSections;
   const detailed =
     settings.selectedTemplate === "detailed_agreement" ||
@@ -97,6 +106,12 @@ export function buildInvoicePdf(opts: {
     if (customerEmail) {
       doc.text(`Prepared for: ${customerEmail}`, 54, y);
       y += 14;
+    }
+    if (serviceAddress) {
+      doc.text(`Service address: ${serviceAddress}`, 54, y, {
+        width: doc.page.width - 108,
+      });
+      y = doc.y + 2;
     }
     if (projectDescription) {
       doc.text(`Project: ${projectDescription.slice(0, 200)}`, 54, y, {
@@ -237,6 +252,11 @@ export function buildInvoicePdf(opts: {
       }
       doc.text(block.body, { width: doc.page.width - 108 });
     }
+
+    // Every quote PDF carries the preliminary-estimate disclaimer, regardless
+    // of which optional sections the business has enabled.
+    writeHeading("Preliminary Estimate Notice");
+    doc.text(PRELIMINARY_ESTIMATE_DISCLAIMER, { width: doc.page.width - 108 });
 
     if (settings.footerNote) {
       doc.moveDown(1.2);

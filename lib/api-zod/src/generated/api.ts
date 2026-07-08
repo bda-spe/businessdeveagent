@@ -1434,6 +1434,7 @@ export const ListLeadsResponseItem = zod.object({
   "customerName": zod.string(),
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
+  "serviceAddress": zod.string().nullish(),
   "requestSummary": zod.string().nullish(),
   "projectDescription": zod.string().nullish(),
   "estimatedLow": zod.number().nullish(),
@@ -1460,6 +1461,7 @@ export const GetLeadResponse = zod.object({
   "customerName": zod.string(),
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
+  "serviceAddress": zod.string().nullish(),
   "requestSummary": zod.string().nullish(),
   "projectDescription": zod.string().nullish(),
   "estimatedLow": zod.number().nullish(),
@@ -1513,6 +1515,7 @@ export const UpdateLeadResponse = zod.object({
   "customerName": zod.string(),
   "email": zod.string().nullish(),
   "phone": zod.string().nullish(),
+  "serviceAddress": zod.string().nullish(),
   "requestSummary": zod.string().nullish(),
   "projectDescription": zod.string().nullish(),
   "estimatedLow": zod.number().nullish(),
@@ -1583,7 +1586,8 @@ export const GetWidgetConfigResponse = zod.object({
   "greeting": zod.string(),
   "primaryColor": zod.string(),
   "position": zod.string(),
-  "enabled": zod.boolean()
+  "enabled": zod.boolean(),
+  "budgetRanges": zod.array(zod.string()).describe('Dynamic budget range options derived from the business\'s pricing profile.')
 })
 
 
@@ -1610,11 +1614,19 @@ export const WidgetQuestionsResponse = zod.object({
 
 
 
+
+
+
+
 export const WidgetInteractBody = zod.object({
   "clientId": zod.string(),
   "name": zod.string().min(1),
   "email": zod.string().optional(),
   "phone": zod.string().optional(),
+  "serviceStreet": zod.string().min(1),
+  "serviceCity": zod.string().min(1),
+  "serviceState": zod.string().min(1),
+  "serviceZip": zod.string().min(1),
   "projectDescription": zod.string().min(1),
   "answers": zod.array(zod.object({
   "question": zod.string(),
@@ -1649,7 +1661,8 @@ export const WidgetInteractResponse = zod.object({
   "estimatedDuration": zod.string().nullish(),
   "whatCouldChangePrice": zod.array(zod.string()).optional(),
   "recommendedNextStep": zod.string().nullish()
-})
+}),
+  "disclaimer": zod.string()
 })
 
 

@@ -35,7 +35,10 @@ import {
   sendEstimateEmail,
 } from "../lib/email";
 import { getOrCreateSettings } from "./invoiceSettings";
-import { ALL_INVOICE_SECTIONS } from "../lib/defaults";
+import {
+  ALL_INVOICE_SECTIONS,
+  PRELIMINARY_ESTIMATE_DISCLAIMER,
+} from "../lib/defaults";
 
 const router: IRouter = Router();
 
@@ -126,7 +129,7 @@ function composeEmail(opts: {
     "",
     replacePlaceholders(settings.emailBodyText || "", vars),
     "",
-    "Estimate summary:",
+    "Quote summary:",
     ...items.map((li) => `- ${li.description}: $${li.total.toFixed(2)}`),
   ];
   if (taxes > 0) lines.push(`- Taxes & fees: $${taxes.toFixed(2)}`);
@@ -139,6 +142,7 @@ function composeEmail(opts: {
       `Expected range: $${estimate.recommendedPriceLow.toFixed(2)} - $${estimate.recommendedPriceHigh.toFixed(2)}`,
     );
   }
+  lines.push("", PRELIMINARY_ESTIMATE_DISCLAIMER);
   lines.push(
     "",
     replacePlaceholders(
@@ -219,6 +223,13 @@ router.post(
       currentStage: "gathering",
       emailProvided: false,
     });
+    if (
+      turn.stage === "complete" &&
+      turn.estimate &&
+      !turn.message.includes(PRELIMINARY_ESTIMATE_DISCLAIMER)
+    ) {
+      turn.message = `${turn.message.trim()}\n\n${PRELIMINARY_ESTIMATE_DISCLAIMER}`;
+    }
     messages.push({ role: "agent", content: turn.message });
 
     const [row] = await db
@@ -298,6 +309,13 @@ router.post(
       currentStage,
       emailProvided,
     });
+    if (
+      turn.stage === "complete" &&
+      turn.estimate &&
+      !turn.message.includes(PRELIMINARY_ESTIMATE_DISCLAIMER)
+    ) {
+      turn.message = `${turn.message.trim()}\n\n${PRELIMINARY_ESTIMATE_DISCLAIMER}`;
+    }
     messages.push({ role: "agent", content: turn.message });
 
     let emailSubject = existing.emailSubject;

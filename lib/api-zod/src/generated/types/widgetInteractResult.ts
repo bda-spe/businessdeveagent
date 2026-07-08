@@ -11,4 +11,5 @@ export interface WidgetInteractResult {
   leadId: number;
   message: string;
   estimate: Estimate;
+  disclaimer: string;
 }

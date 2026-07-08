@@ -14,6 +14,14 @@ export interface WidgetInteractInput {
   email?: string;
   phone?: string;
   /** @minLength 1 */
+  serviceStreet: string;
+  /** @minLength 1 */
+  serviceCity: string;
+  /** @minLength 1 */
+  serviceState: string;
+  /** @minLength 1 */
+  serviceZip: string;
+  /** @minLength 1 */
   projectDescription: string;
   answers?: WidgetIntakeAnswer[];
   budget?: string;
