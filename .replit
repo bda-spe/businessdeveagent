@@ -26,3 +26,6 @@ channel = "stable-25_05"
 
 [userenv.shared]
 GMAIL_USER = "businessdevelopmentagent.spe@gmail.com"
+MONTHLY_PRICE_ID = "price_1TqxHjBgzDZaqBumJZPZOlKi"
+YEARLY_PRICE_ID = "price_1TqxJaBgzDZaqBumyb2aUyM9"
+SETUP_FEE_PRICE_ID = "price_1TqxF0BgzDZaqBumCxHrkfuI"
