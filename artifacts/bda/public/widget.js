@@ -93,8 +93,8 @@
     return node;
   }
 
-  function text(tag, styles, content) {
-    var node = el(tag, styles);
+  function text(tag, styles, content, attrs) {
+    var node = el(tag, styles, attrs);
     node.textContent = content;
     return node;
   }
@@ -756,8 +756,9 @@
     );
     var launcherBrand = text(
       "span",
-      "display:block;font-size:10.5px;font-style:italic;opacity:0.85;font-weight:400;color:" + textColor + ";",
-      BRANDING
+      "display:block;font-size:10.5px;font-style:italic;opacity:0.85;font-weight:400;color:" + textColor + ";cursor:pointer;text-decoration:none;",
+      BRANDING,
+      { onclick: "window.open('https://businessdevelopmentagent.replit.app','_blank','noopener,noreferrer')" }
     );
     launcher.appendChild(launcherLabel);
     launcher.appendChild(launcherBrand);
@@ -784,9 +785,10 @@
     );
     header.appendChild(
       text(
-        "p",
-        "margin:2px 0 0;font-size:12px;font-style:italic;opacity:0.85;color:" + textColor + ";",
-        BRANDING
+        "a",
+        "margin:2px 0 0;font-size:12px;font-style:italic;opacity:0.85;color:" + textColor + ";text-decoration:none;cursor:pointer;",
+        BRANDING,
+        { href: "https://businessdevelopmentagent.replit.app", target: "_blank", rel: "noopener noreferrer" }
       )
     );
 

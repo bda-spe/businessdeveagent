@@ -557,9 +557,15 @@ export default function WidgetPage() {
                     </div>
                     <div className="min-w-0">
                       <h4 className="font-semibold leading-tight truncate">{business?.name ?? "Your Business"}</h4>
-                      <p className="text-xs italic leading-tight" style={{ opacity: 0.85 }}>
+                      <a
+                        href="https://businessdevelopmentagent.replit.app"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs italic leading-tight no-underline"
+                        style={{ opacity: 0.85 }}
+                      >
                         Business Development Agent &copy;
-                      </p>
+                      </a>
                     </div>
                   </div>
 
