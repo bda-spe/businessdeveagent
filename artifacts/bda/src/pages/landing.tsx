@@ -23,7 +23,6 @@ export default function LandingPage() {
           </div>
         </div>
       </header>
-
       <main className="flex-1">
         {/* Hero Section */}
         <section className="pt-24 pb-32 px-4 relative overflow-hidden">
@@ -34,7 +33,7 @@ export default function LandingPage() {
               <Zap className="h-4 w-4" />
               <span>For service businesses & trades</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-8 max-w-4xl mx-auto leading-tight">
+            <h1 className="text-5xl md:text-7xl tracking-tight text-slate-900 mb-8 max-w-4xl mx-auto leading-tight font-extrabold">
               Hire a digital employee that works <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">24/7</span>
             </h1>
             <p className="text-xl md:text-2xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
@@ -71,26 +70,22 @@ export default function LandingPage() {
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-bold mb-3">1. Train on Your Business</h3>
-                <p className="text-slate-600 leading-relaxed">
-                  Upload your pricing rules, service areas, and business details. The agent learns exactly how you operate.
-                </p>
+                <p className="text-slate-600 leading-relaxed">Upload your business facts , service areas, and job details. The agent learns exactly how you operate to provide accurate quotes to secure more clients.</p>
               </div>
               <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
                 <div className="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center mb-6">
                   <MessageSquare className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-bold mb-3">2. Qualify Prospects</h3>
-                <p className="text-slate-600 leading-relaxed">
-                  The agent chats with visitors on your site, asks the right questions, and filters out bad leads automatically.
-                </p>
+                <p className="text-slate-600 leading-relaxed">The agent chats with visitors on your site, asks the right questions, and generates accurate quotes for their needs.</p>
               </div>
               <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
                 <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center mb-6">
                   <Calculator className="h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">3. Generate Estimates</h3>
+                <h3 className="text-xl font-bold mb-3">3. Generate More Business</h3>
                 <p className="text-slate-600 leading-relaxed">
-                  Provides highly accurate price ranges and detailed invoice line items based on your custom pricing rules.
+                  Accurate quotes given in real-time help business win more work without ever having to chase down a lead. Get started today!
                 </p>
               </div>
             </div>
@@ -98,7 +93,6 @@ export default function LandingPage() {
         </section>
 
       </main>
-
       <footer className="py-8 bg-slate-950 text-slate-500 text-sm border-t border-slate-800">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
