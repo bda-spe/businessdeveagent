@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AssistantChat from "@/components/assistant-chat";
-import logoUrl from "@assets/bda-split_1783453365816.png";
+import logoUrl from "@assets/header-dashboard.png";
 
 export default function AppShell({ children }: { children?: React.ReactNode }) {
   const [location, setLocation] = useLocation();
