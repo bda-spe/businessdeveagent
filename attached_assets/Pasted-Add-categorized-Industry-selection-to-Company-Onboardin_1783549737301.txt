@@ -1,0 +1,49 @@
+Add categorized Industry selection to Company Onboarding / Business Profile.
+
+Replace the current basic Industry dropdown with a searchable grouped dropdown.
+
+Requirements:
+- Label: Industry
+- Required field
+- Save selected value to business.industry
+- If “Other (Custom)” is selected, show custom industry text input
+- Save custom value to business.custom_industry
+- Use the selected industry as context for services, quote questions, widget intake questions, and AI estimate generation
+
+Industry groups and options:
+
+Exterior & Property Services:
+Landscaping, Lawn Care, Tree Service, Irrigation, Hardscaping, Fence Installation, Deck & Patio Construction, Concrete Services, Asphalt Paving, Parking Lot Striping, Sealcoating, Snow Removal, Junk Removal, Pressure Washing, Gutter Cleaning, Window Cleaning, Exterior Cleaning, Pool Installation, Pool Maintenance, Pest Control
+
+Home Improvement & Remodeling:
+General Contractor, Home Remodeling, Kitchen Remodeling, Bathroom Remodeling, Basement Finishing, Flooring, Tile Installation, Drywall, Painting, Wallpaper Installation, Cabinet Installation, Countertop Installation, Insulation, Garage Door Services, Handyman Services
+
+Roofing & Exterior Construction:
+Roofing, Siding, Gutters, Chimney Services, Masonry, Stucco, Window Installation, Door Installation, Solar Installation
+
+Mechanical Trades:
+HVAC, Plumbing, Electrical, Appliance Repair, Generator Installation, Fire Sprinkler Systems, Elevator Services
+
+Cleaning & Restoration:
+Residential Cleaning, Commercial Cleaning, Carpet Cleaning, Upholstery Cleaning, Floor Care, Tile & Grout Cleaning, Water Damage Restoration, Mold Remediation, Fire Damage Restoration
+
+Automotive & Equipment:
+Mobile Auto Detailing, Auto Repair, Mobile Mechanic, Tire Services, Windshield Replacement, Heavy Equipment Repair
+
+Specialty Trades:
+Welding, Metal Fabrication, Locksmith, Glass Installation, Sign Installation, Scaffolding Services, Moving Company, Hauling Services, Demolition
+
+Agriculture & Land:
+Excavation, Grading, Septic Services, Well Drilling, Forestry Services, Land Clearing, Farm Services
+
+Commercial Services:
+Commercial Maintenance, Property Management Maintenance, Building Maintenance, Facility Services, Janitorial Services, Parking Lot Maintenance, Commercial Refrigeration, Warehouse Services
+
+Marine & Recreation:
+Dock Construction, Boat Repair, Marine Detailing, RV Repair, Trailer Repair
+
+Security & Technology:
+Security Systems, Low Voltage Wiring, Home Automation, Audio/Video Installation, Network & IT Cabling
+
+Other:
+Other (Custom)
