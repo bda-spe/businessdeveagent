@@ -27,6 +27,9 @@ export const businessesTable = pgTable("businesses", {
   name: text("name").notNull(),
   industry: text("industry"),
   industryOther: text("industry_other"),
+  primaryIndustryCategory: varchar("primary_industry_category", { length: 100 }),
+  primaryIndustry: varchar("primary_industry", { length: 150 }),
+  customIndustry: varchar("custom_industry", { length: 150 }),
   companySize: text("company_size"),
   customerType: text("customer_type"),
   website: text("website"),
@@ -375,5 +378,16 @@ export const activityEventsTable = pgTable("activity_events", {
     .references(() => businessesTable.id, { onDelete: "cascade" }),
   type: text("type").notNull(),
   description: text("description").notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const businessIndustriesTable = pgTable("business_industries", {
+  id: serial("id").primaryKey(),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
+  industryCategory: varchar("industry_category", { length: 100 }).notNull(),
+  industryName: varchar("industry_name", { length: 150 }).notNull(),
+  isPrimary: boolean("is_primary").notNull().default(false),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });

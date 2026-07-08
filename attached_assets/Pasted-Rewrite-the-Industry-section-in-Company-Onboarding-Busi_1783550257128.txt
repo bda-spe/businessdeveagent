@@ -1,0 +1,87 @@
+Rewrite the Industry section in Company Onboarding / Business Profile to use grouped category selection with multi-select industry specialties.
+
+Replace the current single Industry dropdown with a grouped, searchable, multi-select interface similar to selecting multiple Stripe webhook events.
+
+UI requirements:
+- Section label: Industry & Services Category
+- Display industry groups as collapsible sections.
+- Each group should contain checkbox-style options.
+- User can select multiple specific categories across one or more groups.
+- Include search/filter input at the top.
+- Show selected items as removable chips/badges.
+- Keep the UI simple, clean, and not overwhelming.
+- Add helper text:
+  “Select all categories that apply to your business. These help your BDA ask better quote questions and generate more accurate estimates.”
+
+Database requirements:
+Update businesses table or create a related table to support multiple selections.
+
+Preferred schema:
+- businesses.primary_industry_category varchar(100)
+- businesses.primary_industry varchar(150)
+- businesses.custom_industry varchar(150), nullable
+- business_industries table:
+  - id
+  - business_id
+  - industry_category varchar(100)
+  - industry_name varchar(150)
+  - is_primary boolean
+  - created_at timestamp
+
+Rules:
+- At least one industry must be selected.
+- User must choose one selected industry as Primary.
+- Primary industry is saved to businesses.primary_industry and businesses.primary_industry_category.
+- All selected industries are saved to business_industries.
+- If “Other (Custom)” is selected, show a required custom industry text input.
+- Save custom value to businesses.custom_industry and business_industries.industry_name.
+- Prevent duplicate selections.
+- Trim whitespace.
+- Do not allow raw HTML/script input.
+
+AI usage:
+Use selected industries and primary industry as context for:
+- Services suggestions
+- Quote questions
+- Widget intake questions
+- Test Agent scenarios
+- AI quote generation
+- Industry-specific pricing assumptions
+
+Industry groups and options:
+
+Exterior & Property Services:
+Landscaping, Lawn Care, Tree Service, Irrigation, Hardscaping, Fence Installation, Deck & Patio Construction, Concrete Services, Asphalt Paving, Parking Lot Striping, Sealcoating, Snow Removal, Junk Removal, Pressure Washing, Gutter Cleaning, Window Cleaning, Exterior Cleaning, Pool Installation, Pool Maintenance, Pest Control
+
+Home Improvement & Remodeling:
+General Contractor, Home Remodeling, Kitchen Remodeling, Bathroom Remodeling, Basement Finishing, Flooring, Tile Installation, Drywall, Painting, Wallpaper Installation, Cabinet Installation, Countertop Installation, Insulation, Garage Door Services, Handyman Services
+
+Roofing & Exterior Construction:
+Roofing, Siding, Gutters, Chimney Services, Masonry, Stucco, Window Installation, Door Installation, Solar Installation
+
+Mechanical Trades:
+HVAC, Plumbing, Electrical, Appliance Repair, Generator Installation, Fire Sprinkler Systems, Elevator Services
+
+Cleaning & Restoration:
+Residential Cleaning, Commercial Cleaning, Carpet Cleaning, Upholstery Cleaning, Floor Care, Tile & Grout Cleaning, Water Damage Restoration, Mold Remediation, Fire Damage Restoration
+
+Automotive & Equipment:
+Mobile Auto Detailing, Auto Repair, Mobile Mechanic, Tire Services, Windshield Replacement, Heavy Equipment Repair
+
+Specialty Trades:
+Welding, Metal Fabrication, Locksmith, Glass Installation, Sign Installation, Scaffolding Services, Moving Company, Hauling Services, Demolition
+
+Agriculture & Land:
+Excavation, Grading, Septic Services, Well Drilling, Forestry Services, Land Clearing, Farm Services
+
+Commercial Services:
+Commercial Maintenance, Property Management Maintenance, Building Maintenance, Facility Services, Janitorial Services, Parking Lot Maintenance, Commercial Refrigeration, Warehouse Services
+
+Marine & Recreation:
+Dock Construction, Boat Repair, Marine Detailing, RV Repair, Trailer Repair
+
+Security & Technology:
+Security Systems, Low Voltage Wiring, Home Automation, Audio/Video Installation, Network & IT Cabling
+
+Other:
+Other (Custom)

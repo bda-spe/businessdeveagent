@@ -124,6 +124,40 @@ paths:
               schema:
                 $ref: "#/components/schemas/Business"
 
+  /business/industries:
+    get:
+      operationId: listBusinessIndustries
+      tags: [account]
+      summary: List all selected industries for the current business
+      responses:
+        "200":
+          description: List of selected industries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessIndustry"
+    put:
+      operationId: setBusinessIndustries
+      tags: [account]
+      summary: Replace all selected industries for the current business
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetBusinessIndustriesInput"
+      responses:
+        "200":
+          description: Updated list of industries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessIndustry"
+
   /services:
     get:
       operationId: listServices
@@ -1164,6 +1198,49 @@ components:
         ownerName:
           type: string
 
+    BusinessIndustry:
+      type: object
+      required: [id, businessId, industryCategory, industryName, isPrimary, createdAt]
+      properties:
+        id:
+          type: integer
+        businessId:
+          type: integer
+        industryCategory:
+          type: string
+        industryName:
+          type: string
+        isPrimary:
+          type: boolean
+        createdAt:
+          type: string
+
+    BusinessIndustryInput:
+      type: object
+      required: [industryCategory, industryName, isPrimary]
+      properties:
+        industryCategory:
+          type: string
+          maxLength: 100
+        industryName:
+          type: string
+          maxLength: 150
+        isPrimary:
+          type: boolean
+
+    SetBusinessIndustriesInput:
+      type: object
+      required: [industries]
+      properties:
+        industries:
+          type: array
+          items:
+            $ref: "#/components/schemas/BusinessIndustryInput"
+          minItems: 1
+        customIndustry:
+          type: string
+          maxLength: 150
+
     Business:
       type: object
       required: [id, clientId, name, status, profileApproved]
@@ -1177,6 +1254,12 @@ components:
         industry:
           type: ["string", "null"]
         industryOther:
+          type: ["string", "null"]
+        primaryIndustryCategory:
+          type: ["string", "null"]
+        primaryIndustry:
+          type: ["string", "null"]
+        customIndustry:
           type: ["string", "null"]
         companySize:
           type: ["string", "null"]
@@ -1244,6 +1327,12 @@ components:
         industry:
           type: string
         industryOther:
+          type: string
+        primaryIndustryCategory:
+          type: string
+        primaryIndustry:
+          type: string
+        customIndustry:
           type: string
         companySize:
           type: string

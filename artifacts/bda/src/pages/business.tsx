@@ -22,6 +22,8 @@ import {
   useGetBusinessTone,
   useSaveBusinessTone,
   useConfirmBusinessProfile,
+  useListBusinessIndustries,
+  useSetBusinessIndustries,
   getGetBusinessQueryKey,
   getGetMeQueryKey,
   getGetBusinessOperationsQueryKey,
@@ -30,9 +32,11 @@ import {
   getGetBusinessToneQueryKey,
   getGetPricingQueryKey,
   getListServicesQueryKey,
+  getListBusinessIndustriesQueryKey,
 } from "@workspace/api-client-react";
 import type {
   Business,
+  BusinessIndustry,
   BusinessOperations,
   BusinessPolicies,
   EstimateRules,
@@ -60,6 +64,7 @@ import {
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   CheckCircle2,
   Circle,
   Sparkles,
@@ -69,14 +74,25 @@ import {
   HelpCircle,
   X,
   Check,
+  Star,
+  Search,
 } from "lucide-react";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const INDUSTRIES = [
-  "HVAC", "Plumbing", "Electrical", "Roofing", "Landscaping",
-  "Asphalt Striping", "Painting", "Pest Control", "Cleaning",
-  "General Contractor", "Other",
+const INDUSTRY_GROUPS: { category: string; items: string[] }[] = [
+  { category: "Exterior & Property Services", items: ["Landscaping","Lawn Care","Tree Service","Irrigation","Hardscaping","Fence Installation","Deck & Patio Construction","Concrete Services","Asphalt Paving","Parking Lot Striping","Sealcoating","Snow Removal","Junk Removal","Pressure Washing","Gutter Cleaning","Window Cleaning","Exterior Cleaning","Pool Installation","Pool Maintenance","Pest Control"] },
+  { category: "Home Improvement & Remodeling", items: ["General Contractor","Home Remodeling","Kitchen Remodeling","Bathroom Remodeling","Basement Finishing","Flooring","Tile Installation","Drywall","Painting","Wallpaper Installation","Cabinet Installation","Countertop Installation","Insulation","Garage Door Services","Handyman Services"] },
+  { category: "Roofing & Exterior Construction", items: ["Roofing","Siding","Gutters","Chimney Services","Masonry","Stucco","Window Installation","Door Installation","Solar Installation"] },
+  { category: "Mechanical Trades", items: ["HVAC","Plumbing","Electrical","Appliance Repair","Generator Installation","Fire Sprinkler Systems","Elevator Services"] },
+  { category: "Cleaning & Restoration", items: ["Residential Cleaning","Commercial Cleaning","Carpet Cleaning","Upholstery Cleaning","Floor Care","Tile & Grout Cleaning","Water Damage Restoration","Mold Remediation","Fire Damage Restoration"] },
+  { category: "Automotive & Equipment", items: ["Mobile Auto Detailing","Auto Repair","Mobile Mechanic","Tire Services","Windshield Replacement","Heavy Equipment Repair"] },
+  { category: "Specialty Trades", items: ["Welding","Metal Fabrication","Locksmith","Glass Installation","Sign Installation","Scaffolding Services","Moving Company","Hauling Services","Demolition"] },
+  { category: "Agriculture & Land", items: ["Excavation","Grading","Septic Services","Well Drilling","Forestry Services","Land Clearing","Farm Services"] },
+  { category: "Commercial Services", items: ["Commercial Maintenance","Property Management Maintenance","Building Maintenance","Facility Services","Janitorial Services","Parking Lot Maintenance","Commercial Refrigeration","Warehouse Services"] },
+  { category: "Marine & Recreation", items: ["Dock Construction","Boat Repair","Marine Detailing","RV Repair","Trailer Repair"] },
+  { category: "Security & Technology", items: ["Security Systems","Low Voltage Wiring","Home Automation","Audio/Video Installation","Network & IT Cabling"] },
+  { category: "Other", items: ["Other (Custom)"] },
 ];
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
@@ -99,6 +115,172 @@ const STEPS = [
 ];
 const YEAR_NOW = new Date().getFullYear();
 const YEARS = Array.from({ length: YEAR_NOW - 1899 }, (_, i) => YEAR_NOW - i);
+
+// ── Helper: IndustryPicker ────────────────────────────────────────────────────
+
+interface PickedIndustry {
+  industryCategory: string;
+  industryName: string;
+  isPrimary: boolean;
+}
+
+function IndustryPicker({
+  value,
+  onChange,
+  customIndustry,
+  onCustomIndustryChange,
+  error,
+}: {
+  value: PickedIndustry[];
+  onChange: (v: PickedIndustry[]) => void;
+  customIndustry: string;
+  onCustomIndustryChange: (v: string) => void;
+  error?: string;
+}) {
+  const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  const isSelected = (industryName: string) =>
+    value.some((v) => v.industryName === industryName);
+
+  const toggle = (category: string, industryName: string) => {
+    if (isSelected(industryName)) {
+      const removed = value.filter((v) => v.industryName !== industryName);
+      if (removed.length > 0 && !removed.some((v) => v.isPrimary)) {
+        removed[0].isPrimary = true;
+      }
+      onChange(removed);
+    } else {
+      const isPrimary = value.length === 0;
+      onChange([...value, { industryCategory: category, industryName, isPrimary }]);
+    }
+  };
+
+  const setPrimary = (industryName: string) => {
+    onChange(value.map((v) => ({ ...v, isPrimary: v.industryName === industryName })));
+  };
+
+  const remove = (industryName: string) => {
+    const removed = value.filter((v) => v.industryName !== industryName);
+    if (removed.length > 0 && !removed.some((v) => v.isPrimary)) {
+      removed[0] = { ...removed[0], isPrimary: true };
+    }
+    onChange(removed);
+  };
+
+  const q = search.toLowerCase();
+  const filtered = INDUSTRY_GROUPS
+    .map((g) => ({ ...g, items: q ? g.items.filter((i) => i.toLowerCase().includes(q) || g.category.toLowerCase().includes(q)) : g.items }))
+    .filter((g) => g.items.length > 0);
+
+  const hasOtherCustom = value.some((v) => v.industryName === "Other (Custom)");
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-slate-500">
+        Select all categories that apply to your business. These help your BDA ask better quote questions and generate more accurate estimates.
+      </p>
+
+      {value.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-slate-600">Selected ({value.length}) — click ★ to set primary:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {value.map((v) => (
+              <div
+                key={v.industryName}
+                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs border transition-colors ${
+                  v.isPrimary
+                    ? "bg-[#1e3a5f] text-white border-[#1e3a5f]"
+                    : "bg-slate-100 text-slate-700 border-slate-200"
+                }`}
+              >
+                <button type="button" onClick={() => setPrimary(v.industryName)} title="Set as primary">
+                  <Star className={`h-3 w-3 ${v.isPrimary ? "fill-white" : "fill-transparent stroke-current"}`} />
+                </button>
+                <span>{v.industryName}</span>
+                <button type="button" onClick={() => remove(v.industryName)} className={v.isPrimary ? "text-white/70 hover:text-white" : "text-slate-400 hover:text-slate-700"}>
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {hasOtherCustom && (
+        <div className="space-y-1">
+          <Label className="text-xs">Describe Your Trade *</Label>
+          <Input
+            value={customIndustry}
+            onChange={(e) => onCustomIndustryChange(e.target.value.replace(/<[^>]*>/g, "").slice(0, 150))}
+            placeholder="e.g. Custom Metal Art Fabrication"
+            className="text-sm"
+          />
+        </div>
+      )}
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search industries…"
+          className="pl-9 text-sm"
+        />
+      </div>
+
+      <div className="border border-slate-200 rounded-lg overflow-hidden divide-y divide-slate-100 max-h-72 overflow-y-auto">
+        {filtered.map((group) => {
+          const isOpen = expanded[group.category] ?? false;
+          const selectedInGroup = group.items.filter((i) => isSelected(i)).length;
+          return (
+            <div key={group.category}>
+              <button
+                type="button"
+                onClick={() => setExpanded((p) => ({ ...p, [group.category]: !isOpen }))}
+                className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+              >
+                <span className="text-sm font-medium text-slate-700">
+                  {group.category}
+                  {selectedInGroup > 0 && (
+                    <span className="ml-2 text-xs bg-[#1e3a5f] text-white rounded-full px-1.5 py-0.5">{selectedInGroup}</span>
+                  )}
+                </span>
+                <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+              </button>
+              {isOpen && (
+                <div className="grid sm:grid-cols-2 gap-0 bg-white">
+                  {group.items.map((item) => {
+                    const selected = isSelected(item);
+                    return (
+                      <label
+                        key={item}
+                        className={`flex items-center gap-2.5 px-4 py-2 cursor-pointer hover:bg-slate-50 transition-colors text-sm ${selected ? "text-[#1e3a5f] font-medium" : "text-slate-600"}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggle(group.category, item)}
+                          className="accent-[#1e3a5f] h-3.5 w-3.5 shrink-0"
+                        />
+                        {item}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {filtered.length === 0 && (
+          <p className="px-4 py-6 text-sm text-slate-400 text-center">No results for "{search}"</p>
+        )}
+      </div>
+
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+}
 
 // ── Helper: TagInput ──────────────────────────────────────────────────────────
 
@@ -273,8 +455,6 @@ function StepNav({ step, onBack, saving, saveLabel = "Save & Continue" }: {
 
 const s1Schema = z.object({
   name: z.string().min(1, "Business name is required"),
-  industry: z.string().min(1, "Industry is required"),
-  industryOther: z.string().optional(),
   website: z.string().optional(),
   phone: z.string().min(1, "Phone is required"),
   email: z.string().email("Valid email required"),
@@ -287,17 +467,25 @@ const s1Schema = z.object({
 });
 type S1 = z.infer<typeof s1Schema>;
 
-function Step1({ biz, onSave }: { biz: Business | undefined; onSave: (d: S1) => Promise<void> }) {
+function Step1({
+  biz,
+  initialIndustries,
+  onSave,
+}: {
+  biz: Business | undefined;
+  initialIndustries: PickedIndustry[];
+  onSave: (d: S1, industries: PickedIndustry[], customIndustry: string) => Promise<void>;
+}) {
   const form = useForm<S1>({ resolver: zodResolver(s1Schema),
-    defaultValues: { name: "", industry: "", website: "", phone: "", email: "", serviceArea: "" } });
+    defaultValues: { name: "", website: "", phone: "", email: "", serviceArea: "" } });
   const [saving, setSaving] = useState(false);
-  const industry = form.watch("industry");
+  const [industries, setIndustries] = useState<PickedIndustry[]>(initialIndustries);
+  const [customIndustry, setCustomIndustry] = useState(biz?.customIndustry ?? "");
+  const [industryError, setIndustryError] = useState("");
 
   useEffect(() => {
     if (biz) form.reset({
       name: biz.name ?? "",
-      industry: biz.industry ?? "",
-      industryOther: biz.industryOther ?? "",
       website: biz.website ?? "",
       phone: biz.phone ?? "",
       email: biz.email ?? "",
@@ -310,31 +498,38 @@ function Step1({ biz, onSave }: { biz: Business | undefined; onSave: (d: S1) => 
     });
   }, [biz]);
 
-  const onSubmit = async (d: S1) => { setSaving(true); await onSave(d).finally(() => setSaving(false)); };
+  useEffect(() => {
+    setIndustries(initialIndustries);
+  }, [initialIndustries.length]);
+
+  useEffect(() => {
+    if (biz?.customIndustry) setCustomIndustry(biz.customIndustry);
+  }, [biz?.customIndustry]);
+
+  const onSubmit = async (d: S1) => {
+    if (industries.length === 0) {
+      setIndustryError("Please select at least one industry.");
+      return;
+    }
+    const hasOtherCustom = industries.some((i) => i.industryName === "Other (Custom)");
+    if (hasOtherCustom && !customIndustry.trim()) {
+      setIndustryError("Please describe your trade for the 'Other (Custom)' selection.");
+      return;
+    }
+    setIndustryError("");
+    setSaving(true);
+    await onSave(d, industries, customIndustry.trim()).finally(() => setSaving(false));
+  };
 
   const fe = form.formState.errors;
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
       <div className="grid sm:grid-cols-2 gap-4">
-        <div className="space-y-1">
+        <div className="space-y-1 sm:col-span-2">
           <Label>Business Name *</Label>
           <Input {...form.register("name")} placeholder="Acme Plumbing Co." />
           {fe.name && <p className="text-xs text-red-500">{fe.name.message}</p>}
         </div>
-        <div className="space-y-1">
-          <Label>Industry *</Label>
-          <select {...form.register("industry")} className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-white">
-            <option value="">Select industry…</option>
-            {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
-          </select>
-          {fe.industry && <p className="text-xs text-red-500">{fe.industry.message}</p>}
-        </div>
-        {industry === "Other" && (
-          <div className="space-y-1 sm:col-span-2">
-            <Label>Specify Industry</Label>
-            <Input {...form.register("industryOther")} placeholder="Describe your trade" />
-          </div>
-        )}
         <div className="space-y-1">
           <Label>Phone *</Label>
           <Input {...form.register("phone")} placeholder="(555) 123-4567" type="tel" />
@@ -354,6 +549,17 @@ function Step1({ biz, onSave }: { biz: Business | undefined; onSave: (d: S1) => 
           <Input {...form.register("serviceArea")} placeholder="Greater Denver, Douglas County, 80202–80239" />
           {fe.serviceArea && <p className="text-xs text-red-500">{fe.serviceArea.message}</p>}
         </div>
+      </div>
+      <Separator />
+      <div className="space-y-2">
+        <Label>Industry & Services Category *</Label>
+        <IndustryPicker
+          value={industries}
+          onChange={(v) => { setIndustries(v); if (v.length > 0) setIndustryError(""); }}
+          customIndustry={customIndustry}
+          onCustomIndustryChange={setCustomIndustry}
+          error={industryError}
+        />
       </div>
       <Separator />
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Business Address (optional)</p>
@@ -1091,13 +1297,14 @@ function Step5({ policies, estimateRules, onSave, onBack, aiDraft }: {
 
 // ── Step 6: Tone & Review ─────────────────────────────────────────────────────
 
-function Step6({ biz, ops, services, pricing, policies, tone, onSaveTone, onConfirm, onBack, onEdit }: {
+function Step6({ biz, ops, services, pricing, policies, tone, industryCount, onSaveTone, onConfirm, onBack, onEdit }: {
   biz: Business | undefined;
   ops: BusinessOperations | undefined;
   services: Service[];
   pricing: PricingRules | undefined;
   policies: BusinessPolicies | undefined;
   tone: BusinessTone | undefined;
+  industryCount: number;
   onSaveTone: (toneOpts: string[], use: string[], avoid: string[], voice: string) => Promise<void>;
   onConfirm: () => Promise<void>;
   onBack: () => void;
@@ -1177,7 +1384,8 @@ function Step6({ biz, ops, services, pricing, policies, tone, onSaveTone, onConf
       <div className="space-y-3">
         <SectionReview title="Basic Business Info" step={1}>
           {biz?.name && <p><span className="font-medium">Name:</span> {biz.name}</p>}
-          {biz?.industry && <p><span className="font-medium">Industry:</span> {biz.industry}{biz.industryOther ? ` – ${biz.industryOther}` : ""}</p>}
+          {biz?.primaryIndustry && <p><span className="font-medium">Primary Industry:</span> {biz.primaryIndustry}{industryCount > 1 ? ` + ${industryCount - 1} more` : ""}</p>}
+          {biz?.customIndustry && <p><span className="font-medium">Custom:</span> {biz.customIndustry}</p>}
           {biz?.phone && <p><span className="font-medium">Phone:</span> {biz.phone}</p>}
           {biz?.email && <p><span className="font-medium">Email:</span> {biz.email}</p>}
           {biz?.serviceArea && <p><span className="font-medium">Service area:</span> {biz.serviceArea}</p>}
@@ -1237,9 +1445,17 @@ export default function BusinessPage() {
   const { data: policies, isLoading: polsLoading } = useGetBusinessPolicies();
   const { data: estimateRules, isLoading: estLoading } = useGetEstimateRules();
   const { data: tone, isLoading: toneLoading } = useGetBusinessTone();
+  const { data: industriesData = [], isLoading: industriesLoading } = useListBusinessIndustries();
+
+  const initialIndustries: PickedIndustry[] = industriesData.map((i: BusinessIndustry) => ({
+    industryCategory: i.industryCategory,
+    industryName: i.industryName,
+    isPrimary: i.isPrimary,
+  }));
 
   // Mutations
   const updateBusiness = useUpdateBusiness();
+  const setBusinessIndustries = useSetBusinessIndustries();
   const saveOps = useSaveBusinessOperations();
   const createService = useCreateService();
   const updateService = useUpdateService();
@@ -1251,7 +1467,7 @@ export default function BusinessPage() {
   const aiDraft = useAiDraftPolicy();
   const confirmProfile = useConfirmBusinessProfile();
 
-  const isLoading = bizLoading || opsLoading || svcsLoading || pricingLoading || polsLoading || estLoading || toneLoading;
+  const isLoading = bizLoading || opsLoading || svcsLoading || pricingLoading || polsLoading || estLoading || toneLoading || industriesLoading;
 
   const markDone = (s: number) => setCompleted((prev) => new Set([...prev, s]));
   const goNext = () => setStep((s) => Math.min(s + 1, 6));
@@ -1260,9 +1476,12 @@ export default function BusinessPage() {
   const invalidate = (...keys: (() => readonly unknown[])[]) =>
     keys.forEach((k) => qc.invalidateQueries({ queryKey: k() }));
 
-  const handleSave1 = async (d: S1) => {
-    await updateBusiness.mutateAsync({ data: d });
-    invalidate(getGetBusinessQueryKey, getGetMeQueryKey);
+  const handleSave1 = async (d: S1, industries: PickedIndustry[], customIndustry: string) => {
+    await Promise.all([
+      updateBusiness.mutateAsync({ data: d }),
+      setBusinessIndustries.mutateAsync({ data: { industries, customIndustry: customIndustry || undefined } }),
+    ]);
+    invalidate(getGetBusinessQueryKey, getGetMeQueryKey, getListBusinessIndustriesQueryKey);
     markDone(1);
     goNext();
     toast({ title: "Basic info saved" });
@@ -1362,7 +1581,7 @@ export default function BusinessPage() {
           <CardTitle className="text-base">Step {step}: {STEPS[step - 1]}</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          {step === 1 && <Step1 biz={biz} onSave={handleSave1} />}
+          {step === 1 && <Step1 biz={biz} initialIndustries={initialIndustries} onSave={handleSave1} />}
           {step === 2 && <Step2 ops={ops} onSave={handleSave2} onBack={goBack} />}
           {step === 3 && (
             <Step3
@@ -1392,6 +1611,7 @@ export default function BusinessPage() {
               pricing={pricing}
               policies={policies}
               tone={tone}
+              industryCount={initialIndustries.length}
               onSaveTone={handleSaveTone}
               onConfirm={handleConfirm}
               onBack={goBack}

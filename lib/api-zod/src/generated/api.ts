@@ -32,6 +32,9 @@ export const GetMeResponse = zod.object({
   "name": zod.string(),
   "industry": zod.string().nullish(),
   "industryOther": zod.string().nullish(),
+  "primaryIndustryCategory": zod.string().nullish(),
+  "primaryIndustry": zod.string().nullish(),
+  "customIndustry": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),
@@ -85,6 +88,9 @@ export const CreateBusinessResponse = zod.object({
   "name": zod.string(),
   "industry": zod.string().nullish(),
   "industryOther": zod.string().nullish(),
+  "primaryIndustryCategory": zod.string().nullish(),
+  "primaryIndustry": zod.string().nullish(),
+  "customIndustry": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),
@@ -119,6 +125,9 @@ export const GetBusinessResponse = zod.object({
   "name": zod.string(),
   "industry": zod.string().nullish(),
   "industryOther": zod.string().nullish(),
+  "primaryIndustryCategory": zod.string().nullish(),
+  "primaryIndustry": zod.string().nullish(),
+  "customIndustry": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),
@@ -151,6 +160,9 @@ export const UpdateBusinessBody = zod.object({
   "name": zod.string().optional(),
   "industry": zod.string().optional(),
   "industryOther": zod.string().optional(),
+  "primaryIndustryCategory": zod.string().optional(),
+  "primaryIndustry": zod.string().optional(),
+  "customIndustry": zod.string().optional(),
   "companySize": zod.string().optional(),
   "customerType": zod.string().optional(),
   "website": zod.string().optional(),
@@ -170,6 +182,9 @@ export const UpdateBusinessResponse = zod.object({
   "name": zod.string(),
   "industry": zod.string().nullish(),
   "industryOther": zod.string().nullish(),
+  "primaryIndustryCategory": zod.string().nullish(),
+  "primaryIndustry": zod.string().nullish(),
+  "customIndustry": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),
@@ -204,6 +219,9 @@ export const ApproveBusinessProfileResponse = zod.object({
   "name": zod.string(),
   "industry": zod.string().nullish(),
   "industryOther": zod.string().nullish(),
+  "primaryIndustryCategory": zod.string().nullish(),
+  "primaryIndustry": zod.string().nullish(),
+  "customIndustry": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),
@@ -227,6 +245,52 @@ export const ApproveBusinessProfileResponse = zod.object({
   "buildFeePaid": zod.boolean().optional(),
   "createdAt": zod.string().optional()
 })
+
+
+/**
+ * @summary List all selected industries for the current business
+ */
+export const ListBusinessIndustriesResponseItem = zod.object({
+  "id": zod.number(),
+  "businessId": zod.number(),
+  "industryCategory": zod.string(),
+  "industryName": zod.string(),
+  "isPrimary": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListBusinessIndustriesResponse = zod.array(ListBusinessIndustriesResponseItem)
+
+
+/**
+ * @summary Replace all selected industries for the current business
+ */
+export const setBusinessIndustriesBodyIndustriesItemIndustryCategoryMax = 100;
+
+export const setBusinessIndustriesBodyIndustriesItemIndustryNameMax = 150;
+
+
+export const setBusinessIndustriesBodyCustomIndustryMax = 150;
+
+
+
+export const SetBusinessIndustriesBody = zod.object({
+  "industries": zod.array(zod.object({
+  "industryCategory": zod.string().max(setBusinessIndustriesBodyIndustriesItemIndustryCategoryMax),
+  "industryName": zod.string().max(setBusinessIndustriesBodyIndustriesItemIndustryNameMax),
+  "isPrimary": zod.boolean()
+})).min(1),
+  "customIndustry": zod.string().max(setBusinessIndustriesBodyCustomIndustryMax).optional()
+})
+
+export const SetBusinessIndustriesResponseItem = zod.object({
+  "id": zod.number(),
+  "businessId": zod.number(),
+  "industryCategory": zod.string(),
+  "industryName": zod.string(),
+  "isPrimary": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const SetBusinessIndustriesResponse = zod.array(SetBusinessIndustriesResponseItem)
 
 
 /**
@@ -1437,6 +1501,9 @@ export const ConfirmBusinessProfileResponse = zod.object({
   "name": zod.string(),
   "industry": zod.string().nullish(),
   "industryOther": zod.string().nullish(),
+  "primaryIndustryCategory": zod.string().nullish(),
+  "primaryIndustry": zod.string().nullish(),
+  "customIndustry": zod.string().nullish(),
   "companySize": zod.string().nullish(),
   "customerType": zod.string().nullish(),
   "website": zod.string().nullish(),

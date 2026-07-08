@@ -7,6 +7,7 @@ import {
   servicesTable,
   sandboxTestsTable,
   activityEventsTable,
+  businessIndustriesTable,
 } from "@workspace/db";
 import {
   GetMeResponse,
@@ -16,6 +17,9 @@ import {
   UpdateBusinessBody,
   UpdateBusinessResponse,
   ApproveBusinessProfileResponse,
+  SetBusinessIndustriesBody,
+  ListBusinessIndustriesResponse,
+  SetBusinessIndustriesResponse,
 } from "@workspace/api-zod";
 import { requireBusiness, requireActiveSubscription } from "../lib/auth";
 import {
@@ -170,6 +174,76 @@ router.post(
       "Business profile confirmed via setup wizard",
     );
     res.json(ApproveBusinessProfileResponse.parse(updated));
+  },
+);
+
+router.get(
+  "/business/industries",
+  requireBusiness,
+  async (req, res): Promise<void> => {
+    const rows = await db
+      .select()
+      .from(businessIndustriesTable)
+      .where(eq(businessIndustriesTable.businessId, req.business!.id));
+    res.json(ListBusinessIndustriesResponse.parse(rows));
+  },
+);
+
+router.put(
+  "/business/industries",
+  requireBusiness,
+  requireActiveSubscription,
+  async (req, res): Promise<void> => {
+    const parsed = SetBusinessIndustriesBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+
+    const { industries, customIndustry } = parsed.data;
+
+    const sanitize = (s: string) =>
+      s.replace(/<[^>]*>/g, "").trim().slice(0, 200);
+
+    const primary = industries.find((i) => i.isPrimary) ?? industries[0];
+
+    await db.transaction(async (tx) => {
+      await tx
+        .delete(businessIndustriesTable)
+        .where(eq(businessIndustriesTable.businessId, req.business!.id));
+
+      await tx.insert(businessIndustriesTable).values(
+        industries.map((i) => ({
+          businessId: req.business!.id,
+          industryCategory: sanitize(i.industryCategory),
+          industryName: sanitize(i.industryName),
+          isPrimary: i.isPrimary,
+        })),
+      );
+
+      await tx
+        .update(businessesTable)
+        .set({
+          primaryIndustryCategory: sanitize(primary.industryCategory),
+          primaryIndustry: sanitize(primary.industryName),
+          customIndustry: customIndustry ? sanitize(customIndustry) : null,
+          industry: sanitize(primary.industryName),
+        })
+        .where(eq(businessesTable.id, req.business!.id));
+    });
+
+    const rows = await db
+      .select()
+      .from(businessIndustriesTable)
+      .where(eq(businessIndustriesTable.businessId, req.business!.id));
+
+    await logActivity(
+      req.business!.id,
+      "business_updated",
+      `Industry selections updated (${industries.length} selected, primary: ${primary.industryName})`,
+    );
+
+    res.json(SetBusinessIndustriesResponse.parse(rows));
   },
 );
 

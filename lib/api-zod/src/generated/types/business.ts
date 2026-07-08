@@ -15,6 +15,12 @@ export interface Business {
   /** @nullable */
   industryOther?: string | null;
   /** @nullable */
+  primaryIndustryCategory?: string | null;
+  /** @nullable */
+  primaryIndustry?: string | null;
+  /** @nullable */
+  customIndustry?: string | null;
+  /** @nullable */
   companySize?: string | null;
   /** @nullable */
   customerType?: string | null;

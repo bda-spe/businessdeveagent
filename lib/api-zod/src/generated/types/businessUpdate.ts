@@ -10,6 +10,9 @@ export interface BusinessUpdate {
   name?: string;
   industry?: string;
   industryOther?: string;
+  primaryIndustryCategory?: string;
+  primaryIndustry?: string;
+  customIndustry?: string;
   companySize?: string;
   customerType?: string;
   website?: string;

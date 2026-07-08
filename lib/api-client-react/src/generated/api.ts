@@ -33,6 +33,7 @@ import type {
   BillingSubscription,
   Business,
   BusinessCreateInput,
+  BusinessIndustry,
   BusinessOperations,
   BusinessOperationsInput,
   BusinessPolicies,
@@ -72,6 +73,7 @@ import type {
   Service,
   ServiceInput,
   ServiceUpdate,
+  SetBusinessIndustriesInput,
   StructuredProfileInput,
   UploadedFile,
   UploadedFileInput,
@@ -551,6 +553,153 @@ export const useApproveBusinessProfile = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getApproveBusinessProfileMutationOptions(options));
+    }
+
+export const getListBusinessIndustriesUrl = () => {
+
+
+
+
+  return `/api/business/industries`
+}
+
+/**
+ * @summary List all selected industries for the current business
+ */
+export const listBusinessIndustries = async ( options?: RequestInit): Promise<BusinessIndustry[]> => {
+
+  return customFetch<BusinessIndustry[]>(getListBusinessIndustriesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBusinessIndustriesQueryKey = () => {
+    return [
+    `/api/business/industries`
+    ] as const;
+    }
+
+
+export const getListBusinessIndustriesQueryOptions = <TData = Awaited<ReturnType<typeof listBusinessIndustries>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listBusinessIndustries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBusinessIndustriesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBusinessIndustries>>> = ({ signal }) => listBusinessIndustries({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBusinessIndustries>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListBusinessIndustriesQueryResult = NonNullable<Awaited<ReturnType<typeof listBusinessIndustries>>>
+export type ListBusinessIndustriesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all selected industries for the current business
+ */
+
+export function useListBusinessIndustries<TData = Awaited<ReturnType<typeof listBusinessIndustries>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listBusinessIndustries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListBusinessIndustriesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSetBusinessIndustriesUrl = () => {
+
+
+
+
+  return `/api/business/industries`
+}
+
+/**
+ * @summary Replace all selected industries for the current business
+ */
+export const setBusinessIndustries = async (setBusinessIndustriesInput: SetBusinessIndustriesInput, options?: RequestInit): Promise<BusinessIndustry[]> => {
+
+  return customFetch<BusinessIndustry[]>(getSetBusinessIndustriesUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(setBusinessIndustriesInput)
+  }
+);}
+
+
+
+
+export const getSetBusinessIndustriesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setBusinessIndustries>>, TError,{data: BodyType<SetBusinessIndustriesInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setBusinessIndustries>>, TError,{data: BodyType<SetBusinessIndustriesInput>}, TContext> => {
+
+const mutationKey = ['setBusinessIndustries'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setBusinessIndustries>>, {data: BodyType<SetBusinessIndustriesInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setBusinessIndustries(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetBusinessIndustriesMutationResult = NonNullable<Awaited<ReturnType<typeof setBusinessIndustries>>>
+    export type SetBusinessIndustriesMutationBody = BodyType<SetBusinessIndustriesInput>
+    export type SetBusinessIndustriesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Replace all selected industries for the current business
+ */
+export const useSetBusinessIndustries = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setBusinessIndustries>>, TError,{data: BodyType<SetBusinessIndustriesInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setBusinessIndustries>>,
+        TError,
+        {data: BodyType<SetBusinessIndustriesInput>},
+        TContext
+      > => {
+      return useMutation(getSetBusinessIndustriesMutationOptions(options));
     }
 
 export const getListServicesUrl = () => {

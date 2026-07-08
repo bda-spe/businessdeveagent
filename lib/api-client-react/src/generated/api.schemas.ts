@@ -24,6 +24,12 @@ export interface Business {
   /** @nullable */
   industryOther?: string | null;
   /** @nullable */
+  primaryIndustryCategory?: string | null;
+  /** @nullable */
+  primaryIndustry?: string | null;
+  /** @nullable */
+  customIndustry?: string | null;
+  /** @nullable */
   companySize?: string | null;
   /** @nullable */
   customerType?: string | null;
@@ -78,6 +84,30 @@ export interface Account {
   setupProgress: SetupProgress;
 }
 
+export interface BusinessIndustry {
+  id: number;
+  businessId: number;
+  industryCategory: string;
+  industryName: string;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
+export interface BusinessIndustryInput {
+  /** @maxLength 100 */
+  industryCategory: string;
+  /** @maxLength 150 */
+  industryName: string;
+  isPrimary: boolean;
+}
+
+export interface SetBusinessIndustriesInput {
+  /** @minItems 1 */
+  industries: BusinessIndustryInput[];
+  /** @maxLength 150 */
+  customIndustry?: string;
+}
+
 export interface BusinessCreateInput {
   /** @minLength 1 */
   ownerName: string;
@@ -89,6 +119,9 @@ export interface BusinessUpdate {
   name?: string;
   industry?: string;
   industryOther?: string;
+  primaryIndustryCategory?: string;
+  primaryIndustry?: string;
+  customIndustry?: string;
   companySize?: string;
   customerType?: string;
   website?: string;
