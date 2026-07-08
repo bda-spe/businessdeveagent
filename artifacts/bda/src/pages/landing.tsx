@@ -45,11 +45,6 @@ export default function LandingPage() {
                   Build Your Agent For Free →
                 </Button>
               </Link>
-              <Link href="/sign-in">
-                <Button variant="outline" size="lg" className="h-14 px-8 text-lg w-full sm:w-auto bg-white">
-                  See Demo
-                </Button>
-              </Link>
             </div>
           </div>
         </section>
