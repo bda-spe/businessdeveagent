@@ -47,4 +47,26 @@ export interface PricingRules {
   customNotes?: string | null;
   /** @nullable */
   pricingNotes?: string | null;
+  /** @nullable */
+  avgJobCost?: number | null;
+  /** @nullable */
+  lowJobCost?: number | null;
+  /** @nullable */
+  highJobCost?: number | null;
+  /** @nullable */
+  avgCrewSize?: number | null;
+  /** @nullable */
+  lowCrewSize?: number | null;
+  /** @nullable */
+  highCrewSize?: number | null;
+  /** @nullable */
+  typicalJobDuration?: string | null;
+  /** @nullable */
+  lowCostJobs?: string | null;
+  /** @nullable */
+  highCostJobs?: string | null;
+  /** @nullable */
+  priceIncreaseFactors?: string[] | null;
+  /** @nullable */
+  priceDecreaseFactors?: string[] | null;
 }

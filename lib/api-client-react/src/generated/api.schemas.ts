@@ -182,6 +182,28 @@ export interface PricingRules {
   customNotes?: string | null;
   /** @nullable */
   pricingNotes?: string | null;
+  /** @nullable */
+  avgJobCost?: number | null;
+  /** @nullable */
+  lowJobCost?: number | null;
+  /** @nullable */
+  highJobCost?: number | null;
+  /** @nullable */
+  avgCrewSize?: number | null;
+  /** @nullable */
+  lowCrewSize?: number | null;
+  /** @nullable */
+  highCrewSize?: number | null;
+  /** @nullable */
+  typicalJobDuration?: string | null;
+  /** @nullable */
+  lowCostJobs?: string | null;
+  /** @nullable */
+  highCostJobs?: string | null;
+  /** @nullable */
+  priceIncreaseFactors?: string[] | null;
+  /** @nullable */
+  priceDecreaseFactors?: string[] | null;
 }
 
 export interface PricingRulesInput {
@@ -224,6 +246,28 @@ export interface PricingRulesInput {
   customNotes?: string | null;
   /** @nullable */
   pricingNotes?: string | null;
+  /** @nullable */
+  avgJobCost?: number | null;
+  /** @nullable */
+  lowJobCost?: number | null;
+  /** @nullable */
+  highJobCost?: number | null;
+  /** @nullable */
+  avgCrewSize?: number | null;
+  /** @nullable */
+  lowCrewSize?: number | null;
+  /** @nullable */
+  highCrewSize?: number | null;
+  /** @nullable */
+  typicalJobDuration?: string | null;
+  /** @nullable */
+  lowCostJobs?: string | null;
+  /** @nullable */
+  highCostJobs?: string | null;
+  /** @nullable */
+  priceIncreaseFactors?: string[] | null;
+  /** @nullable */
+  priceDecreaseFactors?: string[] | null;
 }
 
 export type InvoiceSettingsSelectedTemplate = typeof InvoiceSettingsSelectedTemplate[keyof typeof InvoiceSettingsSelectedTemplate];
@@ -399,6 +443,16 @@ export interface Estimate {
   totalEstimate: number;
   confidenceScore: number;
   followUpQuestions: string[];
+  missingInformation?: string[];
+  /** @nullable */
+  budgetFit?: string | null;
+  /** @nullable */
+  estimatedLaborersNeeded?: string | null;
+  /** @nullable */
+  estimatedDuration?: string | null;
+  whatCouldChangePrice?: string[];
+  /** @nullable */
+  recommendedNextStep?: string | null;
 }
 
 export type ChatMessageRole = typeof ChatMessageRole[keyof typeof ChatMessageRole];
@@ -753,6 +807,21 @@ export interface WidgetConfig {
   enabled: boolean;
 }
 
+export interface WidgetQuestionsInput {
+  clientId: string;
+  /** @minLength 1 */
+  projectDescription: string;
+}
+
+export interface WidgetQuestionsResult {
+  questions: string[];
+}
+
+export interface WidgetIntakeAnswer {
+  question: string;
+  answer: string;
+}
+
 export interface WidgetInteractInput {
   clientId: string;
   /** @minLength 1 */
@@ -761,6 +830,9 @@ export interface WidgetInteractInput {
   phone?: string;
   /** @minLength 1 */
   projectDescription: string;
+  answers?: WidgetIntakeAnswer[];
+  budget?: string;
+  laborAssumption?: string;
 }
 
 export interface WidgetInteractResult {

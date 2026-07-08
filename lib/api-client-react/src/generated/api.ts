@@ -69,6 +69,8 @@ import type {
   WidgetConfig,
   WidgetInteractInput,
   WidgetInteractResult,
+  WidgetQuestionsInput,
+  WidgetQuestionsResult,
   WidgetSettings,
   WidgetSettingsInput
 } from './api.schemas';
@@ -3676,6 +3678,76 @@ export function useGetWidgetConfig<TData = Awaited<ReturnType<typeof getWidgetCo
 
 
 
+
+export const getWidgetQuestionsUrl = () => {
+
+
+
+
+  return `/api/widget/questions`
+}
+
+/**
+ * @summary Public widget follow-up questions for a project description
+ */
+export const widgetQuestions = async (widgetQuestionsInput: WidgetQuestionsInput, options?: RequestInit): Promise<WidgetQuestionsResult> => {
+
+  return customFetch<WidgetQuestionsResult>(getWidgetQuestionsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(widgetQuestionsInput)
+  }
+);}
+
+
+
+
+export const getWidgetQuestionsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof widgetQuestions>>, TError,{data: BodyType<WidgetQuestionsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof widgetQuestions>>, TError,{data: BodyType<WidgetQuestionsInput>}, TContext> => {
+
+const mutationKey = ['widgetQuestions'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof widgetQuestions>>, {data: BodyType<WidgetQuestionsInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  widgetQuestions(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WidgetQuestionsMutationResult = NonNullable<Awaited<ReturnType<typeof widgetQuestions>>>
+    export type WidgetQuestionsMutationBody = BodyType<WidgetQuestionsInput>
+    export type WidgetQuestionsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Public widget follow-up questions for a project description
+ */
+export const useWidgetQuestions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof widgetQuestions>>, TError,{data: BodyType<WidgetQuestionsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof widgetQuestions>>,
+        TError,
+        {data: BodyType<WidgetQuestionsInput>},
+        TContext
+      > => {
+      return useMutation(getWidgetQuestionsMutationOptions(options));
+    }
 
 export const getWidgetInteractUrl = () => {
 

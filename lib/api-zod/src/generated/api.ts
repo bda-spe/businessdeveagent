@@ -306,7 +306,18 @@ export const GetPricingResponse = zod.object({
   "weekendMultiplier": zod.number().nullish(),
   "discounts": zod.string().nullish(),
   "customNotes": zod.string().nullish(),
-  "pricingNotes": zod.string().nullish()
+  "pricingNotes": zod.string().nullish(),
+  "avgJobCost": zod.number().nullish(),
+  "lowJobCost": zod.number().nullish(),
+  "highJobCost": zod.number().nullish(),
+  "avgCrewSize": zod.number().nullish(),
+  "lowCrewSize": zod.number().nullish(),
+  "highCrewSize": zod.number().nullish(),
+  "typicalJobDuration": zod.string().nullish(),
+  "lowCostJobs": zod.string().nullish(),
+  "highCostJobs": zod.string().nullish(),
+  "priceIncreaseFactors": zod.array(zod.string()).nullish(),
+  "priceDecreaseFactors": zod.array(zod.string()).nullish()
 })
 
 
@@ -333,7 +344,18 @@ export const SavePricingBody = zod.object({
   "weekendMultiplier": zod.number().nullish(),
   "discounts": zod.string().nullish(),
   "customNotes": zod.string().nullish(),
-  "pricingNotes": zod.string().nullish()
+  "pricingNotes": zod.string().nullish(),
+  "avgJobCost": zod.number().nullish(),
+  "lowJobCost": zod.number().nullish(),
+  "highJobCost": zod.number().nullish(),
+  "avgCrewSize": zod.number().nullish(),
+  "lowCrewSize": zod.number().nullish(),
+  "highCrewSize": zod.number().nullish(),
+  "typicalJobDuration": zod.string().nullish(),
+  "lowCostJobs": zod.string().nullish(),
+  "highCostJobs": zod.string().nullish(),
+  "priceIncreaseFactors": zod.array(zod.string()).nullish(),
+  "priceDecreaseFactors": zod.array(zod.string()).nullish()
 })
 
 export const SavePricingResponse = zod.object({
@@ -357,7 +379,18 @@ export const SavePricingResponse = zod.object({
   "weekendMultiplier": zod.number().nullish(),
   "discounts": zod.string().nullish(),
   "customNotes": zod.string().nullish(),
-  "pricingNotes": zod.string().nullish()
+  "pricingNotes": zod.string().nullish(),
+  "avgJobCost": zod.number().nullish(),
+  "lowJobCost": zod.number().nullish(),
+  "highJobCost": zod.number().nullish(),
+  "avgCrewSize": zod.number().nullish(),
+  "lowCrewSize": zod.number().nullish(),
+  "highCrewSize": zod.number().nullish(),
+  "typicalJobDuration": zod.string().nullish(),
+  "lowCostJobs": zod.string().nullish(),
+  "highCostJobs": zod.string().nullish(),
+  "priceIncreaseFactors": zod.array(zod.string()).nullish(),
+  "priceDecreaseFactors": zod.array(zod.string()).nullish()
 })
 
 
@@ -606,7 +639,13 @@ export const ListSandboxTestsResponseItem = zod.object({
   "taxes": zod.number(),
   "totalEstimate": zod.number(),
   "confidenceScore": zod.number(),
-  "followUpQuestions": zod.array(zod.string())
+  "followUpQuestions": zod.array(zod.string()),
+  "missingInformation": zod.array(zod.string()).optional(),
+  "budgetFit": zod.string().nullish(),
+  "estimatedLaborersNeeded": zod.string().nullish(),
+  "estimatedDuration": zod.string().nullish(),
+  "whatCouldChangePrice": zod.array(zod.string()).optional(),
+  "recommendedNextStep": zod.string().nullish()
 }),zod.null()]).optional(),
   "rating": zod.number().nullish(),
   "feedbackNotes": zod.string().nullish(),
@@ -655,7 +694,13 @@ export const RunSandboxTestResponse = zod.object({
   "taxes": zod.number(),
   "totalEstimate": zod.number(),
   "confidenceScore": zod.number(),
-  "followUpQuestions": zod.array(zod.string())
+  "followUpQuestions": zod.array(zod.string()),
+  "missingInformation": zod.array(zod.string()).optional(),
+  "budgetFit": zod.string().nullish(),
+  "estimatedLaborersNeeded": zod.string().nullish(),
+  "estimatedDuration": zod.string().nullish(),
+  "whatCouldChangePrice": zod.array(zod.string()).optional(),
+  "recommendedNextStep": zod.string().nullish()
 }),zod.null()]).optional(),
   "rating": zod.number().nullish(),
   "feedbackNotes": zod.string().nullish(),
@@ -706,7 +751,13 @@ export const SendSandboxMessageResponse = zod.object({
   "taxes": zod.number(),
   "totalEstimate": zod.number(),
   "confidenceScore": zod.number(),
-  "followUpQuestions": zod.array(zod.string())
+  "followUpQuestions": zod.array(zod.string()),
+  "missingInformation": zod.array(zod.string()).optional(),
+  "budgetFit": zod.string().nullish(),
+  "estimatedLaborersNeeded": zod.string().nullish(),
+  "estimatedDuration": zod.string().nullish(),
+  "whatCouldChangePrice": zod.array(zod.string()).optional(),
+  "recommendedNextStep": zod.string().nullish()
 }),zod.null()]).optional(),
   "rating": zod.number().nullish(),
   "feedbackNotes": zod.string().nullish(),
@@ -772,7 +823,13 @@ export const SaveSandboxFeedbackResponse = zod.object({
   "taxes": zod.number(),
   "totalEstimate": zod.number(),
   "confidenceScore": zod.number(),
-  "followUpQuestions": zod.array(zod.string())
+  "followUpQuestions": zod.array(zod.string()),
+  "missingInformation": zod.array(zod.string()).optional(),
+  "budgetFit": zod.string().nullish(),
+  "estimatedLaborersNeeded": zod.string().nullish(),
+  "estimatedDuration": zod.string().nullish(),
+  "whatCouldChangePrice": zod.array(zod.string()).optional(),
+  "recommendedNextStep": zod.string().nullish()
 }),zod.null()]).optional(),
   "rating": zod.number().nullish(),
   "feedbackNotes": zod.string().nullish(),
@@ -1284,7 +1341,13 @@ export const GetLeadResponse = zod.object({
   "taxes": zod.number(),
   "totalEstimate": zod.number(),
   "confidenceScore": zod.number(),
-  "followUpQuestions": zod.array(zod.string())
+  "followUpQuestions": zod.array(zod.string()),
+  "missingInformation": zod.array(zod.string()).optional(),
+  "budgetFit": zod.string().nullish(),
+  "estimatedLaborersNeeded": zod.string().nullish(),
+  "estimatedDuration": zod.string().nullish(),
+  "whatCouldChangePrice": zod.array(zod.string()).optional(),
+  "recommendedNextStep": zod.string().nullish()
 }),zod.null()]).optional()
 })
 
@@ -1364,6 +1427,22 @@ export const GetWidgetConfigResponse = zod.object({
 
 
 /**
+ * @summary Public widget follow-up questions for a project description
+ */
+
+
+
+export const WidgetQuestionsBody = zod.object({
+  "clientId": zod.string(),
+  "projectDescription": zod.string().min(1)
+})
+
+export const WidgetQuestionsResponse = zod.object({
+  "questions": zod.array(zod.string())
+})
+
+
+/**
  * @summary Public widget interaction that creates a lead and estimate
  */
 
@@ -1375,7 +1454,13 @@ export const WidgetInteractBody = zod.object({
   "name": zod.string().min(1),
   "email": zod.string().optional(),
   "phone": zod.string().optional(),
-  "projectDescription": zod.string().min(1)
+  "projectDescription": zod.string().min(1),
+  "answers": zod.array(zod.object({
+  "question": zod.string(),
+  "answer": zod.string()
+})).optional(),
+  "budget": zod.string().optional(),
+  "laborAssumption": zod.string().optional()
 })
 
 export const WidgetInteractResponse = zod.object({
@@ -1396,7 +1481,13 @@ export const WidgetInteractResponse = zod.object({
   "taxes": zod.number(),
   "totalEstimate": zod.number(),
   "confidenceScore": zod.number(),
-  "followUpQuestions": zod.array(zod.string())
+  "followUpQuestions": zod.array(zod.string()),
+  "missingInformation": zod.array(zod.string()).optional(),
+  "budgetFit": zod.string().nullish(),
+  "estimatedLaborersNeeded": zod.string().nullish(),
+  "estimatedDuration": zod.string().nullish(),
+  "whatCouldChangePrice": zod.array(zod.string()).optional(),
+  "recommendedNextStep": zod.string().nullish()
 })
 })
 

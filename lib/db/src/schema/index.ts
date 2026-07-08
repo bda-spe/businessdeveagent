@@ -7,6 +7,7 @@ import {
   doublePrecision,
   timestamp,
   jsonb,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users", {
@@ -85,6 +86,17 @@ export const pricingRulesTable = pgTable("pricing_rules", {
   discounts: text("discounts"),
   customNotes: text("custom_notes"),
   pricingNotes: text("pricing_notes"),
+  avgJobCost: doublePrecision("avg_job_cost"),
+  lowJobCost: doublePrecision("low_job_cost"),
+  highJobCost: doublePrecision("high_job_cost"),
+  avgCrewSize: integer("avg_crew_size"),
+  lowCrewSize: integer("low_crew_size"),
+  highCrewSize: integer("high_crew_size"),
+  typicalJobDuration: varchar("typical_job_duration", { length: 100 }),
+  lowCostJobs: text("low_cost_jobs"),
+  highCostJobs: text("high_cost_jobs"),
+  priceIncreaseFactors: jsonb("price_increase_factors"),
+  priceDecreaseFactors: jsonb("price_decrease_factors"),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 

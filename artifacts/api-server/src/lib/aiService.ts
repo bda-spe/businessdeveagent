@@ -26,6 +26,12 @@ export interface Estimate {
   totalEstimate: number;
   confidenceScore: number;
   followUpQuestions: string[];
+  missingInformation?: string[];
+  budgetFit?: string | null;
+  estimatedLaborersNeeded?: string | null;
+  estimatedDuration?: string | null;
+  whatCouldChangePrice?: string[];
+  recommendedNextStep?: string | null;
 }
 
 export interface BusinessContext {
@@ -51,6 +57,17 @@ export interface PricingContext {
   taxRate?: number | null;
   minimumJobCost?: number | null;
   customNotes?: string | null;
+  avgJobCost?: number | null;
+  lowJobCost?: number | null;
+  highJobCost?: number | null;
+  avgCrewSize?: number | null;
+  lowCrewSize?: number | null;
+  highCrewSize?: number | null;
+  typicalJobDuration?: string | null;
+  lowCostJobs?: string | null;
+  highCostJobs?: string | null;
+  priceIncreaseFactors?: unknown;
+  priceDecreaseFactors?: unknown;
 }
 
 async function chatJSON(system: string, user: string): Promise<any | null> {
@@ -146,7 +163,55 @@ function normalizeEstimate(data: any, fallback: Estimate): Estimate {
     followUpQuestions: Array.isArray(data.followUpQuestions)
       ? data.followUpQuestions.map(String)
       : fallback.followUpQuestions,
+    missingInformation: Array.isArray(data.missingInformation)
+      ? data.missingInformation.map(String)
+      : [],
+    budgetFit: data.budgetFit == null ? null : String(data.budgetFit),
+    estimatedLaborersNeeded:
+      data.estimatedLaborersNeeded == null
+        ? null
+        : String(data.estimatedLaborersNeeded),
+    estimatedDuration:
+      data.estimatedDuration == null ? null : String(data.estimatedDuration),
+    whatCouldChangePrice: Array.isArray(data.whatCouldChangePrice)
+      ? data.whatCouldChangePrice.map(String)
+      : [],
+    recommendedNextStep:
+      data.recommendedNextStep == null
+        ? null
+        : String(data.recommendedNextStep),
   };
+}
+
+export async function generateWidgetQuestions(params: {
+  business: BusinessContext;
+  services: ServiceContext[];
+  projectDescription: string;
+}): Promise<string[]> {
+  const { business, services, projectDescription } = params;
+  const fallback = [
+    "Roughly how large is the project (size, dimensions, or scope)?",
+    "Where is the project located (city or zip code)?",
+    "When would you like the work done?",
+  ];
+
+  const system = `You help "${business.name}", a ${
+    business.industry ?? "local service"
+  } business${
+    business.serviceArea ? ` serving ${business.serviceArea}` : ""
+  }, qualify incoming customer requests. Given a customer's project description, write the 2-4 most useful follow-up questions to scope the job for an estimate. Adapt the questions to this specific industry and the specific request — for example an asphalt striping business would ask about lot size, number of spaces, restriping vs new layout, ADA markings, or timing; an HVAC business would ask about system type, home size, repair vs replacement, and urgency; a landscaping business would ask about property size, service frequency, and materials. Ask only what is genuinely needed. Each question must be short, plain-language, and answerable in one line by a non-technical customer. Never ask for contact info or budget (collected separately). Never use emojis. Respond ONLY with JSON: {"questions": string[]} with 2 to 4 questions.`;
+
+  const user = `Business services: ${JSON.stringify(
+    services.map((s) => ({ name: s.name, description: s.description })),
+  )}\n\nCustomer's project description: "${projectDescription}"`;
+
+  const data = await chatJSON(system, user);
+  if (!data || !Array.isArray(data.questions)) return fallback;
+  const questions = data.questions
+    .map((q: unknown) => String(q ?? "").trim())
+    .filter((q: string) => q.length > 0)
+    .slice(0, 4);
+  return questions.length >= 2 ? questions : fallback;
 }
 
 export async function generateAgentResponse(params: {
@@ -155,30 +220,83 @@ export async function generateAgentResponse(params: {
   pricing: PricingContext | null;
   prompt: string;
   customerName?: string;
+  answers?: { question: string; answer: string }[];
+  budget?: string | null;
+  laborAssumption?: string | null;
+  policies?: Record<string, unknown> | null;
+  estimateRules?: Record<string, unknown> | null;
 }): Promise<{ agentResponse: string; estimate: Estimate }> {
-  const { business, services, pricing, prompt, customerName } = params;
+  const {
+    business,
+    services,
+    pricing,
+    prompt,
+    customerName,
+    answers,
+    budget,
+    laborAssumption,
+    policies,
+    estimateRules,
+  } = params;
   const fallback = fallbackEstimate(prompt, services, pricing);
 
   const system = `You are the AI business development agent for "${business.name}", a ${
     business.industry ?? "local service"
-  } business${business.serviceArea ? ` serving ${business.serviceArea}` : ""}. You talk to prospective customers, answer their questions warmly and professionally, qualify the job, and produce a price estimate. Never use emojis. Respond ONLY with a JSON object of shape: {"message": string, "estimate": {"customerSummary": string, "assumptions": string[], "recommendedPriceLow": number, "recommendedPriceHigh": number, "invoiceLineItems": [{"description": string, "quantity": number, "unitPrice": number, "total": number}], "subtotal": number, "taxes": number, "totalEstimate": number, "confidenceScore": number, "followUpQuestions": string[]}. confidenceScore is 0-100.`;
+  } business${business.serviceArea ? ` serving ${business.serviceArea}` : ""}. A prospective customer has completed a short guided intake on the business's website. Your job: qualify the job and produce a realistic price estimate using the business's actual pricing data. Never use emojis. Never use the word "sandbox".
 
-  const user = `Business services and pricing:\nServices: ${JSON.stringify(
-    services,
-  )}\nPricing rules: ${JSON.stringify(pricing)}\n\n${
-    customerName ? `Customer name: ${customerName}\n` : ""
-  }Customer message: "${prompt}"\n\nWrite a helpful reply as "message" and a structured "estimate".`;
+BEHAVIOR RULES:
+- Use the business's typical job ranges (average/low/high job cost, crew sizes, typical duration, low-cost vs high-cost job examples, price increase/decrease factors) to anchor your estimate. Stay within realistic bounds for this business.
+- "budgetFit": compare the customer's stated budget to your estimate — one of "within_budget", "slightly_above", "above_budget", or "unknown" if no budget was given.
+- "estimatedLaborersNeeded": short phrase like "2-3 person crew". "estimatedDuration": short phrase like "half day".
+- If your confidenceScore is below 60, the message MUST include this exact sentence: "Based on the information provided, this is a preliminary range. Final pricing may change after review or inspection." Do not present a low-confidence estimate as final.
+- If the requested work appears OUTSIDE the business's service area or is not a service the business offers, say so politely in the message, keep the tone warm, still summarize what they asked for, set confidenceScore below 40, set recommendedPriceLow/High to null if no meaningful estimate is possible, and suggest the business will follow up to see if they can help or refer them.
+- "recommendedNextStep": one concrete next step for the customer (e.g. schedule a site visit, expect a call, reply with photos).
+- "whatCouldChangePrice": 2-4 short factors that could move the price up or down for this specific job.
+- "missingInformation": anything you still don't know that would firm up the estimate.
+
+Respond ONLY with a JSON object of shape: {"message": string, "estimate": {"customerSummary": string, "missingInformation": string[], "assumptions": string[], "budgetFit": string, "estimatedLaborersNeeded": string, "estimatedDuration": string, "recommendedPriceLow": number|null, "recommendedPriceHigh": number|null, "invoiceLineItems": [{"description": string, "quantity": number, "unitPrice": number, "total": number}], "subtotal": number, "taxes": number, "totalEstimate": number, "confidenceScore": number, "whatCouldChangePrice": string[], "recommendedNextStep": string, "followUpQuestions": string[]}}. confidenceScore is 0-100.`;
+
+  const lines = [
+    `Services: ${JSON.stringify(services)}`,
+    `Pricing rules and typical job ranges: ${JSON.stringify(pricing)}`,
+  ];
+  if (policies) lines.push(`Business policies: ${JSON.stringify(policies)}`);
+  if (estimateRules)
+    lines.push(`Estimate rules: ${JSON.stringify(estimateRules)}`);
+  lines.push("");
+  if (customerName) lines.push(`Customer name: ${customerName}`);
+  lines.push(`Customer's project description: "${prompt}"`);
+  if (answers && answers.length > 0) {
+    lines.push("Follow-up questions and the customer's answers:");
+    for (const a of answers) lines.push(`- Q: ${a.question}\n  A: ${a.answer}`);
+  }
+  if (budget) lines.push(`Customer's stated budget: ${budget}`);
+  if (laborAssumption)
+    lines.push(`Customer's guess at labor/scope: ${laborAssumption}`);
+  lines.push(
+    "",
+    'Write a warm, plain-language reply as "message" and the structured "estimate".',
+  );
+  const user = lines.join("\n");
 
   const data = await chatJSON(system, user);
   if (!data) {
     return {
-      agentResponse: `Thanks for reaching out to ${business.name}. Based on what you have described, we have put together a preliminary estimate below. To firm it up, we may need a few more details or a quick on-site look.`,
+      agentResponse: `Thanks for reaching out to ${business.name}. Based on the information provided, this is a preliminary range. Final pricing may change after review or inspection.`,
       estimate: fallback,
     };
   }
+  const estimate = normalizeEstimate(data.estimate, fallback);
+  let agentResponse = String(data.message ?? "Thanks for reaching out.")
+    .replace(/\bsandbox\b/gi, "system");
+  const PRELIM_SENTENCE =
+    "Based on the information provided, this is a preliminary range. Final pricing may change after review or inspection.";
+  if (estimate.confidenceScore < 60 && !agentResponse.includes(PRELIM_SENTENCE)) {
+    agentResponse = `${agentResponse.trim()} ${PRELIM_SENTENCE}`;
+  }
   return {
-    agentResponse: String(data.message ?? "Thanks for reaching out."),
-    estimate: normalizeEstimate(data.estimate, fallback),
+    agentResponse,
+    estimate,
   };
 }
 

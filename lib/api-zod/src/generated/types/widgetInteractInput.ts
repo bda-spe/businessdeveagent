@@ -5,6 +5,7 @@
  * Business Development Agent (BDA) multi-tenant SaaS API
  * OpenAPI spec version: 0.1.0
  */
+import type { WidgetIntakeAnswer } from './widgetIntakeAnswer';
 
 export interface WidgetInteractInput {
   clientId: string;
@@ -14,4 +15,7 @@ export interface WidgetInteractInput {
   phone?: string;
   /** @minLength 1 */
   projectDescription: string;
+  answers?: WidgetIntakeAnswer[];
+  budget?: string;
+  laborAssumption?: string;
 }

@@ -20,4 +20,14 @@ export interface Estimate {
   totalEstimate: number;
   confidenceScore: number;
   followUpQuestions: string[];
+  missingInformation?: string[];
+  /** @nullable */
+  budgetFit?: string | null;
+  /** @nullable */
+  estimatedLaborersNeeded?: string | null;
+  /** @nullable */
+  estimatedDuration?: string | null;
+  whatCouldChangePrice?: string[];
+  /** @nullable */
+  recommendedNextStep?: string | null;
 }

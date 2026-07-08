@@ -21,15 +21,50 @@
     return apiBase + "/api" + path;
   }
 
+  var NAVY = "#1e3a5f";
+
   var config = {
     businessName: "Business Development Agent",
-    greeting: "Hi! Tell me about your project and I'll get you a quick estimate.",
-    primaryColor: "#1e293b",
+    greeting: "Answer a few quick questions and we'll prepare an estimate.",
+    primaryColor: NAVY,
     position: "bottom-right",
     enabled: true,
   };
 
-  var state = { open: false, submitting: false, done: false };
+  var BUDGET_OPTIONS = [
+    "Under $250",
+    "$250-$500",
+    "$500-$1,000",
+    "$1,000-$2,500",
+    "$2,500-$5,000",
+    "$5,000+",
+    "Not sure",
+  ];
+
+  var LABOR_OPTIONS = [
+    "Not sure",
+    "1 person / small job",
+    "2-3 person crew",
+    "Larger crew needed",
+    "Multi-day job",
+  ];
+
+  var STEP_COUNT = 6;
+
+  var state = {
+    open: false,
+    step: 1,
+    busy: false,
+    description: "",
+    questions: [],
+    answers: [],
+    budget: "",
+    labor: "",
+    name: "",
+    email: "",
+    phone: "",
+    result: null,
+  };
 
   function el(tag, styles, attrs) {
     var node = document.createElement(tag);
@@ -42,102 +77,162 @@
     return node;
   }
 
+  function text(tag, styles, content) {
+    var node = el(tag, styles);
+    node.textContent = content;
+    return node;
+  }
+
   function money(n) {
     if (n == null) return "";
     return "$" + Math.round(n).toLocaleString();
   }
 
-  function render() {
-    var side = config.position === "bottom-left" ? "left:24px;" : "right:24px;";
+  var FONT =
+    "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;";
 
-    var root = el(
-      "div",
-      "position:fixed;bottom:24px;" +
-        side +
-        "z-index:2147483000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;"
-    );
+  var inputStyle =
+    "width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:11px 12px;font-size:15px;background:#fff;color:#0f172a;" +
+    FONT;
 
-    var button = el(
+  function primaryBtn(label) {
+    var b = el(
       "button",
-      "display:flex;align-items:center;gap:8px;background:" +
+      "width:100%;background:" +
         config.primaryColor +
-        ";color:#fff;border:none;border-radius:9999px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(15,23,42,0.28);"
+        ";color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;" +
+        FONT,
+      { type: "button" }
     );
-    button.textContent = "Get an estimate";
+    b.textContent = label;
+    return b;
+  }
 
-    var panel = el(
+  function backLink(onClick) {
+    var b = el(
+      "button",
+      "background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;padding:6px 0;text-align:left;" +
+        FONT,
+      { type: "button" }
+    );
+    b.textContent = "\u2190 Back";
+    b.addEventListener("click", onClick);
+    return b;
+  }
+
+  function optionButton(label, selected) {
+    var b = el(
+      "button",
+      "width:100%;box-sizing:border-box;text-align:left;border:1.5px solid " +
+        (selected ? config.primaryColor : "#e2e8f0") +
+        ";background:" +
+        (selected ? "#f0f4f9" : "#fff") +
+        ";color:#0f172a;border-radius:10px;padding:12px 14px;font-size:14px;font-weight:" +
+        (selected ? "600" : "500") +
+        ";cursor:pointer;" +
+        FONT,
+      { type: "button" }
+    );
+    b.textContent = label;
+    return b;
+  }
+
+  var root, panel, body, launcher;
+
+  function stepHeader(title, subtitle) {
+    var wrap = el("div", "margin-bottom:14px;");
+    var progress = el(
       "div",
-      "display:none;flex-direction:column;width:360px;max-width:calc(100vw - 48px);height:520px;max-height:calc(100vh - 120px);background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,0.24);margin-bottom:12px;"
+      "display:flex;gap:4px;margin-bottom:12px;"
     );
-
-    var header = el(
-      "div",
-      "background:" +
-        config.primaryColor +
-        ";color:#fff;padding:16px 18px;font-size:15px;font-weight:600;"
-    );
-    header.textContent = config.businessName;
-
-    var body = el(
-      "div",
-      "flex:1;overflow-y:auto;padding:18px;color:#0f172a;font-size:14px;line-height:1.5;"
-    );
-
-    var intro = el("p", "margin:0 0 14px;color:#475569;");
-    intro.textContent = config.greeting;
-    body.appendChild(intro);
-
-    var form = el("form", "display:flex;flex-direction:column;gap:10px;");
-
-    function field(placeholder, type, required) {
-      var input = el(
-        type === "textarea" ? "textarea" : "input",
-        "width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;" +
-          (type === "textarea" ? "min-height:88px;resize:vertical;" : ""),
-        { placeholder: placeholder }
+    for (var i = 1; i <= STEP_COUNT; i++) {
+      progress.appendChild(
+        el(
+          "div",
+          "flex:1;height:4px;border-radius:2px;background:" +
+            (i <= state.step ? config.primaryColor : "#e2e8f0") +
+            ";"
+        )
       );
-      if (type && type !== "textarea") input.setAttribute("type", type);
-      if (required) input.setAttribute("required", "required");
-      return input;
     }
-
-    var nameInput = field("Your name", "text", true);
-    var emailInput = field("Email", "email", false);
-    var phoneInput = field("Phone", "tel", false);
-    var descInput = field("Describe your project", "textarea", true);
-
-    var submit = el(
-      "button",
-      "background:" +
-        config.primaryColor +
-        ";color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;",
-      { type: "submit" }
+    wrap.appendChild(progress);
+    wrap.appendChild(
+      text(
+        "h3",
+        "margin:0 0 4px;font-size:16px;font-weight:700;color:#0f172a;",
+        title
+      )
     );
-    submit.textContent = "Send";
+    if (subtitle) {
+      wrap.appendChild(
+        text("p", "margin:0;font-size:13px;color:#64748b;line-height:1.45;", subtitle)
+      );
+    }
+    return wrap;
+  }
 
-    form.appendChild(nameInput);
-    form.appendChild(emailInput);
-    form.appendChild(phoneInput);
-    form.appendChild(descInput);
-    form.appendChild(submit);
-    body.appendChild(form);
+  function showError(container, msg) {
+    var err = text(
+      "p",
+      "color:#b91c1c;font-size:13px;margin:10px 0 0;",
+      msg || "Something went wrong. Please try again in a moment."
+    );
+    container.appendChild(err);
+  }
 
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (state.submitting) return;
-      state.submitting = true;
-      submit.textContent = "Sending...";
-      submit.setAttribute("disabled", "disabled");
+  function renderStep() {
+    body.innerHTML = "";
 
-      fetch(api("/widget/interact"), {
+    if (state.step === 1) renderDescribe();
+    else if (state.step === 2) renderQuestions();
+    else if (state.step === 3) renderBudget();
+    else if (state.step === 4) renderLabor();
+    else if (state.step === 5) renderContact();
+    else renderResult();
+
+    body.scrollTop = 0;
+  }
+
+  // Step 1: describe the job.
+  function renderDescribe() {
+    body.appendChild(
+      stepHeader(
+        "Tell us what you need help with",
+        config.greeting
+      )
+    );
+    var ta = el(
+      "textarea",
+      inputStyle + "min-height:110px;resize:vertical;",
+      { placeholder: "Describe the job or project\u2026" }
+    );
+    ta.value = state.description;
+    body.appendChild(ta);
+
+    var btn = primaryBtn("Continue");
+    btn.style.marginTop = "12px";
+    var wrap = el("div");
+    body.appendChild(wrap);
+    wrap.appendChild(btn);
+
+    btn.addEventListener("click", function () {
+      var v = ta.value.trim();
+      if (v.length < 10) {
+        wrap.querySelectorAll("p").forEach(function (p) { p.remove(); });
+        showError(wrap, "Please add a little more detail so we can help.");
+        return;
+      }
+      state.description = v;
+      state.busy = true;
+      btn.textContent = "One moment\u2026";
+      btn.setAttribute("disabled", "disabled");
+
+      fetch(api("/widget/questions"), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           clientId: clientId,
-          name: nameInput.value,
-          email: emailInput.value || undefined,
-          phone: phoneInput.value || undefined,
-          projectDescription: descInput.value,
+          projectDescription: state.description,
         }),
       })
         .then(function (r) {
@@ -145,57 +240,416 @@
           return r.json();
         })
         .then(function (data) {
-          form.style.display = "none";
-          intro.style.display = "none";
-
-          var reply = el(
-            "div",
-            "background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:12px;white-space:pre-wrap;"
-          );
-          reply.textContent = data.message || "Thanks! We'll be in touch shortly.";
-          body.appendChild(reply);
-
-          if (
-            data.estimate &&
-            data.estimate.recommendedPriceLow != null &&
-            data.estimate.recommendedPriceHigh != null
-          ) {
-            var est = el(
-              "div",
-              "background:" +
-                config.primaryColor +
-                ";color:#fff;border-radius:12px;padding:14px;font-weight:600;"
-            );
-            est.textContent =
-              "Estimated range: " +
-              money(data.estimate.recommendedPriceLow) +
-              " - " +
-              money(data.estimate.recommendedPriceHigh);
-            body.appendChild(est);
-          }
+          state.questions =
+            data && Array.isArray(data.questions) && data.questions.length > 0
+              ? data.questions.slice(0, 4)
+              : [];
+          state.answers = state.questions.map(function () {
+            return "";
+          });
+          state.step = state.questions.length > 0 ? 2 : 3;
+          renderStep();
         })
         .catch(function () {
-          var err = el("p", "color:#b91c1c;");
-          err.textContent =
-            "Something went wrong. Please try again in a moment.";
-          body.appendChild(err);
+          // If follow-ups fail, continue the flow rather than blocking the customer.
+          state.questions = [];
+          state.answers = [];
+          state.step = 3;
+          renderStep();
         })
         .finally(function () {
-          state.submitting = false;
+          state.busy = false;
         });
     });
+  }
+
+  // Step 2: AI follow-up questions.
+  function renderQuestions() {
+    body.appendChild(
+      stepHeader(
+        "A few quick questions",
+        "These help us prepare a more accurate estimate."
+      )
+    );
+    var inputs = [];
+    state.questions.forEach(function (q, i) {
+      var fWrap = el("div", "margin-bottom:12px;");
+      fWrap.appendChild(
+        text(
+          "label",
+          "display:block;font-size:13px;font-weight:600;color:#334155;margin-bottom:5px;",
+          q
+        )
+      );
+      var input = el("input", inputStyle, {
+        type: "text",
+        placeholder: "Your answer (optional)",
+      });
+      input.value = state.answers[i] || "";
+      fWrap.appendChild(input);
+      inputs.push(input);
+      body.appendChild(fWrap);
+    });
+
+    var btn = primaryBtn("Continue");
+    body.appendChild(btn);
+    btn.addEventListener("click", function () {
+      state.answers = inputs.map(function (inp) {
+        return inp.value.trim();
+      });
+      state.step = 3;
+      renderStep();
+    });
+    body.appendChild(
+      backLink(function () {
+        state.step = 1;
+        renderStep();
+      })
+    );
+  }
+
+  // Step 3: budget.
+  function renderBudget() {
+    body.appendChild(
+      stepHeader(
+        "Do you have a target budget or range in mind?",
+        "A rough idea is fine \u2014 this helps us tailor the estimate."
+      )
+    );
+    var list = el("div", "display:flex;flex-direction:column;gap:8px;");
+    BUDGET_OPTIONS.forEach(function (opt) {
+      var b = optionButton(opt, state.budget === opt);
+      b.addEventListener("click", function () {
+        state.budget = opt;
+        state.step = 4;
+        renderStep();
+      });
+      list.appendChild(b);
+    });
+    body.appendChild(list);
+    body.appendChild(
+      backLink(function () {
+        state.step = state.questions.length > 0 ? 2 : 1;
+        renderStep();
+      })
+    );
+  }
+
+  // Step 4: labor / scope.
+  function renderLabor() {
+    body.appendChild(
+      stepHeader(
+        "Do you know roughly how many workers or how much time this may take?",
+        "It's okay to guess \u2014 we'll confirm the details."
+      )
+    );
+    var list = el("div", "display:flex;flex-direction:column;gap:8px;");
+    LABOR_OPTIONS.forEach(function (opt) {
+      var b = optionButton(opt, state.labor === opt);
+      b.addEventListener("click", function () {
+        state.labor = opt;
+        state.step = 5;
+        renderStep();
+      });
+      list.appendChild(b);
+    });
+    body.appendChild(list);
+    body.appendChild(
+      backLink(function () {
+        state.step = 3;
+        renderStep();
+      })
+    );
+  }
+
+  // Step 5: contact info + submit.
+  function renderContact() {
+    body.appendChild(
+      stepHeader(
+        "Almost done \u2014 where should we send your estimate?",
+        "We'll prepare your estimate right away."
+      )
+    );
+
+    var form = el("form", "display:flex;flex-direction:column;gap:10px;");
+    var nameInput = el("input", inputStyle, {
+      type: "text",
+      placeholder: "Your name",
+      required: "required",
+    });
+    nameInput.value = state.name;
+    var emailInput = el("input", inputStyle, {
+      type: "email",
+      placeholder: "Email",
+    });
+    emailInput.value = state.email;
+    var phoneInput = el("input", inputStyle, {
+      type: "tel",
+      placeholder: "Phone",
+    });
+    phoneInput.value = state.phone;
+
+    var submit = primaryBtn("Get my estimate");
+    submit.setAttribute("type", "submit");
+
+    form.appendChild(nameInput);
+    form.appendChild(emailInput);
+    form.appendChild(phoneInput);
+    form.appendChild(submit);
+    body.appendChild(form);
+    body.appendChild(
+      backLink(function () {
+        state.name = nameInput.value;
+        state.email = emailInput.value;
+        state.phone = phoneInput.value;
+        state.step = 4;
+        renderStep();
+      })
+    );
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (state.busy) return;
+      if (!nameInput.value.trim()) {
+        nameInput.focus();
+        return;
+      }
+      state.name = nameInput.value.trim();
+      state.email = emailInput.value.trim();
+      state.phone = phoneInput.value.trim();
+      state.busy = true;
+      submit.textContent = "Preparing your estimate\u2026";
+      submit.setAttribute("disabled", "disabled");
+
+      var answers = [];
+      state.questions.forEach(function (q, i) {
+        if (state.answers[i]) {
+          answers.push({ question: q, answer: state.answers[i] });
+        }
+      });
+
+      fetch(api("/widget/interact"), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          clientId: clientId,
+          name: state.name,
+          email: state.email || undefined,
+          phone: state.phone || undefined,
+          projectDescription: state.description,
+          answers: answers,
+          budget: state.budget || undefined,
+          laborAssumption: state.labor || undefined,
+        }),
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error("Request failed");
+          return r.json();
+        })
+        .then(function (data) {
+          state.result = data;
+          state.step = 6;
+          renderStep();
+        })
+        .catch(function () {
+          submit.textContent = "Get my estimate";
+          submit.removeAttribute("disabled");
+          form.querySelectorAll("p").forEach(function (p) { p.remove(); });
+          showError(form);
+        })
+        .finally(function () {
+          state.busy = false;
+        });
+    });
+  }
+
+  function sectionCard(title) {
+    var card = el(
+      "div",
+      "background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:10px;"
+    );
+    if (title) {
+      card.appendChild(
+        text(
+          "p",
+          "margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#64748b;",
+          title
+        )
+      );
+    }
+    return card;
+  }
+
+  function bulletList(items) {
+    var ul = el("ul", "margin:0;padding-left:18px;color:#334155;font-size:13px;line-height:1.55;");
+    items.forEach(function (it) {
+      ul.appendChild(text("li", "", it));
+    });
+    return ul;
+  }
+
+  // Step 6: estimate result.
+  function renderResult() {
+    var data = state.result || {};
+    var est = data.estimate || {};
+
+    body.appendChild(
+      stepHeader("Your estimate", null)
+    );
+
+    // Price range card.
+    if (est.recommendedPriceLow != null && est.recommendedPriceHigh != null) {
+      var priceCard = el(
+        "div",
+        "background:" +
+          config.primaryColor +
+          ";color:#fff;border-radius:12px;padding:16px;margin-bottom:10px;"
+      );
+      priceCard.appendChild(
+        text(
+          "p",
+          "margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;opacity:0.75;",
+          "Estimated range"
+        )
+      );
+      priceCard.appendChild(
+        text(
+          "p",
+          "margin:0;font-size:22px;font-weight:700;",
+          money(est.recommendedPriceLow) + " \u2013 " + money(est.recommendedPriceHigh)
+        )
+      );
+      if (
+        est.confidenceScore != null &&
+        est.confidenceScore >= 60 &&
+        est.totalEstimate
+      ) {
+        priceCard.appendChild(
+          text(
+            "p",
+            "margin:6px 0 0;font-size:13px;opacity:0.85;",
+            "Estimated total: " + money(est.totalEstimate)
+          )
+        );
+      }
+      body.appendChild(priceCard);
+    }
+
+    // Agent message.
+    if (data.message) {
+      var msgCard = sectionCard(null);
+      var msg = text(
+        "p",
+        "margin:0;font-size:14px;color:#0f172a;line-height:1.55;white-space:pre-wrap;",
+        data.message
+      );
+      msgCard.appendChild(msg);
+      body.appendChild(msgCard);
+    }
+
+    // Quick facts.
+    var facts = [];
+    if (est.estimatedLaborersNeeded) facts.push("Crew: " + est.estimatedLaborersNeeded);
+    if (est.estimatedDuration) facts.push("Duration: " + est.estimatedDuration);
+    if (facts.length > 0) {
+      var factsCard = sectionCard("At a glance");
+      factsCard.appendChild(bulletList(facts));
+      body.appendChild(factsCard);
+    }
+
+    if (Array.isArray(est.assumptions) && est.assumptions.length > 0) {
+      var aCard = sectionCard("Assumptions");
+      aCard.appendChild(bulletList(est.assumptions));
+      body.appendChild(aCard);
+    }
+
+    if (
+      Array.isArray(est.whatCouldChangePrice) &&
+      est.whatCouldChangePrice.length > 0
+    ) {
+      var cCard = sectionCard("What could change the price");
+      cCard.appendChild(bulletList(est.whatCouldChangePrice));
+      body.appendChild(cCard);
+    }
+
+    if (est.recommendedNextStep) {
+      var nCard = sectionCard("Next step");
+      nCard.appendChild(
+        text(
+          "p",
+          "margin:0;font-size:13px;color:#334155;line-height:1.55;",
+          est.recommendedNextStep
+        )
+      );
+      body.appendChild(nCard);
+    }
+
+    body.appendChild(
+      text(
+        "p",
+        "margin:8px 0 0;font-size:12px;color:#94a3b8;text-align:center;",
+        "Thanks, " + (state.name || "friend") + "! " + config.businessName + " will follow up with you shortly."
+      )
+    );
+  }
+
+  function render() {
+    var side = config.position === "bottom-left" ? "left:16px;" : "right:16px;";
+
+    root = el(
+      "div",
+      "position:fixed;bottom:16px;" + side + "z-index:2147483000;" + FONT
+    );
+
+    launcher = el(
+      "button",
+      "display:flex;align-items:center;gap:8px;background:" +
+        config.primaryColor +
+        ";color:#fff;border:none;border-radius:9999px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(15,23,42,0.28);" +
+        FONT,
+      { type: "button" }
+    );
+    launcher.textContent = "Get an estimate";
+
+    panel = el(
+      "div",
+      "display:none;flex-direction:column;width:370px;max-width:calc(100vw - 32px);height:560px;max-height:calc(100vh - 110px);background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,0.24);margin-bottom:12px;"
+    );
+
+    var header = el(
+      "div",
+      "background:" +
+        config.primaryColor +
+        ";color:#fff;padding:14px 18px;"
+    );
+    header.appendChild(
+      text("p", "margin:0;font-size:15px;font-weight:700;", config.businessName)
+    );
+    header.appendChild(
+      text(
+        "p",
+        "margin:2px 0 0;font-size:12px;opacity:0.8;",
+        "Free instant estimate"
+      )
+    );
+
+    body = el(
+      "div",
+      "flex:1;overflow-y:auto;padding:18px;background:#fff;color:#0f172a;font-size:14px;line-height:1.5;"
+    );
 
     panel.appendChild(header);
     panel.appendChild(body);
 
-    button.addEventListener("click", function () {
+    launcher.addEventListener("click", function () {
       state.open = !state.open;
       panel.style.display = state.open ? "flex" : "none";
-      button.textContent = state.open ? "Close" : "Get an estimate";
+      launcher.textContent = state.open ? "Close" : "Get an estimate";
+      if (state.open) renderStep();
     });
 
     root.appendChild(panel);
-    root.appendChild(button);
+    root.appendChild(launcher);
     document.body.appendChild(root);
   }
 

@@ -668,8 +668,42 @@ const s4Schema = z.object({
   depositValue: z.coerce.number().nonnegative().optional().nullable(),
   taxRate: z.coerce.number().nonnegative().optional().nullable(),
   pricingNotes: z.string().max(1500).optional(),
+  avgJobCost: blankableNumber(),
+  lowJobCost: blankableNumber(),
+  highJobCost: blankableNumber(),
+  avgCrewSize: blankableNumber(true),
+  lowCrewSize: blankableNumber(true),
+  highCrewSize: blankableNumber(true),
+  typicalJobDuration: z.string().max(100).optional(),
+  lowCostJobs: z.string().max(2000).optional(),
+  highCostJobs: z.string().max(2000).optional(),
+  priceIncreaseFactorsText: z.string().max(1000).optional(),
+  priceDecreaseFactorsText: z.string().max(1000).optional(),
 });
 type S4 = z.infer<typeof s4Schema>;
+
+function blankableNumber(int = false) {
+  const base = int
+    ? z.coerce.number().int().nonnegative()
+    : z.coerce.number().nonnegative();
+  return z.preprocess(
+    (v) => (v === "" || v == null ? null : v),
+    base.nullable(),
+  ).optional();
+}
+
+const JOB_DURATION_OPTIONS = [
+  "1-2 hours",
+  "Half day",
+  "Full day",
+  "2-3 days",
+  "1 week+",
+  "Varies by job",
+];
+
+function tagsToText(v: unknown): string {
+  return Array.isArray(v) ? v.map(String).join(", ") : "";
+}
 
 function CurrencyInput(props: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   const { label, ...rest } = props;
@@ -728,6 +762,17 @@ function Step4({ pricing, onSave, onBack }: {
       depositValue: pricing.depositValue ?? null,
       taxRate: pricing.taxRate ?? null,
       pricingNotes: pricing.pricingNotes ?? "",
+      avgJobCost: pricing.avgJobCost ?? null,
+      lowJobCost: pricing.lowJobCost ?? null,
+      highJobCost: pricing.highJobCost ?? null,
+      avgCrewSize: pricing.avgCrewSize ?? null,
+      lowCrewSize: pricing.lowCrewSize ?? null,
+      highCrewSize: pricing.highCrewSize ?? null,
+      typicalJobDuration: pricing.typicalJobDuration ?? "",
+      lowCostJobs: pricing.lowCostJobs ?? "",
+      highCostJobs: pricing.highCostJobs ?? "",
+      priceIncreaseFactorsText: tagsToText(pricing.priceIncreaseFactors),
+      priceDecreaseFactorsText: tagsToText(pricing.priceDecreaseFactors),
     });
   }, [pricing]);
 
@@ -813,6 +858,57 @@ function Step4({ pricing, onSave, onBack }: {
               }
             </div>
           )}
+        </div>
+      </div>
+      <Separator />
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Typical Job Ranges</p>
+      <p className="text-xs text-slate-500 -mt-3">These help your BDA give realistic estimates anchored to jobs you actually do.</p>
+      <div className="grid sm:grid-cols-3 gap-4">
+        <CurrencyInput label="Average Job Cost" {...form.register("avgJobCost")} />
+        <CurrencyInput label="Typical Low-End Job" {...form.register("lowJobCost")} />
+        <CurrencyInput label="Typical High-End Job" {...form.register("highJobCost")} />
+      </div>
+      <div className="grid sm:grid-cols-3 gap-4">
+        <div className="space-y-1">
+          <Label className="text-xs">Average Crew Size</Label>
+          <Input type="number" min={0} step={1} className="text-sm" {...form.register("avgCrewSize")} />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Low-End Crew Size</Label>
+          <Input type="number" min={0} step={1} className="text-sm" {...form.register("lowCrewSize")} />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">High-End Crew Size</Label>
+          <Input type="number" min={0} step={1} className="text-sm" {...form.register("highCrewSize")} />
+        </div>
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs">Typical Job Duration</Label>
+        <select {...form.register("typicalJobDuration")} className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-white">
+          <option value="">Select…</option>
+          {JOB_DURATION_OPTIONS.map((v) => <option key={v} value={v}>{v}</option>)}
+        </select>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <Label className="text-xs">Jobs That Are Usually Low-Cost</Label>
+          <Textarea {...form.register("lowCostJobs")} maxLength={2000} rows={3} className="resize-none text-sm" placeholder="e.g. touch-up restriping, small repairs…" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Jobs That Are Usually High-Cost</Label>
+          <Textarea {...form.register("highCostJobs")} maxLength={2000} rows={3} className="resize-none text-sm" placeholder="e.g. full lot layout, large installations…" />
+        </div>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <Label className="text-xs">Factors That Increase Price</Label>
+          <Input {...form.register("priceIncreaseFactorsText")} className="text-sm" placeholder="distance, materials, urgency, difficult access" />
+          <p className="text-[11px] text-slate-400">Separate with commas</p>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Factors That Reduce Price</Label>
+          <Input {...form.register("priceDecreaseFactorsText")} className="text-sm" placeholder="flexible timing, repeat customer, easy access" />
+          <p className="text-[11px] text-slate-400">Separate with commas</p>
         </div>
       </div>
       <Separator />
@@ -1200,7 +1296,16 @@ export default function BusinessPage() {
   const handleNext3 = () => { markDone(3); goNext(); };
 
   const handleSave4 = async (d: S4) => {
-    await savePricing.mutateAsync({ data: d });
+    const toTags = (s?: string) =>
+      (s ?? "").split(",").map((t) => t.trim()).filter(Boolean);
+    const { priceIncreaseFactorsText, priceDecreaseFactorsText, ...rest } = d;
+    await savePricing.mutateAsync({
+      data: {
+        ...rest,
+        priceIncreaseFactors: toTags(priceIncreaseFactorsText),
+        priceDecreaseFactors: toTags(priceDecreaseFactorsText),
+      },
+    });
     invalidate(getGetPricingQueryKey);
     markDone(4);
     goNext();

@@ -61,7 +61,7 @@ app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 // origin — but WITHOUT credentials. This must run before the credentialed CORS
 // below so that third-party preflight requests are handled correctly.
 app.use(
-  ["/api/widget/config", "/api/widget/interact"],
+  ["/api/widget/config", "/api/widget/questions", "/api/widget/interact"],
   cors({ origin: "*", credentials: false }),
 );
 

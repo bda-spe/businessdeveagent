@@ -1,0 +1,190 @@
+Improve the BDA quote estimation workflow and embedded website widget.
+
+1. Add better pricing context to Business Profile / Pricing Rules
+
+In the Business Profile or Pricing & Rates step, add fields that help the BDA understand normal job ranges.
+
+Add these fields:
+- Average job cost
+  - input: currency
+  - db: decimal(10,2)
+- Typical low-end job cost
+  - input: currency
+  - db: decimal(10,2)
+- Typical high-end job cost
+  - input: currency
+  - db: decimal(10,2)
+- Average crew size
+  - input: whole number
+  - db: integer
+- Low-end crew size
+  - input: whole number
+  - db: integer
+- High-end crew size
+  - input: whole number
+  - db: integer
+- Typical job duration
+  - input: short text/dropdown
+  - db: varchar(100)
+  - examples: 1-2 hours, half day, full day, 2-3 days
+- Jobs that are usually low-cost
+  - input: textarea
+  - db: text
+- Jobs that are usually high-cost
+  - input: textarea
+  - db: text
+- Factors that increase price
+  - input: tag input or textarea
+  - db: jsonb/text
+  - examples: distance, materials, urgency, project size, number of laborers, difficult access, weather, custom work
+- Factors that reduce price
+  - input: tag input or textarea
+  - db: jsonb/text
+
+These fields should be included in the AI context when generating estimates.
+
+2. Improve the embedded website widget
+
+The current embedded widget is too basic. It should feel more like a guided customer intake flow, but still simple enough for a website visitor.
+
+Do not make it feel like a long form. Do not immediately spit out an estimate after one text entry.
+
+The widget should use a short conversational step-by-step flow:
+
+Step 1: Customer describes the job
+- textarea: “Tell us what you need help with.”
+
+Step 2: BDA asks 2-4 smart follow-up questions based on the business type and service
+Examples:
+- Project size / dimensions
+- Location or zip code
+- Desired timing
+- Photos available?
+- New work vs repair / replacement
+- Materials or preferences
+- Access issues
+- Budget range
+
+Step 3: Customer budget
+Ask:
+“Do you have a target budget or range in mind?”
+Options:
+- Under $250
+- $250-$500
+- $500-$1,000
+- $1,000-$2,500
+- $2,500-$5,000
+- $5,000+
+- Not sure
+
+Step 4: Labor / scope assumptions
+Ask a simple scope question:
+“Do you know roughly how many workers or how much time this may take?”
+Options:
+- Not sure
+- 1 person / small job
+- 2-3 person crew
+- Larger crew needed
+- Multi-day job
+
+Step 5: Contact info
+Collect:
+- Name
+- Email
+- Phone
+
+Step 6: Estimate result
+Return:
+- Estimated price range
+- Estimated total if confident
+- Assumptions
+- What could change the price
+- Suggested next step
+- Optional invoice/estimate preview
+
+3. Make the widget conversational, not technical
+
+The widget should not use the word “sandbox.”
+The customer-facing widget should feel like:
+“Answer a few quick questions and we’ll prepare an estimate.”
+
+The BDA should not ask too many questions at once.
+It should ask the minimum needed to generate a useful estimate.
+
+4. Industry-specific follow-up questions
+
+The BDA should adapt questions based on industry.
+
+For asphalt striping, ask about:
+- Parking lot size
+- Number of spaces
+- Restriping vs new layout
+- ADA markings
+- Arrows, curbs, stencils
+- Traffic flow
+- Timing / after-hours needs
+
+For landscaping, ask about:
+- Property size
+- Service type
+- Frequency
+- Mulch/plant/material needs
+- Cleanup size
+- Access issues
+- Photos
+
+For HVAC, ask about:
+- System type
+- Home size
+- Repair vs replacement
+- Urgency
+- Existing ductwork
+- Preferred efficiency level
+
+5. AI workflow update
+
+When generating an estimate, the backend should include:
+- Business profile
+- Services
+- Pricing rules
+- Average job cost
+- Low/high job cost
+- Average crew size
+- Low/high crew size
+- Typical job duration
+- Customer budget
+- Customer scope answers
+- Labor assumptions
+- Industry-specific factors
+- Policies and estimate rules
+
+The AI should return structured JSON:
+- customer_summary
+- missing_information
+- assumptions
+- budget_fit
+- estimated_laborers_needed
+- estimated_duration
+- recommended_price_range
+- estimated_total
+- confidence_score
+- what_could_change_price
+- recommended_next_step
+- invoice_line_items
+
+6. Important behavior
+
+If confidence is low, the BDA should not pretend the estimate is final. It should say:
+“Based on the information provided, this is a preliminary range. Final pricing may change after review or inspection.”
+
+If the requested work appears outside the company’s service area or services offered, the widget should politely say so and still capture the lead if useful.
+
+Keep UI consistent:
+- White background
+- Navy accents
+- Simple cards
+- Clean spacing
+- Mobile-friendly widget
+- Simple enough for a non-technical customer
+
+Key idea: make the widget a guided mini-intake, not just a text box.

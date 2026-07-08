@@ -7,6 +7,8 @@ import {
   leadsTable,
   servicesTable,
   pricingRulesTable,
+  businessPoliciesTable,
+  estimateRulesTable,
 } from "@workspace/db";
 import {
   GetWidgetSettingsResponse,
@@ -14,12 +16,18 @@ import {
   SaveWidgetSettingsResponse,
   GetWidgetConfigQueryParams,
   GetWidgetConfigResponse,
+  WidgetQuestionsBody,
+  WidgetQuestionsResponse,
   WidgetInteractBody,
   WidgetInteractResponse,
 } from "@workspace/api-zod";
 import { requireBusiness } from "../lib/auth";
 import { logActivity } from "../lib/business";
-import { generateAgentResponse, summarizeLead } from "../lib/aiService";
+import {
+  generateAgentResponse,
+  generateWidgetQuestions,
+  summarizeLead,
+} from "../lib/aiService";
 
 // Authenticated widget settings management.
 export const widgetSettingsRouter: IRouter = Router();
@@ -70,6 +78,38 @@ widgetSettingsRouter.put(
 // Public, unauthenticated widget endpoints keyed by clientId.
 export const widgetPublicRouter: IRouter = Router();
 
+// Simple in-memory rate limiter for the public, AI-backed widget endpoints.
+// Keyed by client IP; sliding window. Protects against cost amplification
+// (LLM calls) and lead spam from the open internet.
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX_REQUESTS = 20;
+const rateBuckets = new Map<string, number[]>();
+
+function widgetRateLimit(
+  req: Parameters<Parameters<IRouter["post"]>[1]>[0],
+  res: Parameters<Parameters<IRouter["post"]>[1]>[1],
+  next: () => void,
+): void {
+  const ip = req.ip ?? "unknown";
+  const now = Date.now();
+  const hits = (rateBuckets.get(ip) ?? []).filter(
+    (t) => now - t < RATE_WINDOW_MS,
+  );
+  if (hits.length >= RATE_MAX_REQUESTS) {
+    res.status(429).json({ error: "Too many requests. Please try again shortly." });
+    return;
+  }
+  hits.push(now);
+  rateBuckets.set(ip, hits);
+  // Opportunistic cleanup to keep the map bounded.
+  if (rateBuckets.size > 10_000) {
+    for (const [key, times] of rateBuckets) {
+      if (times.every((t) => now - t >= RATE_WINDOW_MS)) rateBuckets.delete(key);
+    }
+  }
+  next();
+}
+
 widgetPublicRouter.get("/widget/config", async (req, res): Promise<void> => {
   const query = GetWidgetConfigQueryParams.safeParse(req.query);
   if (!query.success) {
@@ -106,7 +146,41 @@ widgetPublicRouter.get("/widget/config", async (req, res): Promise<void> => {
   );
 });
 
-widgetPublicRouter.post("/widget/interact", async (req, res): Promise<void> => {
+widgetPublicRouter.post("/widget/questions", widgetRateLimit, async (req, res): Promise<void> => {
+  const parsed = WidgetQuestionsBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const [business] = await db
+    .select()
+    .from(businessesTable)
+    .where(eq(businessesTable.clientId, parsed.data.clientId));
+  if (!business) {
+    res.status(404).json({ error: "Widget not found" });
+    return;
+  }
+  const services = await db
+    .select()
+    .from(servicesTable)
+    .where(eq(servicesTable.businessId, business.id));
+  const questions = await generateWidgetQuestions({
+    business: {
+      name: business.name,
+      industry: business.industry,
+      serviceArea: business.serviceArea,
+      customerType: business.customerType,
+    },
+    services: services.map((s) => ({
+      name: s.name,
+      description: s.description,
+    })),
+    projectDescription: parsed.data.projectDescription,
+  });
+  res.json(WidgetQuestionsResponse.parse({ questions }));
+});
+
+widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): Promise<void> => {
   const parsed = WidgetInteractBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -121,13 +195,25 @@ widgetPublicRouter.post("/widget/interact", async (req, res): Promise<void> => {
     return;
   }
 
-  const [services, pricingRows] = await Promise.all([
-    db.select().from(servicesTable).where(eq(servicesTable.businessId, business.id)),
-    db
-      .select()
-      .from(pricingRulesTable)
-      .where(eq(pricingRulesTable.businessId, business.id)),
-  ]);
+  const [services, pricingRows, policyRows, estimateRuleRows] =
+    await Promise.all([
+      db
+        .select()
+        .from(servicesTable)
+        .where(eq(servicesTable.businessId, business.id)),
+      db
+        .select()
+        .from(pricingRulesTable)
+        .where(eq(pricingRulesTable.businessId, business.id)),
+      db
+        .select()
+        .from(businessPoliciesTable)
+        .where(eq(businessPoliciesTable.businessId, business.id)),
+      db
+        .select()
+        .from(estimateRulesTable)
+        .where(eq(estimateRulesTable.businessId, business.id)),
+    ]);
 
   const [{ agentResponse, estimate }, requestSummary] = await Promise.all([
     generateAgentResponse({
@@ -147,9 +233,28 @@ widgetPublicRouter.post("/widget/interact", async (req, res): Promise<void> => {
       pricing: pricingRows[0] ?? null,
       prompt: parsed.data.projectDescription,
       customerName: parsed.data.name,
+      answers: parsed.data.answers ?? [],
+      budget: parsed.data.budget ?? null,
+      laborAssumption: parsed.data.laborAssumption ?? null,
+      policies: policyRows[0] ?? null,
+      estimateRules: estimateRuleRows[0] ?? null,
     }),
     summarizeLead(parsed.data.projectDescription),
   ]);
+
+  // Persist the full guided intake (answers, budget, labor) with the lead so
+  // the business sees everything the customer provided.
+  const intakeParts = [parsed.data.projectDescription];
+  if (parsed.data.answers && parsed.data.answers.length > 0) {
+    intakeParts.push(
+      "",
+      "Follow-up answers:",
+      ...parsed.data.answers.map((a) => `- ${a.question} ${a.answer}`),
+    );
+  }
+  if (parsed.data.budget) intakeParts.push("", `Budget: ${parsed.data.budget}`);
+  if (parsed.data.laborAssumption)
+    intakeParts.push(`Labor/scope guess: ${parsed.data.laborAssumption}`);
 
   const [lead] = await db
     .insert(leadsTable)
@@ -159,7 +264,7 @@ widgetPublicRouter.post("/widget/interact", async (req, res): Promise<void> => {
       email: parsed.data.email ?? null,
       phone: parsed.data.phone ?? null,
       requestSummary,
-      projectDescription: parsed.data.projectDescription,
+      projectDescription: intakeParts.join("\n"),
       aiResponse: agentResponse,
       estimate,
       estimatedLow: estimate.recommendedPriceLow,

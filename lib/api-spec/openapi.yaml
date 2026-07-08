@@ -851,6 +851,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/WidgetConfig"
 
+  /widget/questions:
+    post:
+      operationId: widgetQuestions
+      tags: [widget]
+      summary: Public widget follow-up questions for a project description
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WidgetQuestionsInput"
+      responses:
+        "200":
+          description: Industry-specific follow-up questions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetQuestionsResult"
+
   /widget/interact:
     post:
       operationId: widgetInteract
@@ -1202,6 +1221,32 @@ components:
           type: ["string", "null"]
         pricingNotes:
           type: ["string", "null"]
+        avgJobCost:
+          type: ["number", "null"]
+        lowJobCost:
+          type: ["number", "null"]
+        highJobCost:
+          type: ["number", "null"]
+        avgCrewSize:
+          type: ["integer", "null"]
+        lowCrewSize:
+          type: ["integer", "null"]
+        highCrewSize:
+          type: ["integer", "null"]
+        typicalJobDuration:
+          type: ["string", "null"]
+        lowCostJobs:
+          type: ["string", "null"]
+        highCostJobs:
+          type: ["string", "null"]
+        priceIncreaseFactors:
+          type: ["array", "null"]
+          items:
+            type: string
+        priceDecreaseFactors:
+          type: ["array", "null"]
+          items:
+            type: string
 
     PricingRulesInput:
       type: object
@@ -1246,6 +1291,32 @@ components:
           type: ["string", "null"]
         pricingNotes:
           type: ["string", "null"]
+        avgJobCost:
+          type: ["number", "null"]
+        lowJobCost:
+          type: ["number", "null"]
+        highJobCost:
+          type: ["number", "null"]
+        avgCrewSize:
+          type: ["integer", "null"]
+        lowCrewSize:
+          type: ["integer", "null"]
+        highCrewSize:
+          type: ["integer", "null"]
+        typicalJobDuration:
+          type: ["string", "null"]
+        lowCostJobs:
+          type: ["string", "null"]
+        highCostJobs:
+          type: ["string", "null"]
+        priceIncreaseFactors:
+          type: ["array", "null"]
+          items:
+            type: string
+        priceDecreaseFactors:
+          type: ["array", "null"]
+          items:
+            type: string
 
     InvoiceSettings:
       type: object
@@ -1458,6 +1529,22 @@ components:
           type: array
           items:
             type: string
+        missingInformation:
+          type: array
+          items:
+            type: string
+        budgetFit:
+          type: ["string", "null"]
+        estimatedLaborersNeeded:
+          type: ["string", "null"]
+        estimatedDuration:
+          type: ["string", "null"]
+        whatCouldChangePrice:
+          type: array
+          items:
+            type: string
+        recommendedNextStep:
+          type: ["string", "null"]
 
     InvoiceLineItem:
       type: object
@@ -1995,6 +2082,34 @@ components:
         enabled:
           type: boolean
 
+    WidgetQuestionsInput:
+      type: object
+      required: [clientId, projectDescription]
+      properties:
+        clientId:
+          type: string
+        projectDescription:
+          type: string
+          minLength: 1
+
+    WidgetQuestionsResult:
+      type: object
+      required: [questions]
+      properties:
+        questions:
+          type: array
+          items:
+            type: string
+
+    WidgetIntakeAnswer:
+      type: object
+      required: [question, answer]
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+
     WidgetInteractInput:
       type: object
       required: [clientId, name, projectDescription]
@@ -2011,6 +2126,14 @@ components:
         projectDescription:
           type: string
           minLength: 1
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/WidgetIntakeAnswer"
+        budget:
+          type: string
+        laborAssumption:
+          type: string
 
     WidgetInteractResult:
       type: object
