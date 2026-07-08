@@ -1440,6 +1440,9 @@ export const ListLeadsResponseItem = zod.object({
   "estimatedHigh": zod.number().nullish(),
   "confidenceScore": zod.number().nullish(),
   "status": zod.string().describe('new, contacted, won, or lost'),
+  "emailSent": zod.boolean().optional(),
+  "emailSubject": zod.string().nullish(),
+  "emailBody": zod.string().nullish(),
   "createdAt": zod.string()
 })
 export const ListLeadsResponse = zod.array(ListLeadsResponseItem)
@@ -1487,7 +1490,10 @@ export const GetLeadResponse = zod.object({
   "estimatedDuration": zod.string().nullish(),
   "whatCouldChangePrice": zod.array(zod.string()).optional(),
   "recommendedNextStep": zod.string().nullish()
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "emailSent": zod.boolean().optional(),
+  "emailSubject": zod.string().nullish(),
+  "emailBody": zod.string().nullish()
 })
 
 
@@ -1513,7 +1519,23 @@ export const UpdateLeadResponse = zod.object({
   "estimatedHigh": zod.number().nullish(),
   "confidenceScore": zod.number().nullish(),
   "status": zod.string().describe('new, contacted, won, or lost'),
+  "emailSent": zod.boolean().optional(),
+  "emailSubject": zod.string().nullish(),
+  "emailBody": zod.string().nullish(),
   "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Re-send the estimate email for a lead
+ */
+export const SendLeadEmailParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SendLeadEmailResponse = zod.object({
+  "sent": zod.boolean(),
+  "message": zod.string()
 })
 
 

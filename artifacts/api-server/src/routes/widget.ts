@@ -29,6 +29,14 @@ import {
   generateWidgetQuestions,
   summarizeLead,
 } from "../lib/aiService";
+import {
+  composeEstimateEmail,
+  sendEstimateEmail,
+  isEmailConfigured,
+} from "../lib/email";
+import { buildInvoicePdf } from "../lib/pdf";
+import { getOrCreateSettings } from "./invoiceSettings";
+import { ALL_INVOICE_SECTIONS } from "../lib/defaults";
 
 // Authenticated widget settings management.
 export const widgetSettingsRouter: IRouter = Router();
@@ -287,12 +295,74 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
   if (parsed.data.laborAssumption)
     intakeParts.push(`Labor/scope guess: ${parsed.data.laborAssumption}`);
 
+  // Compose and send the estimate email to the customer if email is provided.
+  const settings = await getOrCreateSettings(business.id);
+  const includedSections = Array.isArray(settings.includedSections)
+    ? (settings.includedSections as string[])
+    : ALL_INVOICE_SECTIONS;
+
+  const customerEmail = parsed.data.email?.trim() ?? "";
+  const composed =
+    customerEmail.length > 0
+      ? composeEstimateEmail({
+          businessName: business.name,
+          customerName: parsed.data.name,
+          estimate,
+          includedSections,
+          emailSubject: settings.emailSubject,
+          emailGreeting: settings.emailGreeting,
+          emailBodyText: settings.emailBodyText,
+          emailClosing: settings.emailClosing,
+        })
+      : null;
+
+  let emailSent = false;
+  let pdfBuffer: Buffer | null = null;
+  if (composed && isEmailConfigured()) {
+    if (settings.attachPdf) {
+      pdfBuffer = await buildInvoicePdf({
+        businessName: business.name,
+        customerEmail,
+        projectDescription: parsed.data.projectDescription,
+        date: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        estimate,
+        settings: {
+          selectedTemplate: settings.selectedTemplate,
+          includedSections,
+          brandColor: settings.brandColor,
+          cancellationPolicy: settings.cancellationPolicy,
+          paymentTerms: settings.paymentTerms,
+          estimateDisclaimer: settings.estimateDisclaimer,
+          termsConditions: settings.termsConditions,
+          acceptanceLanguage: settings.acceptanceLanguage,
+          depositRequirements: settings.depositRequirements,
+          footerNote: settings.footerNote,
+        },
+      });
+    }
+    const result = await sendEstimateEmail({
+      to: customerEmail,
+      cc: settings.ccOwner ? business.email : null,
+      replyTo: settings.replyToEmail,
+      subject: composed.subject,
+      text: composed.body,
+      attachment: pdfBuffer
+        ? { filename: "estimate.pdf", content: pdfBuffer }
+        : null,
+    });
+    emailSent = result.sent;
+  }
+
   const [lead] = await db
     .insert(leadsTable)
     .values({
       businessId: business.id,
       customerName: parsed.data.name,
-      email: parsed.data.email ?? null,
+      email: customerEmail || null,
       phone: parsed.data.phone ?? null,
       requestSummary,
       projectDescription: intakeParts.join("\n"),
@@ -302,13 +372,16 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
       estimatedHigh: estimate.recommendedPriceHigh,
       confidenceScore: estimate.confidenceScore,
       status: "new",
+      emailSent,
+      emailSubject: composed?.subject ?? null,
+      emailBody: composed?.body ?? null,
     })
     .returning();
 
   await logActivity(
     business.id,
     "lead_created",
-    `New lead from ${parsed.data.name}`,
+    `New lead from ${parsed.data.name}${emailSent ? " (estimate emailed)" : ""}`,
   );
 
   res.json(

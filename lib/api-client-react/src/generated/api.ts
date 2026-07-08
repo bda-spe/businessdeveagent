@@ -3810,6 +3810,76 @@ export const useUpdateLead = <TError = ErrorType<unknown>,
       return useMutation(getUpdateLeadMutationOptions(options));
     }
 
+export const getSendLeadEmailUrl = (id: number,) => {
+
+
+
+
+  return `/api/leads/${id}/send-email`
+}
+
+/**
+ * @summary Re-send the estimate email for a lead
+ */
+export const sendLeadEmail = async (id: number, options?: RequestInit): Promise<SendEmailResult> => {
+
+  return customFetch<SendEmailResult>(getSendLeadEmailUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSendLeadEmailMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendLeadEmail>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendLeadEmail>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['sendLeadEmail'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendLeadEmail>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  sendLeadEmail(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendLeadEmailMutationResult = NonNullable<Awaited<ReturnType<typeof sendLeadEmail>>>
+
+    export type SendLeadEmailMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Re-send the estimate email for a lead
+ */
+export const useSendLeadEmail = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendLeadEmail>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendLeadEmail>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getSendLeadEmailMutationOptions(options));
+    }
+
 export const getGetWidgetSettingsUrl = () => {
 
 

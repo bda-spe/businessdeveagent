@@ -877,6 +877,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/Lead"
 
+  /leads/{id}/send-email:
+    post:
+      operationId: sendLeadEmail
+      tags: [leads]
+      summary: Re-send the estimate email for a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Email send result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendEmailResult"
+
   /widget-settings:
     get:
       operationId: getWidgetSettings
@@ -2166,6 +2185,12 @@ components:
         status:
           type: string
           description: new, contacted, won, or lost
+        emailSent:
+          type: boolean
+        emailSubject:
+          type: ["string", "null"]
+        emailBody:
+          type: ["string", "null"]
         createdAt:
           type: string
 
@@ -2201,6 +2226,12 @@ components:
           oneOf:
             - $ref: "#/components/schemas/Estimate"
             - type: "null"
+        emailSent:
+          type: boolean
+        emailSubject:
+          type: ["string", "null"]
+        emailBody:
+          type: ["string", "null"]
 
     LeadUpdate:
       type: object

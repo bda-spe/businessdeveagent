@@ -844,6 +844,11 @@ export interface Lead {
   confidenceScore?: number | null;
   /** new, contacted, won, or lost */
   status: string;
+  emailSent?: boolean;
+  /** @nullable */
+  emailSubject?: string | null;
+  /** @nullable */
+  emailBody?: string | null;
   createdAt: string;
 }
 
@@ -869,6 +874,11 @@ export interface LeadDetail {
   /** @nullable */
   aiResponse?: string | null;
   estimate?: Estimate | null;
+  emailSent?: boolean;
+  /** @nullable */
+  emailSubject?: string | null;
+  /** @nullable */
+  emailBody?: string | null;
 }
 
 export interface LeadUpdate {

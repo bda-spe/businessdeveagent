@@ -29,4 +29,9 @@ export interface LeadDetail {
   /** @nullable */
   aiResponse?: string | null;
   estimate?: Estimate | null;
+  emailSent?: boolean;
+  /** @nullable */
+  emailSubject?: string | null;
+  /** @nullable */
+  emailBody?: string | null;
 }

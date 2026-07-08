@@ -306,6 +306,9 @@ export const leadsTable = pgTable("leads", {
   estimatedHigh: doublePrecision("estimated_high"),
   confidenceScore: doublePrecision("confidence_score"),
   status: text("status").notNull().default("new"),
+  emailSent: boolean("email_sent").notNull().default(false),
+  emailSubject: text("email_subject"),
+  emailBody: text("email_body"),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 

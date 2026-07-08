@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useListLeads, useGetLead, useUpdateLead, getListLeadsQueryKey, getGetLeadQueryKey } from "@workspace/api-client-react";
+import { useListLeads, useGetLead, useUpdateLead, useSendLeadEmail, getListLeadsQueryKey, getGetLeadQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Mail, Phone, Clock, FileText, ChevronRight, MessageSquare, Calculator, Search } from "lucide-react";
+import { Users, Mail, Phone, Clock, FileText, ChevronRight, MessageSquare, Calculator, Search, Send, CheckCircle } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 
 export default function LeadsPage() {
@@ -24,6 +24,21 @@ export default function LeadsPage() {
   });
 
   const updateLead = useUpdateLead();
+  const sendLeadEmail = useSendLeadEmail();
+
+  const handleResendEmail = () => {
+    if (!selectedLeadId || !leadDetail?.email) return;
+    sendLeadEmail.mutate({ id: selectedLeadId }, {
+      onSuccess: (result) => {
+        queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetLeadQueryKey(selectedLeadId) });
+        toast({ title: result.sent ? "Email sent" : "Email failed", description: result.message });
+      },
+      onError: (err: any) => {
+        toast({ title: "Failed to send email", description: err?.message || "Unknown error", variant: "destructive" });
+      }
+    });
+  };
 
   const handleStatusChange = (status: string) => {
     if (!selectedLeadId) return;
@@ -86,9 +101,16 @@ export default function LeadsPage() {
                   {selectedLeadId === lead.id && <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>}
                   <div className="flex justify-between items-start">
                     <span className="font-semibold text-slate-900 truncate pr-2">{lead.customerName}</span>
-                    <Badge variant="secondary" className={`${getStatusColor(lead.status)} border-none shadow-none font-medium px-2 py-0 h-5`}>
-                      {lead.status}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      {lead.emailSent && (
+                        <span title="Estimate emailed">
+                          <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                        </span>
+                      )}
+                      <Badge variant="secondary" className={`${getStatusColor(lead.status)} border-none shadow-none font-medium px-2 py-0 h-5`}>
+                        {lead.status}
+                      </Badge>
+                    </div>
                   </div>
                   <p className="text-sm text-slate-600 line-clamp-1">{lead.requestSummary || lead.projectDescription}</p>
                   <div className="flex items-center justify-between mt-1">
@@ -136,18 +158,32 @@ export default function LeadsPage() {
                     <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> {format(new Date(leadDetail.createdAt), 'MMM d, h:mm a')}</span>
                   </div>
                 </div>
-                <div className="w-40">
-                  <Select value={leadDetail.status} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="font-semibold h-10">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="new">New Lead</SelectItem>
-                      <SelectItem value="contacted">Contacted</SelectItem>
-                      <SelectItem value="won">Job Won</SelectItem>
-                      <SelectItem value="lost">Lost / Passed</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-center gap-3">
+                  {leadDetail.email && leadDetail.emailSubject && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      disabled={sendLeadEmail.isPending}
+                      onClick={handleResendEmail}
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                      {leadDetail.emailSent ? "Re-send email" : "Send estimate email"}
+                    </Button>
+                  )}
+                  <div className="w-40">
+                    <Select value={leadDetail.status} onValueChange={handleStatusChange}>
+                      <SelectTrigger className="font-semibold h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="new">New Lead</SelectItem>
+                        <SelectItem value="contacted">Contacted</SelectItem>
+                        <SelectItem value="won">Job Won</SelectItem>
+                        <SelectItem value="lost">Lost / Passed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
