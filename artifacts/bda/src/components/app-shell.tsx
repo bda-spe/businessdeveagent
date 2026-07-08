@@ -137,7 +137,7 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
           <img
             src={logoUrl}
             alt="BDA — Business Development Agent"
-            className="h-10 w-auto rounded"
+            className="h-10 w-auto rounded opacity-[1] rounded-tl-[4px] rounded-tr-[4px] rounded-br-[4px] rounded-bl-[4px] mt-[0px] mb-[0px] ml-[-1px] mr-[-1px]"
           />
         </div>
 
@@ -174,7 +174,6 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
           </Button>
         </div>
       </aside>
-
       {/* Main Content */}
       <main className="flex-1 ml-64 min-h-screen">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center px-8 sticky top-0 z-10">
