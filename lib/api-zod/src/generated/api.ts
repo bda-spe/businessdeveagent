@@ -211,6 +211,55 @@ export const UpdateBusinessResponse = zod.object({
 
 
 /**
+ * @summary Update the email address associated with the account
+ */
+export const UpdateBusinessEmailBody = zod.object({
+  "email": zod.string().email()
+})
+
+export const UpdateBusinessEmailResponse = zod.object({
+  "id": zod.number(),
+  "clientId": zod.string(),
+  "name": zod.string(),
+  "industry": zod.string().nullish(),
+  "industryOther": zod.string().nullish(),
+  "primaryIndustryCategory": zod.string().nullish(),
+  "primaryIndustry": zod.string().nullish(),
+  "customIndustry": zod.string().nullish(),
+  "companySize": zod.string().nullish(),
+  "customerType": zod.string().nullish(),
+  "website": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "serviceArea": zod.string().nullish(),
+  "addressLine1": zod.string().nullish(),
+  "addressLine2": zod.string().nullish(),
+  "addressCity": zod.string().nullish(),
+  "addressState": zod.string().nullish(),
+  "addressZip": zod.string().nullish(),
+  "status": zod.string().describe('onboarding or active'),
+  "profileApproved": zod.boolean(),
+  "agentPreferencesConfirmed": zod.boolean().optional(),
+  "widgetReady": zod.boolean().optional(),
+  "active": zod.boolean().optional(),
+  "subscriptionStatus": zod.string().optional().describe('trialing, active, or expired'),
+  "trialStartedAt": zod.string().nullish(),
+  "trialEndsAt": zod.string().nullish(),
+  "planType": zod.string().optional(),
+  "buildFeePaid": zod.boolean().optional(),
+  "createdAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Permanently delete the account and all associated data. Any active subscription is scheduled to cancel at period end before data is wiped.
+ */
+export const DeleteAccountResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
  * @summary Approve the business profile after requirement review
  */
 export const ApproveBusinessProfileResponse = zod.object({

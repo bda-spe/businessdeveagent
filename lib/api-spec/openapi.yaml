@@ -111,6 +111,42 @@ paths:
               schema:
                 $ref: "#/components/schemas/Business"
 
+  /business/email:
+    patch:
+      operationId: updateBusinessEmail
+      tags: [account]
+      summary: Update the email address associated with the account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBusinessEmailInput"
+      responses:
+        "200":
+          description: Updated business
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+
+  /account:
+    delete:
+      operationId: deleteAccount
+      tags: [account]
+      summary: Permanently delete the account and all associated data. Any active subscription is scheduled to cancel at period end before data is wiped.
+      responses:
+        "200":
+          description: Account deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+
   /business/approve:
     post:
       operationId: approveBusinessProfile
@@ -1227,6 +1263,14 @@ components:
           maxLength: 150
         isPrimary:
           type: boolean
+
+    UpdateBusinessEmailInput:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
 
     SetBusinessIndustriesInput:
       type: object

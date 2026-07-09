@@ -13,7 +13,10 @@ import {
   useGetMe,
   useGetBillingPortal,
   useCancelSubscription,
+  useUpdateBusinessEmail,
+  useDeleteAccount,
   getGetSubscriptionQueryKey,
+  getGetMeQueryKey,
 } from "@workspace/api-client-react";
 import {
   Card,
@@ -32,6 +35,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -44,6 +49,8 @@ import {
   ExternalLink,
   XCircle,
   CalendarDays,
+  Mail,
+  Trash2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -92,10 +99,15 @@ export default function BillingPage() {
   const confirmCheckout = useConfirmCheckout();
   const getBillingPortal = useGetBillingPortal();
   const cancelSubscription = useCancelSubscription();
+  const updateEmail = useUpdateBusinessEmail();
+  const deleteAccount = useDeleteAccount();
 
   const [checkoutState, setCheckoutState] = useState<CheckoutState | null>(null);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [emailValue, setEmailValue] = useState<string | null>(null);
 
   const handleCheckout = (planId: string, planName: string) => {
     if (!stripePromise) {
@@ -194,6 +206,56 @@ export default function BillingPage() {
     setPaymentComplete(false);
   };
 
+  const handleSaveEmail = () => {
+    const email = (emailValue ?? "").trim();
+    if (!email) {
+      toast({
+        title: "Email required",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    updateEmail.mutate(
+      { data: { email } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+          toast({
+            title: "Email updated",
+            description: "Your account email has been changed.",
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Could not update email",
+            description: "Something went wrong. Please try again.",
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    deleteAccount.mutate(undefined, {
+      onSuccess: () => {
+        toast({
+          title: "Account deleted",
+          description: "Your account and data have been removed.",
+        });
+        window.location.href = "/";
+      },
+      onError: () => {
+        toast({
+          title: "Could not delete account",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
   if (isLoadingPlans || isLoadingSub) {
     return (
       <div className="max-w-5xl mx-auto space-y-8">
@@ -221,6 +283,10 @@ export default function BillingPage() {
       subStatus === "canceled" ||
       subStatus === "past_due" ||
       (isTrialing && daysRemaining === 0));
+
+  const currentEmail = business?.email ?? "";
+  const displayEmail = emailValue ?? currentEmail;
+  const emailDirty = displayEmail.trim() !== currentEmail.trim();
 
   return (
     <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
@@ -591,6 +657,137 @@ export default function BillingPage() {
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
               Yes, Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Account Settings */}
+      <Card className="mt-8 border-slate-200 shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Account Settings</CardTitle>
+          <CardDescription>
+            Manage the email address on your account, or permanently delete
+            your account.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2 max-w-md">
+            <Label htmlFor="account-email" className="text-sm font-medium text-slate-700">
+              Account Email
+            </Label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  id="account-email"
+                  type="email"
+                  className="pl-9"
+                  value={displayEmail}
+                  onChange={(e) => setEmailValue(e.target.value)}
+                  placeholder="you@company.com"
+                />
+              </div>
+              <Button
+                onClick={handleSaveEmail}
+                disabled={!emailDirty || updateEmail.isPending}
+              >
+                {updateEmail.isPending && (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                )}
+                Save
+              </Button>
+            </div>
+            <p className="text-xs text-slate-500">
+              Used for billing receipts and account notifications.
+            </p>
+          </div>
+
+          <div className="border-t border-slate-200 pt-6">
+            <p className="text-sm font-semibold text-red-700 mb-1">
+              Danger Zone
+            </p>
+            <p className="text-sm text-slate-500 mb-4">
+              Permanently delete your account and all associated data. This
+              cannot be undone.
+            </p>
+            <Button
+              variant="outline"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
+              onClick={() => {
+                setDeleteConfirmText("");
+                setShowDeleteDialog(true);
+              }}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Account
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Delete account confirmation dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-700">
+              <AlertTriangle className="h-5 w-5" />
+              Delete Account?
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-slate-600 text-sm leading-relaxed">
+              This action is permanent and cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 space-y-2">
+            {isSubscribed && (
+              <p>
+                <span className="font-semibold">Billing:</span> your
+                subscription will be canceled and billing will end at the
+                close of your current billing period. You will not be charged
+                again.
+              </p>
+            )}
+            <p>
+              <span className="font-semibold">Data:</span> your business
+              profile, services, pricing, leads, conversations, and widget
+              configuration will be wiped{" "}
+              <span className="font-semibold">immediately</span> and cannot be
+              recovered.
+            </p>
+          </div>
+
+          <div className="space-y-2 pt-2">
+            <Label htmlFor="delete-confirm" className="text-xs text-slate-600">
+              Type <span className="font-semibold">DELETE</span> to confirm
+            </Label>
+            <Input
+              id="delete-confirm"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="DELETE"
+            />
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={
+                deleteConfirmText.trim().toUpperCase() !== "DELETE" ||
+                deleteAccount.isPending
+              }
+            >
+              {deleteAccount.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              Delete My Account
             </Button>
           </DialogFooter>
         </DialogContent>

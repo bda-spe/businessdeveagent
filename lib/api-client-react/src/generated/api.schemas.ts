@@ -101,6 +101,10 @@ export interface BusinessIndustryInput {
   isPrimary: boolean;
 }
 
+export interface UpdateBusinessEmailInput {
+  email: string;
+}
+
 export interface SetBusinessIndustriesInput {
   /** @minItems 1 */
   industries: BusinessIndustryInput[];
@@ -1072,6 +1076,10 @@ export interface ActivityEvent {
   description: string;
   createdAt: string;
 }
+
+export type DeleteAccount200 = {
+  success: boolean;
+};
 
 export type GetWidgetConfigParams = {
 clientId: string;

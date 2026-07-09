@@ -47,6 +47,7 @@ import type {
   ConfirmAgentPreferencesResult,
   ConfirmCheckoutInput,
   DashboardSummary,
+  DeleteAccount200,
   EstimateRules,
   EstimateRulesInput,
   ExtractedValue,
@@ -75,6 +76,7 @@ import type {
   ServiceUpdate,
   SetBusinessIndustriesInput,
   StructuredProfileInput,
+  UpdateBusinessEmailInput,
   UploadedFile,
   UploadedFileInput,
   WidgetConfig,
@@ -483,6 +485,146 @@ export const useUpdateBusiness = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateBusinessMutationOptions(options));
+    }
+
+export const getUpdateBusinessEmailUrl = () => {
+
+
+
+
+  return `/api/business/email`
+}
+
+/**
+ * @summary Update the email address associated with the account
+ */
+export const updateBusinessEmail = async (updateBusinessEmailInput: UpdateBusinessEmailInput, options?: RequestInit): Promise<Business> => {
+
+  return customFetch<Business>(getUpdateBusinessEmailUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateBusinessEmailInput)
+  }
+);}
+
+
+
+
+export const getUpdateBusinessEmailMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBusinessEmail>>, TError,{data: BodyType<UpdateBusinessEmailInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateBusinessEmail>>, TError,{data: BodyType<UpdateBusinessEmailInput>}, TContext> => {
+
+const mutationKey = ['updateBusinessEmail'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateBusinessEmail>>, {data: BodyType<UpdateBusinessEmailInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateBusinessEmail(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateBusinessEmailMutationResult = NonNullable<Awaited<ReturnType<typeof updateBusinessEmail>>>
+    export type UpdateBusinessEmailMutationBody = BodyType<UpdateBusinessEmailInput>
+    export type UpdateBusinessEmailMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update the email address associated with the account
+ */
+export const useUpdateBusinessEmail = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBusinessEmail>>, TError,{data: BodyType<UpdateBusinessEmailInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateBusinessEmail>>,
+        TError,
+        {data: BodyType<UpdateBusinessEmailInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateBusinessEmailMutationOptions(options));
+    }
+
+export const getDeleteAccountUrl = () => {
+
+
+
+
+  return `/api/account`
+}
+
+/**
+ * @summary Permanently delete the account and all associated data. Any active subscription is scheduled to cancel at period end before data is wiped.
+ */
+export const deleteAccount = async ( options?: RequestInit): Promise<DeleteAccount200> => {
+
+  return customFetch<DeleteAccount200>(getDeleteAccountUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteAccountMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,void, TContext> => {
+
+const mutationKey = ['deleteAccount'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAccount>>, void> = () => {
+
+
+          return  deleteAccount(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>
+
+    export type DeleteAccountMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Permanently delete the account and all associated data. Any active subscription is scheduled to cancel at period end before data is wiped.
+ */
+export const useDeleteAccount = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAccount>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getDeleteAccountMutationOptions(options));
     }
 
 export const getApproveBusinessProfileUrl = () => {

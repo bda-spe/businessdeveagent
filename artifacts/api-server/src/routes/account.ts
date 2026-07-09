@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { and, eq, inArray } from "drizzle-orm";
+import { clerkClient } from "@clerk/express";
 import {
   db,
   businessesTable,
@@ -16,6 +17,9 @@ import {
   GetBusinessResponse,
   UpdateBusinessBody,
   UpdateBusinessResponse,
+  UpdateBusinessEmailBody,
+  UpdateBusinessEmailResponse,
+  DeleteAccountResponse,
   ApproveBusinessProfileResponse,
   SetBusinessIndustriesBody,
   ListBusinessIndustriesResponse,
@@ -28,6 +32,7 @@ import {
   logActivity,
 } from "../lib/business";
 import { computeSetupProgress } from "../lib/setupProgress";
+import { isStripeConfigured, getStripe } from "../lib/stripe";
 
 const router: IRouter = Router();
 
@@ -176,6 +181,79 @@ router.post(
     res.json(ApproveBusinessProfileResponse.parse(updated));
   },
 );
+
+router.patch(
+  "/business/email",
+  requireBusiness,
+  async (req, res): Promise<void> => {
+    const parsed = UpdateBusinessEmailBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const email = parsed.data.email.trim().toLowerCase();
+
+    const [updated] = await db
+      .update(businessesTable)
+      .set({ email })
+      .where(eq(businessesTable.id, req.business!.id))
+      .returning();
+    await logActivity(
+      req.business!.id,
+      "business_updated",
+      "Account email updated",
+    );
+    res.json(UpdateBusinessEmailResponse.parse(updated));
+  },
+);
+
+router.delete("/account", requireBusiness, async (req, res): Promise<void> => {
+  const business = req.business!;
+  const user = req.appUser!;
+
+  try {
+    if (
+      business.stripeSubscriptionId &&
+      isStripeConfigured()
+    ) {
+      try {
+        await getStripe().subscriptions.update(business.stripeSubscriptionId, {
+          cancel_at_period_end: true,
+        });
+        console.log(
+          `[account] Subscription ${business.stripeSubscriptionId} for business ${business.id} scheduled to cancel at period end (account deletion)`,
+        );
+      } catch (err) {
+        console.error(
+          `[account] Failed to schedule subscription cancellation for business ${business.id} during account deletion:`,
+          err,
+        );
+      }
+    }
+
+    // Deleting the user row cascades to the business row and every
+    // business-scoped table (services, leads, files, etc.) via FK ON DELETE
+    // CASCADE, wiping all product data immediately.
+    await db.delete(usersTable).where(eq(usersTable.id, user.id));
+
+    try {
+      await clerkClient.users.deleteUser(user.clerkUserId);
+    } catch (err) {
+      console.error(
+        `[account] Failed to delete Clerk user ${user.clerkUserId} during account deletion:`,
+        err,
+      );
+    }
+
+    res.json(DeleteAccountResponse.parse({ success: true }));
+  } catch (err) {
+    console.error(
+      `[account] Failed to delete account for business ${business.id}:`,
+      err,
+    );
+    res.status(500).json({ error: "Failed to delete account. Please try again." });
+  }
+});
 
 router.get(
   "/business/industries",
