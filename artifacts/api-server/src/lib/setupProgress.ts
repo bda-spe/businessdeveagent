@@ -12,6 +12,7 @@ export interface SetupProgress {
   pricing: boolean;
   invoiceFormatting: boolean;
   widget: boolean;
+  widgetStyled: boolean;
   testAgent: boolean;
 }
 
@@ -54,6 +55,10 @@ export async function computeSetupProgress(business: {
     // The Widget Settings step is only complete once the business has saved
     // widget settings AND confirmed its agent preferences (widgetReady).
     widget: eventTypes.has("widget_updated") && business.widgetReady,
+    // True as soon as widget styling has been saved once, independent of
+    // whether the agent has been confirmed yet — used to unlock the "Live
+    // Preview & Feedback" step, which now comes right after styling.
+    widgetStyled: eventTypes.has("widget_updated"),
     testAgent: sandboxTests.length > 0,
   };
 }

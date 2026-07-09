@@ -65,6 +65,7 @@ export const GetMeResponse = zod.object({
   "pricing": zod.boolean(),
   "invoiceFormatting": zod.boolean(),
   "widget": zod.boolean(),
+  "widgetStyled": zod.boolean().describe('True once the business has saved widget styling at least once, regardless of whether the agent has been confirmed yet.'),
   "testAgent": zod.boolean()
 })
 })

@@ -393,10 +393,15 @@ export default function AgentSettingsPage() {
     (s) => prefValues[s.key].trim().length > 0,
   );
   const isConfirmed = !!prefs?.confirmed;
-  const widgetUnlocked =
-    !!business?.widgetReady && !!business?.agentPreferencesConfirmed;
-  const stylingSaved = !!me?.setupProgress?.widget;
-  const embedUnlocked = widgetUnlocked && stylingSaved;
+  // Step order: Styling -> Live Preview & Feedback -> Agent Preferences ->
+  // Installation Code. Each step unlocks the next once it's completed.
+  const stylingSaved = !!me?.setupProgress?.widgetStyled;
+  const hasQuoteGenerated = !!history?.some(
+    (t) => t.stage === "complete" && t.estimate != null,
+  );
+  const previewUnlocked = stylingSaved;
+  const preferencesUnlocked = previewUnlocked && hasQuoteGenerated;
+  const embedUnlocked = preferencesUnlocked && isConfirmed;
   const testAgentDone = !!me?.setupProgress?.testAgent;
 
   const handleGenerate = () => {
@@ -468,7 +473,7 @@ export default function AgentSettingsPage() {
               toast({
                 title: "Agent confirmed",
                 description:
-                  "Now style your widget below, save it, and your installation code will unlock.",
+                  "Your installation code is now unlocked below.",
               });
             },
             onError: () => {
@@ -588,12 +593,190 @@ export default function AgentSettingsPage() {
           Agent Settings
         </h2>
         <p className="text-slate-500 mt-1">
-          Test your agent, review its standards, style your widget, then
+          Style your widget, test your agent live, review its standards, then
           install it on your website.
         </p>
       </div>
 
-      {/* ---- Section 1: Live Preview + Feedback ---- */}
+      {/* ---- Section 1: Styling ---- */}
+      <Card className="border-slate-200 shadow-sm" data-testid="card-styling">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-5 w-5 text-blue-500" /> Styling
+          </CardTitle>
+          <CardDescription>
+            Style your widget to match your brand. Changes preview instantly
+            on the right — save to unlock the live preview below.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-8">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmitStyling)}
+                className="space-y-6"
+              >
+                <FormField
+                  control={form.control}
+                  name="enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-slate-200 p-4 bg-slate-50">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base font-semibold">
+                          Enable Widget
+                        </FormLabel>
+                        <FormDescription>
+                          If disabled, the widget will hide from your site
+                          immediately.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="greeting"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Greeting Message</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        The first message customers see when they open the
+                        chat.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="primaryColor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Banner Color</FormLabel>
+                        <div>
+                          <ColorPickerPopover
+                            value={field.value}
+                            onChange={field.onChange}
+                            testId="button-widget-color"
+                          />
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="position"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Position</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-testid="select-position">
+                              <SelectValue placeholder="Select position" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="bottom-right">
+                              Bottom Right
+                            </SelectItem>
+                            <SelectItem value="bottom-left">
+                              Bottom Left
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="font"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Font</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-font">
+                            <SelectValue placeholder="Select font" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {FONT_OPTIONS.map((f) => (
+                            <SelectItem
+                              key={f.value}
+                              value={f.value}
+                              style={{ fontFamily: f.stack }}
+                            >
+                              {f.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Applied to all text inside your widget.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  disabled={saveSettings.isPending}
+                  className="w-full"
+                  data-testid="button-save-styling"
+                >
+                  {saveSettings.isPending ? "Saving..." : "Save Styling"}
+                </Button>
+              </form>
+            </Form>
+
+            {/* Widget rendering preview */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden relative min-h-[520px]">
+              {currentValues.enabled ? (
+                <iframe
+                  ref={styleIframeRef}
+                  src={`${import.meta.env.BASE_URL}widget-test.html`}
+                  title="Widget styling preview"
+                  className="absolute inset-0 w-full h-full border-0"
+                  data-testid="iframe-widget-preview"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px]">
+                  <div className="bg-white/90 p-4 rounded-xl shadow-sm text-sm font-medium text-slate-500 border border-slate-200">
+                    Widget is currently disabled
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ---- Section 2: Live Preview + Feedback ---- */}
+      {previewUnlocked ? (
       <div className="grid lg:grid-cols-5 gap-6 items-stretch">
         {/* Live Preview */}
         <Card className="lg:col-span-3 flex flex-col border-slate-200 shadow-sm overflow-hidden">
@@ -793,6 +976,22 @@ export default function AgentSettingsPage() {
           </div>
         </Card>
       </div>
+      ) : (
+        <Card
+          className="border-slate-200 border-dashed shadow-none bg-slate-50"
+          data-testid="card-preview-locked"
+        >
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-slate-500">
+              <Lock className="h-5 w-5" /> Live Preview &amp; Feedback
+            </CardTitle>
+            <CardDescription>
+              Save your widget styling above to unlock a live preview where
+              you can test your agent and leave feedback.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {/* ---- Generated estimate + email preview (below the test row) ---- */}
       {showEstimate && activeTest?.estimate && (
@@ -879,7 +1078,8 @@ export default function AgentSettingsPage() {
         </div>
       )}
 
-      {/* ---- Section 2: Agent Preferences & Standards ---- */}
+      {/* ---- Section 3: Agent Preferences & Standards ---- */}
+      {preferencesUnlocked ? (
       <Card
         className="border-slate-200 shadow-sm"
         data-testid="card-agent-preferences"
@@ -1002,204 +1202,26 @@ export default function AgentSettingsPage() {
               </div>
               {!isConfirmed && (
                 <p className="text-xs text-slate-500">
-                  The styling section and your widget installation code unlock
-                  once you confirm your agent is ready.
+                  Your widget installation code unlocks once you confirm your
+                  agent is ready.
                 </p>
               )}
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* ---- Section 3: Styling ---- */}
-      {isConfirmed ? (
-        <Card className="border-slate-200 shadow-sm" data-testid="card-styling">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-blue-500" /> Styling
-            </CardTitle>
-            <CardDescription>
-              Style your widget to match your brand. Changes preview instantly
-              on the right — save to apply them to your live widget.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-8">
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmitStyling)}
-                  className="space-y-6"
-                >
-                  <FormField
-                    control={form.control}
-                    name="enabled"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border border-slate-200 p-4 bg-slate-50">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base font-semibold">
-                            Enable Widget
-                          </FormLabel>
-                          <FormDescription>
-                            If disabled, the widget will hide from your site
-                            immediately.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="greeting"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Greeting Message</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          The first message customers see when they open the
-                          chat.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="primaryColor"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Banner Color</FormLabel>
-                          <div>
-                            <ColorPickerPopover
-                              value={field.value}
-                              onChange={field.onChange}
-                              testId="button-widget-color"
-                            />
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="position"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Position</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger data-testid="select-position">
-                                <SelectValue placeholder="Select position" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="bottom-right">
-                                Bottom Right
-                              </SelectItem>
-                              <SelectItem value="bottom-left">
-                                Bottom Left
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="font"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Font</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger data-testid="select-font">
-                              <SelectValue placeholder="Select font" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {FONT_OPTIONS.map((f) => (
-                              <SelectItem
-                                key={f.value}
-                                value={f.value}
-                                style={{ fontFamily: f.stack }}
-                              >
-                                {f.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Applied to all text inside your widget.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button
-                    type="submit"
-                    disabled={saveSettings.isPending}
-                    className="w-full"
-                    data-testid="button-save-styling"
-                  >
-                    {saveSettings.isPending ? "Saving..." : "Save Styling"}
-                  </Button>
-                </form>
-              </Form>
-
-              {/* Widget rendering preview */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden relative min-h-[520px]">
-                {currentValues.enabled ? (
-                  <iframe
-                    ref={styleIframeRef}
-                    src={`${import.meta.env.BASE_URL}widget-test.html`}
-                    title="Widget styling preview"
-                    className="absolute inset-0 w-full h-full border-0"
-                    data-testid="iframe-widget-preview"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px]">
-                    <div className="bg-white/90 p-4 rounded-xl shadow-sm text-sm font-medium text-slate-500 border border-slate-200">
-                      Widget is currently disabled
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       ) : (
         <Card
           className="border-slate-200 border-dashed shadow-none bg-slate-50"
-          data-testid="card-styling-locked"
+          data-testid="card-preferences-locked"
         >
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-slate-500">
-              <Lock className="h-5 w-5" /> Styling
+              <Lock className="h-5 w-5" /> Agent Preferences &amp; Standards
             </CardTitle>
             <CardDescription>
-              Confirm your agent preferences above to unlock widget styling —
-              banner color, font, greeting, and position.
+              Complete a test conversation above that produces a quote to
+              unlock your agent's preferences and standards.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -1253,9 +1275,8 @@ export default function AgentSettingsPage() {
             </CardTitle>
             <CardDescription>
               Your installation code will appear here once you confirm your
-              agent preferences and save your widget styling above. This makes
-              sure your agent goes live with the standards and look you
-              approved.
+              agent preferences above. This makes sure your agent goes live
+              with the standards and look you approved.
             </CardDescription>
           </CardHeader>
         </Card>

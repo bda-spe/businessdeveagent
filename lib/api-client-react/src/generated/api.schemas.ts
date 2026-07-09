@@ -74,6 +74,8 @@ export interface SetupProgress {
   pricing: boolean;
   invoiceFormatting: boolean;
   widget: boolean;
+  /** True once the business has saved widget styling at least once, regardless of whether the agent has been confirmed yet. */
+  widgetStyled: boolean;
   testAgent: boolean;
 }
 

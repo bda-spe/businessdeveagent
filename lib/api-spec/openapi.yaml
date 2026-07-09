@@ -1259,7 +1259,7 @@ components:
 
     SetupProgress:
       type: object
-      required: [businessProfile, services, pricing, invoiceFormatting, widget, testAgent]
+      required: [businessProfile, services, pricing, invoiceFormatting, widget, widgetStyled, testAgent]
       properties:
         businessProfile:
           type: boolean
@@ -1271,6 +1271,9 @@ components:
           type: boolean
         widget:
           type: boolean
+        widgetStyled:
+          type: boolean
+          description: True once the business has saved widget styling at least once, regardless of whether the agent has been confirmed yet.
         testAgent:
           type: boolean
 
