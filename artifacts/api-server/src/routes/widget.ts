@@ -511,7 +511,10 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
   if (parsed.data.laborAssumption)
     intakeParts.push(`Labor/scope guess: ${parsed.data.laborAssumption}`);
 
-  // Compose and send the quote email to the customer if email is provided.
+  // Compose the quote email up front (cheap, synchronous), but the actual
+  // sending (SMTP + optional PDF generation) happens AFTER the response is
+  // sent to the customer — those steps can be slow or hang, and must never
+  // block the widget from showing the estimate it already has.
   const composed =
     customerEmail.length > 0
       ? composeEstimateEmail({
@@ -526,57 +529,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
           emailClosing: settings.emailClosing,
         })
       : null;
-
-  let emailSent = false;
-  let pdfBuffer: Buffer | null = null;
-  if (composed && isEmailConfigured()) {
-    if (settings.attachPdf) {
-      pdfBuffer = await buildInvoicePdf({
-        businessName: business.name,
-        customerEmail,
-        serviceAddress,
-        projectDescription: parsed.data.projectDescription,
-        date: new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
-        estimate,
-        settings: {
-          selectedTemplate: settings.selectedTemplate,
-          includedSections,
-          brandColor: settings.brandColor,
-          cancellationPolicy: settings.cancellationPolicy,
-          paymentTerms: settings.paymentTerms,
-          estimateDisclaimer: settings.estimateDisclaimer,
-          termsConditions: settings.termsConditions,
-          acceptanceLanguage: settings.acceptanceLanguage,
-          depositRequirements: settings.depositRequirements,
-          footerNote: settings.footerNote,
-        },
-      });
-    }
-    const result = await sendEstimateEmail({
-      to: customerEmail,
-      cc: business.email ?? null,
-      replyTo: settings.replyToEmail,
-      subject: composed.subject,
-      text: composed.body,
-      attachment: pdfBuffer
-        ? { filename: "quote.pdf", content: pdfBuffer }
-        : null,
-    });
-    emailSent = result.sent;
-    logger.info(
-      {
-        clientId: business.clientId,
-        to: customerEmail,
-        cc: business.email ?? null,
-        sent: emailSent,
-      },
-      "[widget/interact] quote email sent",
-    );
-  }
+  const willSendEmail = Boolean(composed && isEmailConfigured());
 
   const [lead] = await db
     .insert(leadsTable)
@@ -594,7 +547,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
       estimatedHigh: estimate.recommendedPriceHigh,
       confidenceScore: estimate.confidenceScore,
       status: "new",
-      emailSent,
+      emailSent: false,
       emailSubject: composed?.subject ?? null,
       emailBody: composed?.body ?? null,
     })
@@ -603,7 +556,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
   await logActivity(
     business.id,
     "lead_created",
-    `New lead from ${parsed.data.name}${emailSent ? " (estimate emailed)" : ""}`,
+    `New lead from ${parsed.data.name}`,
   );
 
   logger.info(
@@ -611,6 +564,9 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
     "[widget/interact] quote disclaimer applied to quote output",
   );
 
+  // Respond to the customer immediately — the estimate is ready. Everything
+  // below (PDF + email) runs in the background and can never re-open or
+  // block this response.
   res.json(
     WidgetInteractResponse.parse({
       leadId: lead.id,
@@ -619,4 +575,69 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
       disclaimer: PRELIMINARY_ESTIMATE_DISCLAIMER,
     }),
   );
+
+  if (willSendEmail && composed) {
+    void (async () => {
+      try {
+        let pdfBuffer: Buffer | null = null;
+        if (settings.attachPdf) {
+          pdfBuffer = await buildInvoicePdf({
+            businessName: business.name,
+            customerEmail,
+            serviceAddress,
+            projectDescription: parsed.data.projectDescription,
+            date: new Date().toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }),
+            estimate,
+            settings: {
+              selectedTemplate: settings.selectedTemplate,
+              includedSections,
+              brandColor: settings.brandColor,
+              cancellationPolicy: settings.cancellationPolicy,
+              paymentTerms: settings.paymentTerms,
+              estimateDisclaimer: settings.estimateDisclaimer,
+              termsConditions: settings.termsConditions,
+              acceptanceLanguage: settings.acceptanceLanguage,
+              depositRequirements: settings.depositRequirements,
+              footerNote: settings.footerNote,
+            },
+          });
+        }
+        const result = await sendEstimateEmail({
+          to: customerEmail,
+          cc: business.email ?? null,
+          replyTo: settings.replyToEmail,
+          subject: composed.subject,
+          text: composed.body,
+          attachment: pdfBuffer
+            ? { filename: "quote.pdf", content: pdfBuffer }
+            : null,
+        });
+        logger.info(
+          {
+            clientId: business.clientId,
+            leadId: lead.id,
+            to: customerEmail,
+            cc: business.email ?? null,
+            sent: result.sent,
+          },
+          "[widget/interact] quote email sent",
+        );
+        if (result.sent) {
+          await db
+            .update(leadsTable)
+            .set({ emailSent: true })
+            .where(eq(leadsTable.id, lead.id));
+        }
+      } catch (err) {
+        logger.error(
+          { err, clientId: business.clientId, leadId: lead.id },
+          "[widget/interact] background quote email failed",
+        );
+      }
+    })();
+  }
 });

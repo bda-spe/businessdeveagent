@@ -5,7 +5,7 @@ const apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) {
   logger.warn("OPENAI_API_KEY is not set — AI features will use fallbacks");
 }
-const client = apiKey ? new OpenAI({ apiKey }) : null;
+const client = apiKey ? new OpenAI({ apiKey, timeout: 25_000 }) : null;
 const MODEL = "gpt-4o";
 
 export interface EstimateLineItem {
@@ -414,7 +414,8 @@ export async function generateAgentResponse(params: {
 
 BEHAVIOR RULES:
 - Use the business's typical job ranges (average/low/high job cost, crew sizes, typical duration, low-cost vs high-cost job examples, price increase/decrease factors) to anchor your estimate. Stay within realistic bounds for this business.
-- "budgetFit": compare the customer's stated budget to your estimate — one of "within_budget", "slightly_above", "above_budget", or "unknown" if no budget was given.
+- If the customer selected a budget bracket (a specific range like "$50-$75", not "Not sure"), your "recommendedPriceLow" and "recommendedPriceHigh" MUST fall inside that exact bracket whenever the job realistically fits the business's typical pricing for this type of work — do not silently return a number outside the bracket the customer chose. Only go outside their selected bracket if the scope they described is clearly too large or too small to be done at that price, and in that case you MUST say so explicitly in "message" (e.g. "Based on what you described, this is likely to run higher than the $50-$75 range you selected, here's why...") — never diverge from their selection without explaining why.
+- "budgetFit": compare the customer's stated budget to your final estimate — one of "within_budget", "slightly_above", "above_budget", or "unknown" if no budget was given. This must be consistent with the actual recommendedPriceLow/High vs the customer's selected bracket.
 - "estimatedLaborersNeeded": short phrase like "2-3 person crew". "estimatedDuration": short phrase like "half day".
 - If your confidenceScore is below 60, the message MUST include this exact sentence: "Based on the information provided, this is a preliminary range. Final pricing may change after review or inspection." Do not present a low-confidence estimate as final.
 - If the requested work appears OUTSIDE the business's service area or is not a service the business offers, say so politely in the message, keep the tone warm, still summarize what they asked for, set confidenceScore below 40, set recommendedPriceLow/High to null if no meaningful estimate is possible, and suggest the business will follow up to see if they can help or refer them.
@@ -467,7 +468,10 @@ Respond ONLY with a JSON object of shape: {"message": string, "estimate": {"cust
     lines.push("Follow-up questions and the customer's answers:");
     for (const a of answers) lines.push(`- Q: ${a.question}\n  A: ${a.answer}`);
   }
-  if (budget) lines.push(`Customer's stated budget: ${budget}`);
+  if (budget)
+    lines.push(
+      `Customer's selected budget bracket (from the widget's preset options): ${budget}. Your recommendedPriceLow/recommendedPriceHigh must land inside this bracket unless the described scope clearly cannot be done at that price — see the budget bracket rule above.`,
+    );
   if (laborAssumption)
     lines.push(`Customer's guess at labor/scope: ${laborAssumption}`);
   lines.push(

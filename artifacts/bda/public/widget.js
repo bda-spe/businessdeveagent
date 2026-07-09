@@ -105,10 +105,42 @@
   }
 
   var FONT =
-    "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;";
+    "font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;";
+
+  var TRANSITION = "transition:all 0.16s cubic-bezier(0.4,0,0.2,1);";
+
+  // Injected once so we can express hover/focus states and keyframe
+  // animations that inline styles alone can't express.
+  var STYLE_ID = "bda-widget-styles";
+  function injectStyles() {
+    if (document.getElementById(STYLE_ID)) return;
+    var style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent =
+      "@keyframes bda-panel-in{from{opacity:0;transform:translateY(14px) scale(0.98);}to{opacity:1;transform:translateY(0) scale(1);}}" +
+      "@keyframes bda-launcher-in{from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}" +
+      ".bda-launcher{transition:transform 0.18s cubic-bezier(0.4,0,0.2,1),box-shadow 0.18s cubic-bezier(0.4,0,0.2,1);}" +
+      ".bda-launcher:hover{transform:translateY(-2px);}" +
+      ".bda-panel{animation:bda-panel-in 0.22s cubic-bezier(0.16,1,0.3,1);}" +
+      ".bda-primary-btn{transition:filter 0.15s ease,transform 0.1s ease;}" +
+      ".bda-primary-btn:hover:not(:disabled){filter:brightness(1.08);}" +
+      ".bda-primary-btn:active:not(:disabled){transform:scale(0.98);}" +
+      ".bda-primary-btn:disabled{opacity:0.65;cursor:default;}" +
+      ".bda-option-btn{transition:border-color 0.15s ease,background 0.15s ease,transform 0.1s ease;}" +
+      ".bda-option-btn:hover{border-color:" + config.primaryColor + ";}" +
+      ".bda-option-btn:active{transform:scale(0.99);}" +
+      ".bda-input{transition:border-color 0.15s ease,box-shadow 0.15s ease;}" +
+      ".bda-input:focus{outline:none;border-color:" + config.primaryColor + ";box-shadow:0 0 0 3px " + config.primaryColor + "26;}" +
+      ".bda-back-link{transition:color 0.15s ease;}" +
+      ".bda-back-link:hover{color:#334155;}" +
+      ".bda-body::-webkit-scrollbar{width:6px;}" +
+      ".bda-body::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}";
+    document.head.appendChild(style);
+  }
 
   var inputStyle =
-    "width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:11px 12px;font-size:15px;background:#fff;color:#0f172a;" +
+    "width:100%;box-sizing:border-box;border:1.5px solid #dde3ea;border-radius:12px;padding:12px 14px;font-size:15px;background:#f8fafc;color:#0f172a;" +
+    TRANSITION +
     FONT;
 
   function primaryBtn(label) {
@@ -116,9 +148,11 @@
       "button",
       "width:100%;background:" +
         config.primaryColor +
-        ";color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;" +
+        ";color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:0.01em;box-shadow:0 4px 14px " +
+        config.primaryColor +
+        "40;" +
         FONT,
-      { type: "button" }
+      { type: "button", class: "bda-primary-btn" }
     );
     b.textContent = label;
     return b;
@@ -127,9 +161,9 @@
   function backLink(onClick) {
     var b = el(
       "button",
-      "background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;padding:6px 0;text-align:left;" +
+      "background:none;border:none;color:#94a3b8;font-size:13px;font-weight:500;cursor:pointer;padding:6px 0;text-align:left;" +
         FONT,
-      { type: "button" }
+      { type: "button", class: "bda-back-link" }
     );
     b.textContent = "\u2190 Back";
     b.addEventListener("click", onClick);
@@ -142,12 +176,12 @@
       "width:100%;box-sizing:border-box;text-align:left;border:1.5px solid " +
         (selected ? config.primaryColor : "#e2e8f0") +
         ";background:" +
-        (selected ? "#f0f4f9" : "#fff") +
-        ";color:#0f172a;border-radius:10px;padding:12px 14px;font-size:14px;font-weight:" +
+        (selected ? config.primaryColor + "14" : "#fff") +
+        ";color:#0f172a;border-radius:12px;padding:13px 15px;font-size:14px;font-weight:" +
         (selected ? "600" : "500") +
         ";cursor:pointer;" +
         FONT,
-      { type: "button" }
+      { type: "button", class: "bda-option-btn" }
     );
     b.textContent = label;
     return b;
@@ -220,7 +254,7 @@
     var ta = el(
       "textarea",
       inputStyle + "min-height:110px;resize:vertical;",
-      { placeholder: "Describe the job or project\u2026" }
+      { placeholder: "Describe the job or project\u2026", class: "bda-input" }
     );
     ta.value = state.description;
     body.appendChild(ta);
@@ -300,6 +334,7 @@
       var input = el("input", inputStyle, {
         type: "text",
         placeholder: "Your answer (optional)",
+        class: "bda-input",
       });
       input.value = state.answers[i] || "";
       fWrap.appendChild(input);
@@ -392,16 +427,19 @@
       type: "text",
       placeholder: "Your name",
       required: "required",
+      class: "bda-input",
     });
     nameInput.value = state.name;
     var emailInput = el("input", inputStyle, {
       type: "email",
       placeholder: "Email",
+      class: "bda-input",
     });
     emailInput.value = state.email;
     var phoneInput = el("input", inputStyle, {
       type: "tel",
       placeholder: "Phone",
+      class: "bda-input",
     });
     phoneInput.value = state.phone;
 
@@ -414,12 +452,14 @@
       type: "text",
       placeholder: "Street address",
       required: "required",
+      class: "bda-input",
     });
     streetInput.value = state.street;
     var cityInput = el("input", inputStyle, {
       type: "text",
       placeholder: "City",
       required: "required",
+      class: "bda-input",
     });
     cityInput.value = state.city;
     var row = el("div", "display:flex;gap:10px;");
@@ -427,12 +467,14 @@
       type: "text",
       placeholder: "State",
       required: "required",
+      class: "bda-input",
     });
     stateInput.value = state.stateVal;
     var zipInput = el("input", inputStyle + "flex:1;", {
       type: "text",
       placeholder: "ZIP code",
       required: "required",
+      class: "bda-input",
     });
     zipInput.value = state.zip;
     row.appendChild(stateInput);
@@ -611,7 +653,11 @@
         "div",
         "background:" +
           config.primaryColor +
-          ";color:#fff;border-radius:12px;padding:16px;margin-bottom:10px;"
+          ";background-image:linear-gradient(135deg," +
+          config.primaryColor +
+          " 0%,rgba(0,0,0,0.15) 220%);color:#fff;border-radius:16px;padding:18px;margin-bottom:12px;box-shadow:0 10px 26px " +
+          config.primaryColor +
+          "38;"
       );
       priceCard.appendChild(
         text(
@@ -731,6 +777,7 @@
   var BRANDING = "Business Development Agent \u00A9";
 
   function render() {
+    injectStyles();
     var side = config.position === "bottom-left" ? "left:16px;" : "right:16px;";
     var textColor = brandTextColor(config.primaryColor);
 
@@ -745,9 +792,11 @@
         config.primaryColor +
         ";color:" +
         textColor +
-        ";border:none;border-radius:16px;padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;text-align:left;box-shadow:0 8px 24px rgba(15,23,42,0.28);" +
+        ";border:none;border-radius:18px;padding:13px 20px;font-size:15px;font-weight:600;cursor:pointer;text-align:left;box-shadow:0 10px 30px " +
+        config.primaryColor +
+        "45,0 2px 8px rgba(15,23,42,0.12);animation:bda-launcher-in 0.3s cubic-bezier(0.16,1,0.3,1);" +
         FONT,
-      { type: "button" }
+      { type: "button", class: "bda-launcher" }
     );
     var launcherLabel = text(
       "span",
@@ -756,37 +805,39 @@
     );
     var launcherBrand = text(
       "span",
-      "display:block;font-size:10.5px;font-style:italic;opacity:0.85;font-weight:400;color:" + textColor + ";cursor:pointer;text-decoration:none;",
-      BRANDING,
-      { onclick: "window.open('https://businessdevelopmentagent.replit.app','_blank','noopener,noreferrer')" }
+      "display:block;font-size:10.5px;font-style:italic;opacity:0.85;font-weight:400;color:" + textColor + ";cursor:default;text-decoration:none;pointer-events:none;",
+      BRANDING
     );
     launcher.appendChild(launcherLabel);
     launcher.appendChild(launcherBrand);
 
     panel = el(
       "div",
-      "display:none;flex-direction:column;width:370px;max-width:calc(100vw - 32px);height:560px;max-height:calc(100vh - 110px);background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,0.24);margin-bottom:12px;"
+      "display:none;flex-direction:column;width:380px;max-width:calc(100vw - 32px);height:580px;max-height:calc(100vh - 110px);background:#fff;border:1px solid rgba(15,23,42,0.06);border-radius:20px;overflow:hidden;box-shadow:0 30px 70px rgba(15,23,42,0.28),0 4px 16px rgba(15,23,42,0.08);margin-bottom:14px;",
+      { class: "bda-panel" }
     );
 
     var header = el(
       "div",
       "background:" +
         config.primaryColor +
-        ";color:" +
+        ";background-image:linear-gradient(135deg," +
+        config.primaryColor +
+        " 0%,rgba(0,0,0,0.12) 200%);color:" +
         textColor +
-        ";padding:14px 18px;"
+        ";padding:18px 20px;"
     );
     header.appendChild(
       text(
         "p",
-        "margin:0;font-size:15px;font-weight:700;color:" + textColor + ";",
+        "margin:0;font-size:16px;font-weight:700;letter-spacing:-0.01em;color:" + textColor + ";",
         config.businessName
       )
     );
     header.appendChild(
       text(
         "a",
-        "margin:2px 0 0;font-size:12px;font-style:italic;opacity:0.85;color:" + textColor + ";text-decoration:none;cursor:pointer;",
+        "margin:3px 0 0;font-size:12px;font-style:italic;opacity:0.8;color:" + textColor + ";text-decoration:none;cursor:pointer;",
         BRANDING,
         { href: "https://businessdevelopmentagent.replit.app", target: "_blank", rel: "noopener noreferrer" }
       )
@@ -794,7 +845,8 @@
 
     body = el(
       "div",
-      "flex:1;overflow-y:auto;padding:18px;background:#fff;color:#0f172a;font-size:14px;line-height:1.5;"
+      "flex:1;overflow-y:auto;padding:20px;background:#fff;color:#0f172a;font-size:14px;line-height:1.5;",
+      { class: "bda-body" }
     );
 
     panel.appendChild(header);
