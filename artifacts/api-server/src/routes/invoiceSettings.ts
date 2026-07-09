@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
-import { db, invoiceSettingsTable } from "@workspace/db";
+import { db, invoiceSettingsTable, businessPoliciesTable } from "@workspace/db";
 import {
   GetInvoiceSettingsResponse,
   SaveInvoiceSettingsBody,
@@ -12,6 +12,7 @@ import {
   DEFAULT_INVOICE_LANGUAGE,
   DEFAULT_EMAIL_SETTINGS,
 } from "../lib/defaults";
+import { syncBusinessPoliciesToInvoiceSettings } from "./businessPolicies";
 
 const router: IRouter = Router();
 
@@ -30,7 +31,9 @@ export async function getOrCreateSettings(businessId: number) {
     .select()
     .from(invoiceSettingsTable)
     .where(eq(invoiceSettingsTable.businessId, businessId));
+  let isNewRow = false;
   if (!row) {
+    isNewRow = true;
     [row] = await db
       .insert(invoiceSettingsTable)
       .values({
@@ -39,6 +42,36 @@ export async function getOrCreateSettings(businessId: number) {
         ...DEFAULT_EMAIL_SETTINGS,
       })
       .returning();
+  }
+  // Business policies (Step 5 of onboarding) are the source of truth for
+  // policy wording shown on quotes. Seed/backfill invoice_settings from them
+  // whenever the shared fields still look untouched (either a brand-new row,
+  // or a legacy row still holding the generic hardcoded defaults) so quotes
+  // never show unrelated/randomly-generated policy text.
+  const looksUnsynced =
+    isNewRow ||
+    (row.paymentTerms === DEFAULT_INVOICE_LANGUAGE.paymentTerms &&
+      row.cancellationPolicy === DEFAULT_INVOICE_LANGUAGE.cancellationPolicy);
+  if (looksUnsynced) {
+    const [policies] = await db
+      .select()
+      .from(businessPoliciesTable)
+      .where(eq(businessPoliciesTable.businessId, businessId));
+    if (
+      policies &&
+      (policies.paymentTerms ||
+        policies.cancellationPolicy ||
+        policies.warrantyPolicy ||
+        policies.refundPolicy ||
+        policies.weatherDelayPolicy ||
+        policies.customerResponsibilities)
+    ) {
+      await syncBusinessPoliciesToInvoiceSettings(businessId, policies);
+      [row] = await db
+        .select()
+        .from(invoiceSettingsTable)
+        .where(eq(invoiceSettingsTable.businessId, businessId));
+    }
   }
   if (row.emailSubject == null) {
     row = {

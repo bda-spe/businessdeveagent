@@ -7,6 +7,7 @@ import {
   pricingRulesTable,
   businessOperationsTable,
   servicesTable,
+  invoiceSettingsTable,
 } from "@workspace/db";
 import {
   GetBusinessPoliciesResponse,
@@ -36,6 +37,51 @@ async function getOrCreate(businessId: number) {
   return row;
 }
 
+// Business policies (Step 5 of onboarding) are the single source of truth
+// for policy wording. Whenever they change, push the shared fields into
+// invoice_settings so the Quote Formatting page always reflects them
+// instead of drifting to unrelated/default text.
+function buildTermsConditionsFromPolicies(policies: {
+  warrantyPolicy?: string | null;
+  refundPolicy?: string | null;
+  weatherDelayPolicy?: string | null;
+  customerResponsibilities?: string | null;
+}): string {
+  const sections: Array<[string, string | null | undefined]> = [
+    ["Warranty / Guarantee", policies.warrantyPolicy],
+    ["Refund Policy", policies.refundPolicy],
+    ["Weather Delays", policies.weatherDelayPolicy],
+    ["Customer Responsibilities", policies.customerResponsibilities],
+  ];
+  return sections
+    .filter(([, value]) => value && value.trim().length > 0)
+    .map(([label, value]) => `${label}: ${value!.trim()}`)
+    .join("\n\n");
+}
+
+export async function syncBusinessPoliciesToInvoiceSettings(
+  businessId: number,
+  policies: {
+    paymentTerms?: string | null;
+    cancellationPolicy?: string | null;
+    warrantyPolicy?: string | null;
+    refundPolicy?: string | null;
+    weatherDelayPolicy?: string | null;
+    customerResponsibilities?: string | null;
+  },
+): Promise<void> {
+  const termsConditions = buildTermsConditionsFromPolicies(policies);
+  await db
+    .update(invoiceSettingsTable)
+    .set({
+      paymentTerms: policies.paymentTerms ?? null,
+      cancellationPolicy: policies.cancellationPolicy ?? null,
+      termsConditions: termsConditions || null,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(invoiceSettingsTable.businessId, businessId));
+}
+
 router.get(
   "/business/policies",
   requireBusiness,
@@ -60,6 +106,7 @@ router.patch(
       .set({ ...parsed.data, updatedAt: new Date().toISOString() })
       .where(eq(businessPoliciesTable.businessId, req.business!.id))
       .returning();
+    await syncBusinessPoliciesToInvoiceSettings(req.business!.id, updated);
     await logActivity(
       req.business!.id,
       "business_updated",
