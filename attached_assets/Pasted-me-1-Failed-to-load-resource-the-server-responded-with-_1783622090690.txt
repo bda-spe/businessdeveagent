@@ -1,0 +1,130 @@
+me:1  Failed to load resource: the server responded with a status of 500 ()
+me:1  Failed to load resource: the server responded with a status of 500 ()
+me:1  Failed to load resource: the server responded with a status of 500 ()
+index-sd9V9reI.js:23  GET https://businessdevelopmentagent.replit.app/api/me 500 (Internal Server Error)
+qe @ index-sd9V9reI.js:23
+lP @ index-sd9V9reI.js:23
+queryFn @ index-sd9V9reI.js:23
+o @ index-sd9V9reI.js:16
+E @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+Promise.then
+(anonymous) @ index-sd9V9reI.js:16
+index-sd9V9reI.js:23  GET https://businessdevelopmentagent.replit.app/api/me 500 (Internal Server Error)
+qe @ index-sd9V9reI.js:23
+lP @ index-sd9V9reI.js:23
+queryFn @ index-sd9V9reI.js:23
+o @ index-sd9V9reI.js:16
+E @ index-sd9V9reI.js:16
+start @ index-sd9V9reI.js:16
+fetch @ index-sd9V9reI.js:16
+#h @ index-sd9V9reI.js:16
+fetch @ index-sd9V9reI.js:16
+refetch @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+batch @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+await in (anonymous)
+(anonymous) @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+t @ index-sd9V9reI.js:16
+index-sd9V9reI.js:23  GET https://businessdevelopmentagent.replit.app/api/me 500 (Internal Server Error)
+qe @ index-sd9V9reI.js:23
+lP @ index-sd9V9reI.js:23
+queryFn @ index-sd9V9reI.js:23
+o @ index-sd9V9reI.js:16
+E @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+Promise.then
+(anonymous) @ index-sd9V9reI.js:16
+Promise.catch
+E @ index-sd9V9reI.js:16
+start @ index-sd9V9reI.js:16
+fetch @ index-sd9V9reI.js:16
+#h @ index-sd9V9reI.js:16
+fetch @ index-sd9V9reI.js:16
+refetch @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+batch @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+await in (anonymous)
+(anonymous) @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+t @ index-sd9V9reI.js:16
+index-sd9V9reI.js:23  GET https://businessdevelopmentagent.replit.app/api/me 500 (Internal Server Error)
+qe @ index-sd9V9reI.js:23
+lP @ index-sd9V9reI.js:23
+queryFn @ index-sd9V9reI.js:23
+o @ index-sd9V9reI.js:16
+E @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+Promise.then
+(anonymous) @ index-sd9V9reI.js:16
+Promise.catch
+E @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+Promise.then
+(anonymous) @ index-sd9V9reI.js:16
+Promise.catch
+E @ index-sd9V9reI.js:16
+start @ index-sd9V9reI.js:16
+fetch @ index-sd9V9reI.js:16
+#h @ index-sd9V9reI.js:16
+fetch @ index-sd9V9reI.js:16
+refetch @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+batch @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+await in (anonymous)
+(anonymous) @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+t @ index-sd9V9reI.js:16
+index-sd9V9reI.js:23  GET https://businessdevelopmentagent.replit.app/api/me 500 (Internal Server Error)
+qe @ index-sd9V9reI.js:23
+lP @ index-sd9V9reI.js:23
+queryFn @ index-sd9V9reI.js:23
+o @ index-sd9V9reI.js:16
+E @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+Promise.then
+(anonymous) @ index-sd9V9reI.js:16
+Promise.catch
+E @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+Promise.then
+(anonymous) @ index-sd9V9reI.js:16
+Promise.catch
+E @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+Promise.then
+(anonymous) @ index-sd9V9reI.js:16
+Promise.catch
+E @ index-sd9V9reI.js:16
+start @ index-sd9V9reI.js:16
+fetch @ index-sd9V9reI.js:16
+#h @ index-sd9V9reI.js:16
+fetch @ index-sd9V9reI.js:16
+refetch @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+batch @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+await in (anonymous)
+(anonymous) @ index-sd9V9reI.js:16
+onFocus @ index-sd9V9reI.js:16
+(anonymous) @ index-sd9V9reI.js:16
+t @ index-sd9V9reI.js:16

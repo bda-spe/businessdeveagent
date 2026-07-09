@@ -46,6 +46,7 @@ router.get("/me", async (req, res): Promise<void> => {
     pricing: false,
     invoiceFormatting: false,
     widget: false,
+    widgetStyled: false,
     testAgent: false,
   };
 
