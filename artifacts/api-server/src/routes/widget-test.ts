@@ -8,6 +8,7 @@ import {
   estimateRulesTable,
   agentPreferencesTable,
   sandboxTestsTable,
+  widgetSettingsTable,
 } from "@workspace/db";
 import {
   GetWidgetTestConfigResponse,
@@ -47,16 +48,28 @@ widgetTestRouter.get(
       .where(eq(pricingRulesTable.businessId, business.id));
     const { ranges: budgetRanges } = buildBudgetRanges(pricingRow ?? null);
 
+    let [settings] = await db
+      .select()
+      .from(widgetSettingsTable)
+      .where(eq(widgetSettingsTable.businessId, business.id));
+    if (!settings) {
+      [settings] = await db
+        .insert(widgetSettingsTable)
+        .values({ businessId: business.id })
+        .returning();
+    }
+
     res.json(
       GetWidgetTestConfigResponse.parse({
         clientId: business.clientId,
         businessName: business.name,
-        greeting:
-          "This is a safe test conversation — no lead will be created and no email will be sent.",
-        primaryColor: "#1e3a5f",
-        position: "bottom-right",
+        greeting: settings.greeting,
+        primaryColor: settings.primaryColor,
+        position: settings.position,
         budgetRanges,
-        // Test mode is always usable, even before the widget goes live.
+        // Test mode reflects the business's real saved widget branding, but
+        // is always usable regardless of whether the widget has actually
+        // gone live yet — that's the point of a safe preview/test surface.
         enabled: true,
       }),
     );
@@ -201,8 +214,12 @@ widgetTestRouter.post(
         quoteFormat: {
           selectedTemplate: settings.selectedTemplate,
           includedSections,
-          estimateDisclaimer: settings.showPolicies ? settings.estimateDisclaimer : null,
-          acceptanceLanguage: settings.showPolicies ? settings.acceptanceLanguage : null,
+          showPolicies: settings.showPolicies,
+          estimateDisclaimer: settings.estimateDisclaimer,
+          acceptanceLanguage: settings.acceptanceLanguage,
+          paymentTerms: settings.paymentTerms,
+          cancellationPolicy: settings.cancellationPolicy,
+          termsConditions: settings.termsConditions,
         },
         feedback,
       }),

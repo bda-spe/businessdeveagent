@@ -16,6 +16,16 @@ import {
 
 const router: IRouter = Router();
 
+// The five section keys that used to gate policy/legal text individually,
+// before they were collapsed into the single `showPolicies` toggle.
+const LEGACY_POLICY_SECTION_KEYS = [
+  "cancellation_policy",
+  "payment_terms",
+  "terms_conditions",
+  "estimate_disclaimer",
+  "acceptance_language",
+];
+
 export async function getOrCreateSettings(businessId: number) {
   let [row] = await db
     .select()
@@ -46,6 +56,28 @@ export async function getOrCreateSettings(businessId: number) {
   }
   if (row.brandColor == null) {
     row = { ...row, brandColor: DEFAULT_EMAIL_SETTINGS.brandColor };
+  }
+  // One-time normalization for businesses created before quote formatting was
+  // simplified to a single template + one "Show policies on estimate"
+  // toggle. Legacy rows may have `showPolicies` left at its default (false)
+  // even though the business had previously enabled one or more of the five
+  // policy sections individually — infer intent from that legacy data so
+  // existing quotes don't silently lose their policy text.
+  if (!row.showPolicies) {
+    const legacySections = Array.isArray(row.includedSections)
+      ? (row.includedSections as string[])
+      : [];
+    const hadAnyPolicySection = LEGACY_POLICY_SECTION_KEYS.some((key) =>
+      legacySections.includes(key),
+    );
+    if (hadAnyPolicySection) {
+      const [updated] = await db
+        .update(invoiceSettingsTable)
+        .set({ showPolicies: true, updatedAt: new Date().toISOString() })
+        .where(eq(invoiceSettingsTable.businessId, businessId))
+        .returning();
+      row = updated ?? { ...row, showPolicies: true };
+    }
   }
   return row;
 }

@@ -9,6 +9,7 @@ const LIGHT = "#94a3b8";
 export interface InvoicePdfSettings {
   selectedTemplate: string;
   includedSections: string[];
+  showPolicies: boolean;
   brandColor?: string | null;
   cancellationPolicy?: string | null;
   paymentTerms?: string | null;
@@ -73,9 +74,6 @@ export function buildInvoicePdf(opts: {
     settings,
   } = opts;
   const sections = settings.includedSections;
-  const detailed =
-    settings.selectedTemplate === "detailed_agreement" ||
-    settings.selectedTemplate === "professional_proposal";
 
   const brandColor = settings.brandColor || DEFAULT_NAVY;
 
@@ -215,6 +213,9 @@ export function buildInvoicePdf(opts: {
       }
     }
 
+    // All five policy/legal text blocks are gated together by the single
+    // "Show policies on estimate" toggle — there is no more per-block
+    // control.
     const policyBlocks: { key: string; label: string; body?: string | null }[] = [
       { key: "payment_terms", label: "Payment Terms", body: settings.paymentTerms },
       {
@@ -238,19 +239,20 @@ export function buildInvoicePdf(opts: {
         body: settings.acceptanceLanguage,
       },
     ];
-    for (const block of policyBlocks) {
-      if (!sections.includes(block.key) || !block.body) continue;
-      if (!detailed && block.key === "terms_conditions") continue;
-      if (block.key === "terms_conditions") {
-        // Accent the terms heading with the brand color for contract emphasis
-        doc.moveDown(0.8);
-        doc.font("Helvetica-Bold").fontSize(11).fillColor(brandColor).text(block.label);
-        doc.moveDown(0.2);
-        doc.font("Helvetica").fontSize(9.5).fillColor(SLATE);
-      } else {
-        writeHeading(block.label);
+    if (settings.showPolicies) {
+      for (const block of policyBlocks) {
+        if (!block.body) continue;
+        if (block.key === "terms_conditions") {
+          // Accent the terms heading with the brand color for contract emphasis
+          doc.moveDown(0.8);
+          doc.font("Helvetica-Bold").fontSize(11).fillColor(brandColor).text(block.label);
+          doc.moveDown(0.2);
+          doc.font("Helvetica").fontSize(9.5).fillColor(SLATE);
+        } else {
+          writeHeading(block.label);
+        }
+        doc.text(block.body, { width: doc.page.width - 108 });
       }
-      doc.text(block.body, { width: doc.page.width - 108 });
     }
 
     // Every quote PDF carries the preliminary-estimate disclaimer, regardless

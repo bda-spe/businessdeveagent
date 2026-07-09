@@ -387,8 +387,12 @@ export async function generateAgentResponse(params: {
   quoteFormat?: {
     selectedTemplate?: string | null;
     includedSections?: string[] | null;
+    showPolicies?: boolean;
     estimateDisclaimer?: string | null;
     acceptanceLanguage?: string | null;
+    paymentTerms?: string | null;
+    cancellationPolicy?: string | null;
+    termsConditions?: string | null;
   } | null;
   feedback?: { rating: number | null; notes: string }[];
 }): Promise<{ agentResponse: string; estimate: Estimate }> {
@@ -443,22 +447,32 @@ Respond ONLY with a JSON object of shape: {"message": string, "estimate": {"cust
       `BUSINESS OWNER FEEDBACK from previous test conversations — incorporate these corrections into your behavior:\n${feedback.map((f) => `- ${f.rating != null ? `(rated ${f.rating}/5) ` : ""}${f.notes || "(no written notes — treat the rating as a satisfaction signal: low ratings mean the previous style of response missed the mark)"}`).join("\n")}`,
     );
   if (quoteFormat) {
-    if (quoteFormat.selectedTemplate)
-      lines.push(
-        `Selected quote template (the business's chosen quote format — structure the quote presentation to match it): ${quoteFormat.selectedTemplate}`,
-      );
     if (quoteFormat.includedSections && quoteFormat.includedSections.length > 0)
       lines.push(
         `Enabled quote sections (only include content relevant to these sections in the quote): ${quoteFormat.includedSections.join(", ")}`,
       );
-    if (quoteFormat.estimateDisclaimer)
-      lines.push(
-        `Business quote disclaimer (reflect this in the quote): ${quoteFormat.estimateDisclaimer}`,
-      );
-    if (quoteFormat.acceptanceLanguage)
-      lines.push(
-        `Business acceptance language: ${quoteFormat.acceptanceLanguage}`,
-      );
+    // The business's five policy/legal text blocks are shown or hidden
+    // together via a single "Show policies on estimate" toggle.
+    if (quoteFormat.showPolicies) {
+      if (quoteFormat.estimateDisclaimer)
+        lines.push(
+          `Business quote disclaimer (reflect this in the quote): ${quoteFormat.estimateDisclaimer}`,
+        );
+      if (quoteFormat.acceptanceLanguage)
+        lines.push(
+          `Business acceptance language: ${quoteFormat.acceptanceLanguage}`,
+        );
+      if (quoteFormat.paymentTerms)
+        lines.push(`Business payment terms: ${quoteFormat.paymentTerms}`);
+      if (quoteFormat.cancellationPolicy)
+        lines.push(
+          `Business cancellation policy: ${quoteFormat.cancellationPolicy}`,
+        );
+      if (quoteFormat.termsConditions)
+        lines.push(
+          `Business terms and conditions: ${quoteFormat.termsConditions}`,
+        );
+    }
     lines.push(
       "Always present the quote as a preliminary estimate, never as a final service agreement or invoice.",
     );

@@ -489,8 +489,12 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
       quoteFormat: {
         selectedTemplate: settings.selectedTemplate,
         includedSections,
+        showPolicies: settings.showPolicies,
         estimateDisclaimer: settings.estimateDisclaimer,
         acceptanceLanguage: settings.acceptanceLanguage,
+        paymentTerms: settings.paymentTerms,
+        cancellationPolicy: settings.cancellationPolicy,
+        termsConditions: settings.termsConditions,
       },
     }),
     summarizeLead(parsed.data.projectDescription),
@@ -595,6 +599,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
             settings: {
               selectedTemplate: settings.selectedTemplate,
               includedSections,
+              showPolicies: settings.showPolicies,
               brandColor: settings.brandColor,
               cancellationPolicy: settings.cancellationPolicy,
               paymentTerms: settings.paymentTerms,
