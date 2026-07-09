@@ -37,6 +37,7 @@ function money(n: number | null | undefined): string {
 export function buildInvoicePdf(opts: {
   businessName: string;
   customerEmail?: string | null;
+  customerPhone?: string | null;
   serviceAddress?: string | null;
   projectDescription?: string | null;
   date: string;
@@ -46,6 +47,7 @@ export function buildInvoicePdf(opts: {
   const {
     businessName,
     customerEmail,
+    customerPhone,
     serviceAddress,
     projectDescription,
     date,
@@ -80,6 +82,10 @@ export function buildInvoicePdf(opts: {
     y += 14;
     if (customerEmail) {
       doc.text(`Prepared for: ${customerEmail}`, 54, y);
+      y += 14;
+    }
+    if (customerPhone) {
+      doc.text(`Phone: ${customerPhone}`, 54, y);
       y += 14;
     }
     if (serviceAddress) {

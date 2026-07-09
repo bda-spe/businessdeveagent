@@ -121,6 +121,7 @@ router.post("/leads/:id/send-email", requireBusiness, async (req, res): Promise<
     pdfBuffer = await buildInvoicePdf({
       businessName: req.business!.name,
       customerEmail: lead.email,
+      customerPhone: lead.phone,
       projectDescription: lead.projectDescription || "",
       date: new Date(lead.createdAt).toLocaleDateString("en-US", {
         year: "numeric",

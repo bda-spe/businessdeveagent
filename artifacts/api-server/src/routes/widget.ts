@@ -588,6 +588,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
           pdfBuffer = await buildInvoicePdf({
             businessName: business.name,
             customerEmail,
+            customerPhone,
             serviceAddress,
             projectDescription: parsed.data.projectDescription,
             date: new Date().toLocaleDateString("en-US", {
