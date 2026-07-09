@@ -23,9 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -40,7 +38,6 @@ import { ColorPickerPopover } from "@/components/color-picker";
 import {
   FileText,
   ScrollText,
-  ListChecks,
   Mail,
 } from "lucide-react";
 import {
@@ -119,67 +116,6 @@ const POLICY_FIELDS: {
   },
 ];
 
-export const SECTION_GROUPS: {
-  title: string;
-  items: { key: string; label: string; description: string }[];
-}[] = [
-  {
-    title: "Line Items & Pricing",
-    items: [
-      { key: "labor", label: "Labor", description: "Labor charges as line items." },
-      {
-        key: "materials",
-        label: "Materials",
-        description: "Materials and supplies charges.",
-      },
-      {
-        key: "travel_mobilization",
-        label: "Travel / Mobilization Fee",
-        description: "Trip or mobilization charges.",
-      },
-      {
-        key: "taxes_fees",
-        label: "Taxes & Fees",
-        description: "Applicable taxes and fees.",
-      },
-      {
-        key: "discounts",
-        label: "Discounts",
-        description: "Any discounts applied to the estimate.",
-      },
-      {
-        key: "emergency_fees",
-        label: "Emergency / After-Hours Fees",
-        description: "Surcharges for urgent or after-hours work.",
-      },
-    ],
-  },
-  {
-    title: "Project Details",
-    items: [
-      {
-        key: "estimated_duration",
-        label: "Estimated Duration",
-        description: "How long the work is expected to take.",
-      },
-      {
-        key: "assumptions",
-        label: "Assumptions",
-        description: "Conditions the estimate is based on.",
-      },
-      {
-        key: "follow_up_questions",
-        label: "Follow-Up Questions",
-        description: "Open questions for the customer.",
-      },
-    ],
-  },
-];
-
-const ALL_SECTION_KEYS = SECTION_GROUPS.flatMap((g) =>
-  g.items.map((i) => i.key),
-);
-
 function fillPlaceholders(
   template: string,
   vars: Record<string, string>,
@@ -197,8 +133,6 @@ export default function InvoiceFormattingPage() {
   const { data: services } = useListServices();
   const { data: pricing } = useGetPricing();
   const saveSettings = useSaveInvoiceSettings();
-
-  const [sections, setSections] = useState<string[]>(ALL_SECTION_KEYS);
 
   const form = useForm<SettingsValues>({
     resolver: zodResolver(settingsSchema),
@@ -224,12 +158,6 @@ export default function InvoiceFormattingPage() {
 
   useEffect(() => {
     if (settings) {
-      setSections(
-        Array.isArray(settings.includedSections) &&
-          settings.includedSections.length > 0
-          ? settings.includedSections
-          : ALL_SECTION_KEYS,
-      );
       form.reset({
         cancellationPolicy: settings.cancellationPolicy ?? "",
         paymentTerms: settings.paymentTerms ?? "",
@@ -252,12 +180,6 @@ export default function InvoiceFormattingPage() {
   }, [settings, form]);
 
   const watched = form.watch();
-
-  const toggleSection = (key: string, checked: boolean) => {
-    setSections((prev) =>
-      checked ? [...new Set([...prev, key])] : prev.filter((k) => k !== key),
-    );
-  };
 
   // Build a realistic sample estimate from the business's actual data
   const businessName = me?.business?.name || "ABC Services";
@@ -286,11 +208,7 @@ export default function InvoiceFormattingPage() {
           },
         ];
 
-  if (
-    sections.includes("travel_mobilization") &&
-    travelFee != null &&
-    travelFee > 0
-  ) {
+  if (travelFee != null && travelFee > 0) {
     lineItems.push({
       description: "Travel / Mobilization Fee",
       quantity: 1,
@@ -300,9 +218,7 @@ export default function InvoiceFormattingPage() {
   }
 
   const subtotal = lineItems.reduce((sum, li) => sum + li.total, 0);
-  const taxes = sections.includes("taxes_fees")
-    ? Math.round(subtotal * (taxRate / 100) * 100) / 100
-    : 0;
+  const taxes = Math.round(subtotal * (taxRate / 100) * 100) / 100;
   const total = Math.round((subtotal + taxes) * 100) / 100;
 
   const previewData: InvoiceRenderData = {
@@ -323,15 +239,9 @@ export default function InvoiceFormattingPage() {
         ? `Customer requested ${activeServices[0].name.toLowerCase()} and would like an estimate before scheduling.`
         : "Customer requested a service estimate before scheduling.",
       assumptions: [
-        ...(sections.includes("estimated_duration")
-          ? ["Estimated duration: 1-2 days on site."]
-          : []),
-        ...(sections.includes("assumptions")
-          ? [
-              "Standard access and working conditions.",
-              "Estimate is preliminary and subject to on-site verification.",
-            ]
-          : []),
+        "Estimated duration: 1-2 days on site.",
+        "Standard access and working conditions.",
+        "Estimate is preliminary and subject to on-site verification.",
       ],
       invoiceLineItems: lineItems,
       subtotal,
@@ -393,7 +303,6 @@ export default function InvoiceFormattingPage() {
           attachPdf: values.attachPdf,
           showPolicies: values.showPolicies,
           brandColor: values.brandColor || "#1e3a5f",
-          includedSections: sections,
         },
       },
       {
@@ -449,13 +358,33 @@ export default function InvoiceFormattingPage() {
                   This is how every estimate will look to your customers.
                 </p>
               </div>
-              <ColorPickerPopover
-                value={watched.brandColor ?? "#1e3a5f"}
-                onChange={(c) =>
-                  form.setValue("brandColor", c, { shouldDirty: true })
-                }
-                testId="button-brand-color"
-              />
+              <div className="flex items-center gap-3">
+                <FormField
+                  control={form.control}
+                  name="showPolicies"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 space-y-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                      <FormLabel className="text-sm font-medium text-slate-700 cursor-pointer whitespace-nowrap">
+                        Show policies
+                      </FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="switch-show-policies"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <ColorPickerPopover
+                  value={watched.brandColor ?? "#1e3a5f"}
+                  onChange={(c) =>
+                    form.setValue("brandColor", c, { shouldDirty: true })
+                  }
+                  testId="button-brand-color"
+                />
+              </div>
             </div>
             <div
               className="max-w-md rounded-xl border-2 border-slate-200 shadow-sm overflow-hidden bg-white"
@@ -469,64 +398,6 @@ export default function InvoiceFormattingPage() {
             </div>
           </section>
 
-          {/* Quote sections */}
-          <section>
-            <div className="mb-5">
-              <h3 className="text-lg font-semibold text-slate-900">
-                Quote Sections
-              </h3>
-              <p className="text-sm text-slate-500 mt-1">
-                Choose which sections appear on estimates and quotes. The
-                template previews above update as you change these.
-              </p>
-            </div>
-            <Card className="border-slate-200 shadow-sm">
-              <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
-                <CardTitle className="flex items-center text-lg">
-                  <ListChecks className="w-5 h-5 mr-2 text-blue-600" />
-                  Included Sections
-                </CardTitle>
-                <CardDescription>
-                  {sections.length} of {ALL_SECTION_KEYS.length} sections
-                  enabled
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 grid gap-8 md:grid-cols-3">
-                {SECTION_GROUPS.map((group) => (
-                  <div key={group.title} className="space-y-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      {group.title}
-                    </p>
-                    {group.items.map((item) => (
-                      <div key={item.key} className="flex items-start gap-3">
-                        <Checkbox
-                          id={`section-${item.key}`}
-                          checked={sections.includes(item.key)}
-                          onCheckedChange={(checked) =>
-                            toggleSection(item.key, checked === true)
-                          }
-                          data-testid={`checkbox-section-${item.key}`}
-                          className="mt-0.5"
-                        />
-                        <div className="space-y-0.5">
-                          <Label
-                            htmlFor={`section-${item.key}`}
-                            className="text-sm font-medium text-slate-800 cursor-pointer"
-                          >
-                            {item.label}
-                          </Label>
-                          <p className="text-xs text-slate-500">
-                            {item.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </section>
-
           {/* Policy fields */}
           <section>
             <div className="mb-5">
@@ -534,7 +405,8 @@ export default function InvoiceFormattingPage() {
                 Policies &amp; Terms
               </h3>
               <p className="text-sm text-slate-500 mt-1">
-                The wording below is always available to your agent. Choose
+                The wording below is always available to your agent. Use the
+                "Show policies" switch next to the quote preview to choose
                 whether the full policy text appears on customer estimates.
               </p>
             </div>
@@ -546,28 +418,6 @@ export default function InvoiceFormattingPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-6">
-                <FormField
-                  control={form.control}
-                  name="showPolicies"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                      <div>
-                        <FormLabel>Show policies on estimate</FormLabel>
-                        <FormDescription>
-                          Off: customers see a short agreement line. On:
-                          customers see your full policy wording below.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="switch-show-policies"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
                 <div className="grid gap-6 md:grid-cols-2">
                 {POLICY_FIELDS.map((f) => (
                   <FormField

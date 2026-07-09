@@ -1689,12 +1689,6 @@ components:
           type: ["string", "null"]
         footerNote:
           type: ["string", "null"]
-        includedSections:
-          oneOf:
-            - type: array
-              items:
-                type: string
-            - type: "null"
         showPolicies:
           type: boolean
           description: When true, show full policy text on estimates; when false, show a single short agreement line.
@@ -1736,10 +1730,6 @@ components:
           type: ["string", "null"]
         footerNote:
           type: ["string", "null"]
-        includedSections:
-          type: array
-          items:
-            type: string
         showPolicies:
           type: boolean
           description: When true, show full policy text on estimates; when false, show a single short agreement line.

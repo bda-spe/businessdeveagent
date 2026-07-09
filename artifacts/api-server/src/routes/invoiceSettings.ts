@@ -11,7 +11,6 @@ import { logActivity } from "../lib/business";
 import {
   DEFAULT_INVOICE_LANGUAGE,
   DEFAULT_EMAIL_SETTINGS,
-  ALL_INVOICE_SECTIONS,
 } from "../lib/defaults";
 
 const router: IRouter = Router();
@@ -38,12 +37,8 @@ export async function getOrCreateSettings(businessId: number) {
         businessId,
         ...DEFAULT_INVOICE_LANGUAGE,
         ...DEFAULT_EMAIL_SETTINGS,
-        includedSections: ALL_INVOICE_SECTIONS,
       })
       .returning();
-  }
-  if (row.includedSections == null) {
-    row = { ...row, includedSections: ALL_INVOICE_SECTIONS };
   }
   if (row.emailSubject == null) {
     row = {

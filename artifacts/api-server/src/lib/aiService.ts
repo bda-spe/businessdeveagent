@@ -386,7 +386,6 @@ export async function generateAgentResponse(params: {
   agentPreferences?: Record<string, unknown> | null;
   quoteFormat?: {
     selectedTemplate?: string | null;
-    includedSections?: string[] | null;
     showPolicies?: boolean;
     estimateDisclaimer?: string | null;
     acceptanceLanguage?: string | null;
@@ -447,10 +446,6 @@ Respond ONLY with a JSON object of shape: {"message": string, "estimate": {"cust
       `BUSINESS OWNER FEEDBACK from previous test conversations — incorporate these corrections into your behavior:\n${feedback.map((f) => `- ${f.rating != null ? `(rated ${f.rating}/5) ` : ""}${f.notes || "(no written notes — treat the rating as a satisfaction signal: low ratings mean the previous style of response missed the mark)"}`).join("\n")}`,
     );
   if (quoteFormat) {
-    if (quoteFormat.includedSections && quoteFormat.includedSections.length > 0)
-      lines.push(
-        `Enabled quote sections (only include content relevant to these sections in the quote): ${quoteFormat.includedSections.join(", ")}`,
-      );
     // The business's five policy/legal text blocks are shown or hidden
     // together via a single "Show policies on estimate" toggle.
     if (quoteFormat.showPolicies) {
@@ -653,7 +648,6 @@ export async function runTestAgentTurn(params: {
   business: BusinessContext;
   services: ServiceContext[];
   pricing: PricingContext | null;
-  includedSections: string[];
   feedback: { rating: number | null; notes: string }[];
   messages: ChatTurn[];
   currentStage: ConversationStage;
@@ -663,7 +657,6 @@ export async function runTestAgentTurn(params: {
     business,
     services,
     pricing,
-    includedSections,
     feedback,
     messages,
     currentStage,
@@ -691,7 +684,7 @@ CONVERSATION FLOW — follow it strictly:
 Current stage: "${currentStage}".${emailProvided ? " The customer HAS provided an email address, so you must move to stage \"complete\" and produce the estimate now." : ""}
 
 ${feedback.length > 0 ? `BUSINESS OWNER FEEDBACK from previous test conversations — incorporate these corrections into your behavior:\n${feedback.map((f) => `- ${f.rating != null ? `(rated ${f.rating}/5) ` : ""}${f.notes || "(no written notes — treat the rating as a satisfaction signal: low ratings mean the previous style of response missed the mark)"}`).join("\n")}\n` : ""}
-Only include invoice line items for these enabled invoice sections: ${includedSections.join(", ")}. For example, if "travel_mobilization" is not enabled, do not add a travel fee line item; if "emergency_fees" is not enabled, do not add emergency fee line items; if "taxes_fees" is not enabled, set taxes to 0. If "estimated_duration" is enabled, include one assumptions entry that starts with "Estimated duration:" describing how long the work will take; if it is not enabled, never mention duration.
+Include every invoice line item relevant to the job (labor, materials, travel/mobilization fees, emergency/after-hours fees, discounts) and applicable taxes. Include one assumptions entry that starts with "Estimated duration:" describing how long the work will take.
 
 Respond ONLY with a JSON object: {"message": string, "conversation_stage": "gathering"|"confirming"|"awaiting_email"|"complete", "estimate": null | {"customerSummary": string, "assumptions": string[], "recommendedPriceLow": number, "recommendedPriceHigh": number, "invoiceLineItems": [{"description": string, "quantity": number, "unitPrice": number, "total": number}], "subtotal": number, "taxes": number, "totalEstimate": number, "confidenceScore": number, "followUpQuestions": string[]}}. "estimate" must be null unless conversation_stage is "complete". confidenceScore is 0-100.`;
 
@@ -730,11 +723,6 @@ Reply with the next agent message and stage.`;
       data.estimate,
       fallbackEstimate(lastPrompt, services, pricing),
     );
-    if (!includedSections.includes("estimated_duration")) {
-      estimate.assumptions = estimate.assumptions.filter(
-        (a) => !/^\s*estimated duration/i.test(a),
-      );
-    }
   }
 
   return { message: data.message, stage, estimate };

@@ -25,23 +25,6 @@ export const DEFAULT_INVOICE_LANGUAGE = {
   footerNote: "Thank you for your business. We look forward to serving you.",
 };
 
-export const ALL_INVOICE_SECTIONS = [
-  "labor",
-  "materials",
-  "travel_mobilization",
-  "taxes_fees",
-  "discounts",
-  "emergency_fees",
-  "estimated_duration",
-  "assumptions",
-  "follow_up_questions",
-  "cancellation_policy",
-  "payment_terms",
-  "terms_conditions",
-  "estimate_disclaimer",
-  "acceptance_language",
-];
-
 // Preliminary-estimate disclaimer shown with every quote output (widget
 // result, PDF, emails, Test Agent). Keep the user-facing term "Quote".
 export const PRELIMINARY_ESTIMATE_DISCLAIMER =

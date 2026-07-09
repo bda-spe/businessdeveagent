@@ -28,7 +28,7 @@ import {
   type Estimate,
   type ServiceContext,
 } from "../lib/aiService";
-import { buildInvoicePdf, filterLineItems } from "../lib/pdf";
+import { buildInvoicePdf } from "../lib/pdf";
 import {
   isEmailConfigured,
   replacePlaceholders,
@@ -36,7 +36,6 @@ import {
 } from "../lib/email";
 import { getOrCreateSettings } from "./invoiceSettings";
 import {
-  ALL_INVOICE_SECTIONS,
   PRELIMINARY_ESTIMATE_DISCLAIMER,
   SHORT_POLICY_AGREEMENT_LINE,
 } from "../lib/defaults";
@@ -83,14 +82,10 @@ async function loadAgentContext(bid: number) {
       .orderBy(desc(sandboxTestsTable.createdAt))
       .limit(5),
   ]);
-  const includedSections = Array.isArray(settings.includedSections)
-    ? (settings.includedSections as string[])
-    : ALL_INVOICE_SECTIONS;
   return {
     services: toServiceContext(services),
     pricing: pricingRows[0] ?? null,
     settings,
-    includedSections,
     feedback: feedbackRows
       .filter((f) => f.feedbackNotes || f.rating != null)
       .map((f) => ({ rating: f.rating, notes: f.feedbackNotes ?? "" })),
@@ -110,9 +105,8 @@ function composeEmail(opts: {
   settings: Awaited<ReturnType<typeof getOrCreateSettings>>;
   businessName: string;
   estimate: Estimate;
-  includedSections: string[];
 }): { subject: string; body: string } {
-  const { settings, businessName, estimate, includedSections } = opts;
+  const { settings, businessName, estimate } = opts;
   const vars = {
     business_name: businessName,
     customer_name: "there",
@@ -121,9 +115,10 @@ function composeEmail(opts: {
     settings.emailSubject || "Your estimate from {business_name}",
     vars,
   );
-  const items = filterLineItems(estimate.invoiceLineItems, includedSections);
+  // Every quote email always includes the full set of line items and taxes.
+  const items = estimate.invoiceLineItems;
   const subtotal = items.reduce((s, li) => s + li.total, 0);
-  const taxes = includedSections.includes("taxes_fees") ? estimate.taxes : 0;
+  const taxes = estimate.taxes;
   const total = subtotal + taxes;
   const lines = [
     replacePlaceholders(settings.emailGreeting || "Hi there,", vars),
@@ -173,7 +168,6 @@ async function buildPdfForTest(
   test: typeof sandboxTestsTable.$inferSelect,
   settings: Awaited<ReturnType<typeof getOrCreateSettings>>,
   businessName: string,
-  includedSections: string[],
 ): Promise<Buffer | null> {
   if (!test.estimate) return null;
   return buildInvoicePdf({
@@ -188,7 +182,6 @@ async function buildPdfForTest(
     estimate: test.estimate as Estimate,
     settings: {
       selectedTemplate: settings.selectedTemplate,
-      includedSections,
       showPolicies: settings.showPolicies,
       brandColor: settings.brandColor,
       cancellationPolicy: settings.cancellationPolicy,
@@ -234,7 +227,6 @@ router.post(
       business: businessContext(req),
       services: ctx.services,
       pricing: ctx.pricing,
-      includedSections: ctx.includedSections,
       feedback: ctx.feedback,
       messages,
       currentStage: "gathering",
@@ -320,7 +312,6 @@ router.post(
       business: businessContext(req),
       services: ctx.services,
       pricing: ctx.pricing,
-      includedSections: ctx.includedSections,
       feedback: ctx.feedback,
       messages,
       currentStage,
@@ -344,7 +335,6 @@ router.post(
         settings: ctx.settings,
         businessName: req.business!.name,
         estimate: turn.estimate,
-        includedSections: ctx.includedSections,
       });
       emailSubject = composed.subject;
       emailBody = composed.body;
@@ -359,7 +349,6 @@ router.post(
               },
               ctx.settings,
               req.business!.name,
-              ctx.includedSections,
             )
           : null;
         const result = await sendEstimateEmail({
@@ -424,12 +413,7 @@ router.post(
     }
     const ctx = await loadAgentContext(bid);
     const pdf = ctx.settings.attachPdf
-      ? await buildPdfForTest(
-          existing,
-          ctx.settings,
-          req.business!.name,
-          ctx.includedSections,
-        )
+      ? await buildPdfForTest(existing, ctx.settings, req.business!.name)
       : null;
     const result = await sendEstimateEmail({
       to: existing.customerEmail,
@@ -478,7 +462,6 @@ router.get(
       existing,
       ctx.settings,
       req.business!.name,
-      ctx.includedSections,
     );
     if (!pdf) {
       res.status(404).json({ error: "No invoice available for this test" });

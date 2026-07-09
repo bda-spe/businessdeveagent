@@ -21,7 +21,6 @@ import {
 } from "../lib/email";
 import { buildInvoicePdf } from "../lib/pdf";
 import { getOrCreateSettings } from "./invoiceSettings";
-import { ALL_INVOICE_SECTIONS } from "../lib/defaults";
 
 const router: IRouter = Router();
 
@@ -116,9 +115,6 @@ router.post("/leads/:id/send-email", requireBusiness, async (req, res): Promise<
     return;
   }
   const settings = await getOrCreateSettings(bid);
-  const includedSections = Array.isArray(settings.includedSections)
-    ? (settings.includedSections as string[])
-    : ALL_INVOICE_SECTIONS;
 
   let pdfBuffer: Buffer | null = null;
   if (settings.attachPdf && lead.estimate) {
@@ -134,7 +130,6 @@ router.post("/leads/:id/send-email", requireBusiness, async (req, res): Promise<
       estimate: lead.estimate as Estimate,
       settings: {
         selectedTemplate: settings.selectedTemplate,
-        includedSections,
         showPolicies: settings.showPolicies,
         brandColor: settings.brandColor,
         cancellationPolicy: settings.cancellationPolicy,

@@ -13,7 +13,6 @@ import {
   DEFAULT_REQUIREMENTS,
   DEFAULT_INVOICE_LANGUAGE,
   DEFAULT_EMAIL_SETTINGS,
-  ALL_INVOICE_SECTIONS,
 } from "./defaults";
 
 type Business = typeof businessesTable.$inferSelect;
@@ -46,7 +45,6 @@ export async function seedBusinessDefaults(businessId: number): Promise<void> {
     businessId,
     ...DEFAULT_INVOICE_LANGUAGE,
     ...DEFAULT_EMAIL_SETTINGS,
-    includedSections: ALL_INVOICE_SECTIONS,
     brandColor: DEFAULT_EMAIL_SETTINGS.brandColor,
   });
 }

@@ -25,7 +25,7 @@ import {
   summarizeLead,
 } from "../lib/aiService";
 import { getOrCreateSettings } from "./invoiceSettings";
-import { ALL_INVOICE_SECTIONS, PRELIMINARY_ESTIMATE_DISCLAIMER } from "../lib/defaults";
+import { PRELIMINARY_ESTIMATE_DISCLAIMER } from "../lib/defaults";
 import { buildBudgetRanges } from "./widget";
 
 // Authenticated widget endpoints that power the dashboard's "Live Preview"
@@ -160,9 +160,6 @@ widgetTestRouter.post(
         : null;
 
     const settings = await getOrCreateSettings(business.id);
-    const includedSections = Array.isArray(settings.includedSections)
-      ? (settings.includedSections as string[])
-      : ALL_INVOICE_SECTIONS;
 
     // Recent business-owner feedback from prior test conversations, so a
     // submitted rating/note immediately shapes the very next reply.
@@ -214,7 +211,6 @@ widgetTestRouter.post(
         agentPreferences: confirmedPreferences,
         quoteFormat: {
           selectedTemplate: settings.selectedTemplate,
-          includedSections,
           showPolicies: settings.showPolicies,
           estimateDisclaimer: settings.estimateDisclaimer,
           acceptanceLanguage: settings.acceptanceLanguage,

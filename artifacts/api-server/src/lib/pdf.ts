@@ -11,7 +11,6 @@ const LIGHT = "#94a3b8";
 
 export interface InvoicePdfSettings {
   selectedTemplate: string;
-  includedSections: string[];
   showPolicies: boolean;
   brandColor?: string | null;
   cancellationPolicy?: string | null;
@@ -21,29 +20,6 @@ export interface InvoicePdfSettings {
   acceptanceLanguage?: string | null;
   depositRequirements?: string | null;
   footerNote?: string | null;
-}
-
-export function filterLineItems(
-  items: EstimateLineItem[],
-  sections: string[],
-): EstimateLineItem[] {
-  return items.filter((li) => {
-    const d = li.description.toLowerCase();
-    if (!sections.includes("labor") && /labor/.test(d)) return false;
-    if (!sections.includes("materials") && /material|supplies/.test(d)) return false;
-    if (
-      !sections.includes("travel_mobilization") &&
-      /travel|mobiliz|trip charge/.test(d)
-    )
-      return false;
-    if (
-      !sections.includes("emergency_fees") &&
-      /emergency|after.hours|after hours/.test(d)
-    )
-      return false;
-    if (!sections.includes("discounts") && /discount/.test(d)) return false;
-    return true;
-  });
 }
 
 const TEMPLATE_TITLES: Record<string, string> = {
@@ -76,8 +52,6 @@ export function buildInvoicePdf(opts: {
     estimate,
     settings,
   } = opts;
-  const sections = settings.includedSections;
-
   const brandColor = settings.brandColor || DEFAULT_NAVY;
 
   return new Promise((resolve, reject) => {
@@ -134,8 +108,8 @@ export function buildInvoicePdf(opts: {
       doc.text(estimate.customerSummary, { width: doc.page.width - 108 });
     }
 
-    // Line items
-    const items = filterLineItems(estimate.invoiceLineItems, sections);
+    // Line items — every quote always shows the full set of line items.
+    const items = estimate.invoiceLineItems;
     writeHeading("Services & Pricing");
     const tableX = 54;
     const priceX = doc.page.width - 54 - 80;
@@ -159,13 +133,11 @@ export function buildInvoicePdf(opts: {
     doc.moveUp();
     doc.text(money(subtotal), priceX, doc.y, { width: 80, align: "right" });
     doc.x = tableX;
-    if (sections.includes("taxes_fees")) {
-      doc.text("Taxes & Fees", tableX, doc.y);
-      doc.moveUp();
-      doc.text(money(estimate.taxes), priceX, doc.y, { width: 80, align: "right" });
-      doc.x = tableX;
-    }
-    const total = subtotal + (sections.includes("taxes_fees") ? estimate.taxes : 0);
+    doc.text("Taxes & Fees", tableX, doc.y);
+    doc.moveUp();
+    doc.text(money(estimate.taxes), priceX, doc.y, { width: 80, align: "right" });
+    doc.x = tableX;
+    const total = subtotal + estimate.taxes;
     doc.font("Helvetica-Bold").fillColor(brandColor);
     doc.text("Estimated Total", tableX, doc.y + 4);
     doc.moveUp();
@@ -191,7 +163,7 @@ export function buildInvoicePdf(opts: {
     const otherAssumptions = estimate.assumptions.filter(
       (a) => !/^\s*estimated duration/i.test(a),
     );
-    if (sections.includes("estimated_duration") && durationLines.length > 0) {
+    if (durationLines.length > 0) {
       writeHeading("Estimated Duration");
       for (const a of durationLines) {
         doc.text(a.replace(/^\s*estimated duration:\s*/i, ""), {
@@ -199,17 +171,14 @@ export function buildInvoicePdf(opts: {
         });
       }
     }
-    if (sections.includes("assumptions") && otherAssumptions.length > 0) {
+    if (otherAssumptions.length > 0) {
       writeHeading("Assumptions");
       for (const a of otherAssumptions) {
         doc.text(`•  ${a}`, { width: doc.page.width - 108 });
       }
     }
 
-    if (
-      sections.includes("follow_up_questions") &&
-      estimate.followUpQuestions.length > 0
-    ) {
+    if (estimate.followUpQuestions.length > 0) {
       writeHeading("Open Questions");
       for (const q of estimate.followUpQuestions) {
         doc.text(`•  ${q}`, { width: doc.page.width - 108 });

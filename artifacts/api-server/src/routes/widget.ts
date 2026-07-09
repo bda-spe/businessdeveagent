@@ -37,7 +37,6 @@ import {
 import { buildInvoicePdf } from "../lib/pdf";
 import { getOrCreateSettings } from "./invoiceSettings";
 import {
-  ALL_INVOICE_SECTIONS,
   PRELIMINARY_ESTIMATE_DISCLAIMER,
   FALLBACK_BUDGET_RANGES,
 } from "../lib/defaults";
@@ -448,16 +447,12 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
       : null;
 
   // Load the business's quote formatting settings BEFORE generating the quote
-  // so the selected template and enabled sections shape the AI output too.
+  // so the selected template shapes the AI output too.
   const settings = await getOrCreateSettings(business.id);
-  const includedSections = Array.isArray(settings.includedSections)
-    ? (settings.includedSections as string[])
-    : ALL_INVOICE_SECTIONS;
   logger.info(
     {
       clientId: business.clientId,
       selectedTemplate: settings.selectedTemplate,
-      includedSections,
     },
     "[widget/interact] selected quote template loaded",
   );
@@ -489,7 +484,6 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
       agentPreferences: confirmedPreferences,
       quoteFormat: {
         selectedTemplate: settings.selectedTemplate,
-        includedSections,
         showPolicies: settings.showPolicies,
         estimateDisclaimer: settings.estimateDisclaimer,
         acceptanceLanguage: settings.acceptanceLanguage,
@@ -527,7 +521,6 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
           customerName: parsed.data.name,
           serviceAddress,
           estimate,
-          includedSections,
           emailSubject: settings.emailSubject,
           emailGreeting: settings.emailGreeting,
           emailBodyText: settings.emailBodyText,
@@ -605,7 +598,6 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
             estimate,
             settings: {
               selectedTemplate: settings.selectedTemplate,
-              includedSections,
               showPolicies: settings.showPolicies,
               brandColor: settings.brandColor,
               cancellationPolicy: settings.cancellationPolicy,

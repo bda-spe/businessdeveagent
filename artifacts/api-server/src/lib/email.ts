@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
 import { logger } from "./logger";
-import { filterLineItems } from "./pdf";
 import {
   PRELIMINARY_ESTIMATE_DISCLAIMER,
   SHORT_POLICY_AGREEMENT_LINE,
@@ -22,7 +21,6 @@ export function composeEstimateEmail(opts: {
   businessName: string;
   customerName: string;
   estimate: Estimate;
-  includedSections: string[];
   serviceAddress?: string | null;
   emailSubject?: string | null;
   emailGreeting?: string | null;
@@ -39,7 +37,6 @@ export function composeEstimateEmail(opts: {
     businessName,
     customerName,
     estimate,
-    includedSections,
     serviceAddress,
     emailSubject,
     emailGreeting,
@@ -60,9 +57,10 @@ export function composeEstimateEmail(opts: {
     emailSubject || "Your estimate from {business_name}",
     vars,
   );
-  const items = filterLineItems(estimate.invoiceLineItems, includedSections);
+  // Every quote email always includes the full set of line items and taxes.
+  const items = estimate.invoiceLineItems;
   const subtotal = items.reduce((s, li) => s + li.total, 0);
-  const taxes = includedSections.includes("taxes_fees") ? estimate.taxes : 0;
+  const taxes = estimate.taxes;
   const total = subtotal + taxes;
   const lines = [
     replacePlaceholders(emailGreeting || "Hi {customer_name},", vars),
