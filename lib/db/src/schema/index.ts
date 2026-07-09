@@ -335,6 +335,7 @@ export const widgetSettingsTable = pgTable("widget_settings", {
     .unique(),
   greeting: text("greeting").notNull().default("Hi! How can we help with your project today?"),
   primaryColor: text("primary_color").notNull().default("#1e3a5f"),
+  font: text("font").notNull().default("inter"),
   position: text("position").notNull().default("bottom-right"),
   enabled: boolean("enabled").notNull().default(true),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),

@@ -943,6 +943,8 @@ export interface WidgetSettings {
   id: number;
   greeting: string;
   primaryColor: string;
+  /** Font key applied to the widget's text (inter, system, serif, rounded, mono) */
+  font: string;
   /** bottom-right or bottom-left */
   position: string;
   enabled: boolean;
@@ -951,6 +953,7 @@ export interface WidgetSettings {
 export interface WidgetSettingsInput {
   greeting?: string;
   primaryColor?: string;
+  font?: string;
   position?: string;
   enabled?: boolean;
 }
@@ -960,6 +963,7 @@ export interface WidgetConfig {
   businessName: string;
   greeting: string;
   primaryColor: string;
+  font: string;
   position: string;
   enabled: boolean;
   /** Dynamic budget range options derived from the business's pricing profile. */

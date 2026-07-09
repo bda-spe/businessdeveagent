@@ -11,6 +11,7 @@ export interface WidgetConfig {
   businessName: string;
   greeting: string;
   primaryColor: string;
+  font: string;
   position: string;
   enabled: boolean;
   /** Dynamic budget range options derived from the business's pricing profile. */

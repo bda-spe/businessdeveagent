@@ -2502,7 +2502,7 @@ components:
 
     WidgetSettings:
       type: object
-      required: [id, greeting, primaryColor, position, enabled]
+      required: [id, greeting, primaryColor, font, position, enabled]
       properties:
         id:
           type: integer
@@ -2510,6 +2510,9 @@ components:
           type: string
         primaryColor:
           type: string
+        font:
+          type: string
+          description: Font key applied to the widget's text (inter, system, serif, rounded, mono)
         position:
           type: string
           description: bottom-right or bottom-left
@@ -2523,6 +2526,8 @@ components:
           type: string
         primaryColor:
           type: string
+        font:
+          type: string
         position:
           type: string
         enabled:
@@ -2530,7 +2535,7 @@ components:
 
     WidgetConfig:
       type: object
-      required: [clientId, businessName, greeting, primaryColor, position, enabled, budgetRanges]
+      required: [clientId, businessName, greeting, primaryColor, font, position, enabled, budgetRanges]
       properties:
         clientId:
           type: string
@@ -2539,6 +2544,8 @@ components:
         greeting:
           type: string
         primaryColor:
+          type: string
+        font:
           type: string
         position:
           type: string

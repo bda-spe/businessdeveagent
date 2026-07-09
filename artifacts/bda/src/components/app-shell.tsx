@@ -9,7 +9,6 @@ import {
   FileText,
   BrainCircuit,
   Users,
-  Puzzle,
   CreditCard,
   LogOut,
   LayoutDashboard,
@@ -36,8 +35,7 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
     { href: "/services", label: "Services", icon: Wrench, done: !!sp?.services },
     { href: "/pricing", label: "Pricing Rules", icon: DollarSign, done: !!sp?.pricing },
     { href: "/invoice-formatting", label: "Quote Formatting", icon: FileText, done: !!sp?.invoiceFormatting },
-    { href: "/training", label: "Test Agent", icon: BrainCircuit, done: !!sp?.testAgent },
-    { href: "/widget", label: "Widget Settings", icon: Puzzle, done: !!sp?.widget },
+    { href: "/agent-settings", label: "Agent Settings", icon: BrainCircuit, done: !!sp?.testAgent && !!sp?.widget },
   ];
 
   const firstIncompleteIndex = setupSteps.findIndex((s) => !s.done);

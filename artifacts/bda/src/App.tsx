@@ -21,9 +21,8 @@ import BusinessPage from "./pages/business";
 import ServicesPage from "./pages/services";
 import PricingPage from "./pages/pricing";
 import InvoiceFormattingPage from "./pages/invoice-formatting";
-import TrainingPage from "./pages/training";
+import AgentSettingsPage from "./pages/agent-settings";
 import LeadsPage from "./pages/leads";
-import WidgetPage from "./pages/widget";
 import BillingPage from "./pages/billing";
 import TrialLockGate from "./components/trial-lock-gate";
 
@@ -208,9 +207,10 @@ function ClerkProviderWithRoutes() {
             <Route path="/services"><ProtectedApp><TrialLockGate><ServicesPage /></TrialLockGate></ProtectedApp></Route>
             <Route path="/pricing"><ProtectedApp><TrialLockGate><PricingPage /></TrialLockGate></ProtectedApp></Route>
             <Route path="/invoice-formatting"><ProtectedApp><TrialLockGate><InvoiceFormattingPage /></TrialLockGate></ProtectedApp></Route>
-            <Route path="/training"><ProtectedApp><TrialLockGate><TrainingPage /></TrialLockGate></ProtectedApp></Route>
+            <Route path="/agent-settings"><ProtectedApp><TrialLockGate><AgentSettingsPage /></TrialLockGate></ProtectedApp></Route>
+            <Route path="/training"><Redirect to="/agent-settings" /></Route>
+            <Route path="/widget"><Redirect to="/agent-settings" /></Route>
             <Route path="/leads"><ProtectedApp><TrialLockGate><LeadsPage /></TrialLockGate></ProtectedApp></Route>
-            <Route path="/widget"><ProtectedApp><TrialLockGate><WidgetPage /></TrialLockGate></ProtectedApp></Route>
             <Route path="/billing"><ProtectedApp><BillingPage /></ProtectedApp></Route>
             
             <Route>

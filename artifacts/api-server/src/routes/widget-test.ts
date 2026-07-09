@@ -65,6 +65,7 @@ widgetTestRouter.get(
         businessName: business.name,
         greeting: settings.greeting,
         primaryColor: settings.primaryColor,
+        font: settings.font,
         position: settings.position,
         budgetRanges,
         // Test mode reflects the business's real saved widget branding, but

@@ -1704,6 +1704,7 @@ export const GetWidgetSettingsResponse = zod.object({
   "id": zod.number(),
   "greeting": zod.string(),
   "primaryColor": zod.string(),
+  "font": zod.string().describe('Font key applied to the widget\'s text (inter, system, serif, rounded, mono)'),
   "position": zod.string().describe('bottom-right or bottom-left'),
   "enabled": zod.boolean()
 })
@@ -1715,6 +1716,7 @@ export const GetWidgetSettingsResponse = zod.object({
 export const SaveWidgetSettingsBody = zod.object({
   "greeting": zod.string().optional(),
   "primaryColor": zod.string().optional(),
+  "font": zod.string().optional(),
   "position": zod.string().optional(),
   "enabled": zod.boolean().optional()
 })
@@ -1723,6 +1725,7 @@ export const SaveWidgetSettingsResponse = zod.object({
   "id": zod.number(),
   "greeting": zod.string(),
   "primaryColor": zod.string(),
+  "font": zod.string().describe('Font key applied to the widget\'s text (inter, system, serif, rounded, mono)'),
   "position": zod.string().describe('bottom-right or bottom-left'),
   "enabled": zod.boolean()
 })
@@ -1740,6 +1743,7 @@ export const GetWidgetConfigResponse = zod.object({
   "businessName": zod.string(),
   "greeting": zod.string(),
   "primaryColor": zod.string(),
+  "font": zod.string(),
   "position": zod.string(),
   "enabled": zod.boolean(),
   "budgetRanges": zod.array(zod.string()).describe('Dynamic budget range options derived from the business\'s pricing profile.')
@@ -1830,6 +1834,7 @@ export const GetWidgetTestConfigResponse = zod.object({
   "businessName": zod.string(),
   "greeting": zod.string(),
   "primaryColor": zod.string(),
+  "font": zod.string(),
   "position": zod.string(),
   "enabled": zod.boolean(),
   "budgetRanges": zod.array(zod.string()).describe('Dynamic budget range options derived from the business\'s pricing profile.')

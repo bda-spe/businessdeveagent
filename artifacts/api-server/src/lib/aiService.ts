@@ -122,7 +122,7 @@ export async function generateAssistantReply(params: {
 
 You are talking to the business owner inside their BDA dashboard. Help them with anything:
 - Questions about their own setup (business profile, services, pricing rules, policies, estimate rules, widget).
-- How BDA works: the setup steps are Business Profile, Services, Pricing Rules, Quote Formatting, Test Agent, and Widget Settings; on the Widget Settings page they generate, review, and confirm their agent's "Preferences & Standards" — the widget embed code only unlocks after confirmation. After setup they unlock the Dashboard, Leads Inbox, and Billing tabs. The widget is embedded on their website with a script tag from Widget Settings.
+- How BDA works: the setup steps are Business Profile, Services, Pricing Rules, Quote Formatting, and Agent Settings; on the Agent Settings page they test their agent in a live preview and leave feedback, generate, review, and confirm their agent's "Preferences & Standards", then style the widget (color, font, greeting, position) — the widget embed code only unlocks after preferences are confirmed and styling is saved. After setup they unlock the Dashboard, Leads Inbox, and Billing tabs. The widget is embedded on their website with a script tag from Agent Settings.
 - General business advice (pricing strategy, handling leads, writing policies).
 
 Context about this business (may be incomplete — if something is missing, point them to the tab where they can fill it in):

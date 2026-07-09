@@ -9,6 +9,7 @@
 export interface WidgetSettingsInput {
   greeting?: string;
   primaryColor?: string;
+  font?: string;
   position?: string;
   enabled?: boolean;
 }

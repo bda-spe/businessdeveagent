@@ -41,6 +41,7 @@
     businessName: "Business Development Agent",
     greeting: "Answer a few quick questions and we'll prepare an estimate.",
     primaryColor: NAVY,
+    font: "inter",
     position: "bottom-right",
     enabled: true,
     budgetRanges: null,
@@ -118,8 +119,22 @@
     return "$" + Math.round(n).toLocaleString();
   }
 
-  var FONT =
-    "font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;";
+  var FONT_STACKS = {
+    inter:
+      "font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;",
+    system:
+      "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;",
+    serif: "font-family:Georgia,'Times New Roman',Times,serif;",
+    rounded:
+      "font-family:'Trebuchet MS','Segoe UI',Verdana,Helvetica,Arial,sans-serif;",
+    mono: "font-family:'Courier New',Courier,monospace;",
+  };
+
+  function fontStack(key) {
+    return FONT_STACKS[key] || FONT_STACKS.inter;
+  }
+
+  var FONT = fontStack(config.font);
 
   var TRANSITION = "transition:all 0.16s cubic-bezier(0.4,0,0.2,1);";
 
@@ -152,10 +167,13 @@
     document.head.appendChild(style);
   }
 
-  var inputStyle =
-    "width:100%;box-sizing:border-box;border:1.5px solid #dde3ea;border-radius:12px;padding:12px 14px;font-size:15px;background:#f8fafc;color:#0f172a;" +
-    TRANSITION +
-    FONT;
+  function inputStyle() {
+    return (
+      "width:100%;box-sizing:border-box;border:1.5px solid #dde3ea;border-radius:12px;padding:12px 14px;font-size:15px;background:#f8fafc;color:#0f172a;" +
+      TRANSITION +
+      FONT
+    );
+  }
 
   function primaryBtn(label) {
     var b = el(
@@ -267,7 +285,7 @@
     );
     var ta = el(
       "textarea",
-      inputStyle + "min-height:110px;resize:vertical;",
+      inputStyle() + "min-height:110px;resize:vertical;",
       { placeholder: "Describe the job or project\u2026", class: "bda-input" }
     );
     ta.value = state.description;
@@ -346,7 +364,7 @@
           q
         )
       );
-      var input = el("input", inputStyle, {
+      var input = el("input", inputStyle(), {
         type: "text",
         placeholder: "Your answer (optional)",
         class: "bda-input",
@@ -438,20 +456,20 @@
     );
 
     var form = el("form", "display:flex;flex-direction:column;gap:10px;");
-    var nameInput = el("input", inputStyle, {
+    var nameInput = el("input", inputStyle(), {
       type: "text",
       placeholder: "Your name",
       required: "required",
       class: "bda-input",
     });
     nameInput.value = state.name;
-    var emailInput = el("input", inputStyle, {
+    var emailInput = el("input", inputStyle(), {
       type: "email",
       placeholder: "Email",
       class: "bda-input",
     });
     emailInput.value = state.email;
-    var phoneInput = el("input", inputStyle, {
+    var phoneInput = el("input", inputStyle(), {
       type: "tel",
       placeholder: "Phone",
       class: "bda-input",
@@ -463,14 +481,14 @@
       "margin:4px 0 0;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#64748b;",
       "Service address (required)"
     );
-    var streetInput = el("input", inputStyle, {
+    var streetInput = el("input", inputStyle(), {
       type: "text",
       placeholder: "Street address",
       required: "required",
       class: "bda-input",
     });
     streetInput.value = state.street;
-    var cityInput = el("input", inputStyle, {
+    var cityInput = el("input", inputStyle(), {
       type: "text",
       placeholder: "City",
       required: "required",
@@ -478,14 +496,14 @@
     });
     cityInput.value = state.city;
     var row = el("div", "display:flex;gap:10px;");
-    var stateInput = el("input", inputStyle + "flex:1;", {
+    var stateInput = el("input", inputStyle() + "flex:1;", {
       type: "text",
       placeholder: "State",
       required: "required",
       class: "bda-input",
     });
     stateInput.value = state.stateVal;
-    var zipInput = el("input", inputStyle + "flex:1;", {
+    var zipInput = el("input", inputStyle() + "flex:1;", {
       type: "text",
       placeholder: "ZIP code",
       required: "required",
@@ -913,6 +931,8 @@
         config.businessName = data.businessName || config.businessName;
         config.greeting = data.greeting || config.greeting;
         config.primaryColor = data.primaryColor || config.primaryColor;
+        config.font = data.font || config.font;
+        FONT = fontStack(config.font);
         config.position = data.position || config.position;
         config.enabled = data.enabled !== false;
         if (Array.isArray(data.budgetRanges) && data.budgetRanges.length > 0) {
@@ -942,6 +962,40 @@
           state.result = null;
           if (state.open) renderStep();
         });
+        // Let the dashboard's styling form push draft branding into the
+        // preview so color/font/greeting changes render instantly, before
+        // the owner ever saves.
+        window.addEventListener("message", function (e) {
+          if (!e.data || e.data.type !== "bda-widget-test-style") return;
+          var d = e.data.detail || {};
+          if (d.primaryColor) config.primaryColor = d.primaryColor;
+          if (d.font) {
+            config.font = d.font;
+            FONT = fontStack(config.font);
+          }
+          if (typeof d.greeting === "string" && d.greeting.trim()) {
+            config.greeting = d.greeting;
+          }
+          if (d.position === "bottom-right" || d.position === "bottom-left") {
+            config.position = d.position;
+          }
+          var wasOpen = state.open;
+          if (root && root.parentNode) root.parentNode.removeChild(root);
+          var oldStyle = document.getElementById(STYLE_ID);
+          if (oldStyle && oldStyle.parentNode)
+            oldStyle.parentNode.removeChild(oldStyle);
+          state.open = false;
+          render();
+          if (wasOpen) openTestPanel();
+        });
+        // Tell the dashboard the style listener is live so it can push the
+        // current (possibly unsaved) draft. Without this, a remounted
+        // preview iframe would fall back to the saved server config.
+        try {
+          window.parent.postMessage({ type: "bda-widget-test-ready" }, "*");
+        } catch (err) {
+          /* Not embedded in a dashboard frame. */
+        }
       }
     })
     .catch(function () {

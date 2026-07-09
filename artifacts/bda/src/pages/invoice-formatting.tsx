@@ -400,7 +400,7 @@ export default function InvoiceFormattingPage() {
         onSuccess: (data) => {
           queryClient.setQueryData(getGetInvoiceSettingsQueryKey(), data);
           toast({ title: "Quote format saved." });
-          setLocation("/widget");
+          setLocation("/agent-settings");
         },
         onError: () => {
           toast({

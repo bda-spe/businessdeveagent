@@ -248,6 +248,7 @@ widgetPublicRouter.get("/widget/config", async (req, res): Promise<void> => {
       businessName: business.name,
       greeting: settings.greeting,
       primaryColor: settings.primaryColor,
+      font: settings.font,
       position: settings.position,
       budgetRanges,
       // The widget only goes live after the business confirms its agent

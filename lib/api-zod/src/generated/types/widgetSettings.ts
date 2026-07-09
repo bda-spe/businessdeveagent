@@ -10,6 +10,8 @@ export interface WidgetSettings {
   id: number;
   greeting: string;
   primaryColor: string;
+  /** Font key applied to the widget's text (inter, system, serif, rounded, mono) */
+  font: string;
   /** bottom-right or bottom-left */
   position: string;
   enabled: boolean;
