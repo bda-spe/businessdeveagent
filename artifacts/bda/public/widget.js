@@ -774,7 +774,8 @@
     return luminance > 0.6 ? "#1e3a5f" : "#ffffff";
   }
 
-  var BRANDING = "Business Development Agent \u00A9";
+  var BRANDING = "Powered by Business Development Agent";
+  var BRANDING_URL = "https://businessdevelopmentagent.replit.app";
 
   function render() {
     injectStyles();
@@ -825,23 +826,37 @@
         config.primaryColor +
         " 0%,rgba(0,0,0,0.12) 200%);color:" +
         textColor +
-        ";padding:18px 20px;"
+        ";padding:18px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;"
     );
-    header.appendChild(
+    var headerText = el("div", "min-width:0;");
+    headerText.appendChild(
       text(
         "p",
         "margin:0;font-size:16px;font-weight:700;letter-spacing:-0.01em;color:" + textColor + ";",
         config.businessName
       )
     );
-    header.appendChild(
+    headerText.appendChild(
       text(
-        "a",
-        "margin:3px 0 0;font-size:12px;font-style:italic;opacity:0.8;color:" + textColor + ";text-decoration:none;cursor:pointer;",
-        BRANDING,
-        { href: "https://businessdevelopmentagent.replit.app", target: "_blank", rel: "noopener noreferrer" }
+        "p",
+        "margin:3px 0 0;font-size:12px;font-style:italic;opacity:0.8;color:" + textColor + ";cursor:default;",
+        BRANDING
       )
     );
+    var headerLogoLink = el("a", "flex:none;display:block;line-height:0;", {
+      href: BRANDING_URL,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      "aria-label": "Business Development Agent",
+    });
+    var headerLogo = el(
+      "img",
+      "width:28px;height:28px;border-radius:8px;display:block;",
+      { src: apiBase + "/favicon.svg", alt: "" }
+    );
+    headerLogoLink.appendChild(headerLogo);
+    header.appendChild(headerText);
+    header.appendChild(headerLogoLink);
 
     body = el(
       "div",
