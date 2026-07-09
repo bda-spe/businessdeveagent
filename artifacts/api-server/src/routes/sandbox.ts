@@ -38,6 +38,7 @@ import { getOrCreateSettings } from "./invoiceSettings";
 import {
   ALL_INVOICE_SECTIONS,
   PRELIMINARY_ESTIMATE_DISCLAIMER,
+  SHORT_POLICY_AGREEMENT_LINE,
 } from "../lib/defaults";
 
 const router: IRouter = Router();
@@ -143,6 +144,21 @@ function composeEmail(opts: {
     );
   }
   lines.push("", PRELIMINARY_ESTIMATE_DISCLAIMER);
+  if (settings.showPolicies) {
+    const policyBlocks: { label: string; body?: string | null }[] = [
+      { label: "Payment Terms", body: settings.paymentTerms },
+      { label: "Cancellation Policy", body: settings.cancellationPolicy },
+      { label: "Terms and Conditions", body: settings.termsConditions },
+      { label: "Estimate Disclaimer", body: settings.estimateDisclaimer },
+      { label: "Customer Acceptance", body: settings.acceptanceLanguage },
+    ];
+    for (const block of policyBlocks) {
+      if (!block.body) continue;
+      lines.push("", `${block.label}:`, block.body);
+    }
+  } else {
+    lines.push("", SHORT_POLICY_AGREEMENT_LINE);
+  }
   lines.push(
     "",
     replacePlaceholders(

@@ -1,7 +1,10 @@
 import nodemailer from "nodemailer";
 import { logger } from "./logger";
 import { filterLineItems } from "./pdf";
-import { PRELIMINARY_ESTIMATE_DISCLAIMER } from "./defaults";
+import {
+  PRELIMINARY_ESTIMATE_DISCLAIMER,
+  SHORT_POLICY_AGREEMENT_LINE,
+} from "./defaults";
 import type { Estimate } from "./aiService";
 
 export function isEmailConfigured(): boolean {
@@ -25,6 +28,12 @@ export function composeEstimateEmail(opts: {
   emailGreeting?: string | null;
   emailBodyText?: string | null;
   emailClosing?: string | null;
+  showPolicies?: boolean;
+  cancellationPolicy?: string | null;
+  paymentTerms?: string | null;
+  termsConditions?: string | null;
+  estimateDisclaimer?: string | null;
+  acceptanceLanguage?: string | null;
 }): { subject: string; body: string } {
   const {
     businessName,
@@ -36,6 +45,12 @@ export function composeEstimateEmail(opts: {
     emailGreeting,
     emailBodyText,
     emailClosing,
+    showPolicies,
+    cancellationPolicy,
+    paymentTerms,
+    termsConditions,
+    estimateDisclaimer,
+    acceptanceLanguage,
   } = opts;
   const vars = {
     business_name: businessName,
@@ -73,6 +88,24 @@ export function composeEstimateEmail(opts: {
     );
   }
   lines.push("", PRELIMINARY_ESTIMATE_DISCLAIMER);
+  // The five policy/legal text blocks are shown or hidden together via the
+  // single "Show policies on estimate" toggle; when off, still surface a
+  // short one-line agreement statement.
+  if (showPolicies) {
+    const policyBlocks: { label: string; body?: string | null }[] = [
+      { label: "Payment Terms", body: paymentTerms },
+      { label: "Cancellation Policy", body: cancellationPolicy },
+      { label: "Terms and Conditions", body: termsConditions },
+      { label: "Estimate Disclaimer", body: estimateDisclaimer },
+      { label: "Customer Acceptance", body: acceptanceLanguage },
+    ];
+    for (const block of policyBlocks) {
+      if (!block.body) continue;
+      lines.push("", `${block.label}:`, block.body);
+    }
+  } else {
+    lines.push("", SHORT_POLICY_AGREEMENT_LINE);
+  }
   lines.push(
     "",
     replacePlaceholders(

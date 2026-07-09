@@ -47,6 +47,12 @@ export const ALL_INVOICE_SECTIONS = [
 export const PRELIMINARY_ESTIMATE_DISCLAIMER =
   "This quote is a preliminary estimate based on the information provided. It is not a final service agreement. Final pricing may change after review, inspection, measurement, material confirmation, or changes to project scope.";
 
+// Shown on every estimate (PDF + email) when the business has "Show
+// policies on estimate" turned off, so customers still know policies apply
+// even though the full policy/legal text isn't included on this estimate.
+export const SHORT_POLICY_AGREEMENT_LINE =
+  "By accepting this estimate, you agree to our policies.";
+
 // Generic industry-default budget options used only when a business has no
 // usable pricing profile (low/avg/high job costs). A server log records when
 // this fallback is used.

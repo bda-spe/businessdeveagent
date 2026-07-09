@@ -531,6 +531,12 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
           emailGreeting: settings.emailGreeting,
           emailBodyText: settings.emailBodyText,
           emailClosing: settings.emailClosing,
+          showPolicies: settings.showPolicies,
+          cancellationPolicy: settings.cancellationPolicy,
+          paymentTerms: settings.paymentTerms,
+          termsConditions: settings.termsConditions,
+          estimateDisclaimer: settings.estimateDisclaimer,
+          acceptanceLanguage: settings.acceptanceLanguage,
         })
       : null;
   const willSendEmail = Boolean(composed && isEmailConfigured());

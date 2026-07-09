@@ -1,5 +1,8 @@
 import PDFDocument from "pdfkit";
-import { PRELIMINARY_ESTIMATE_DISCLAIMER } from "./defaults";
+import {
+  PRELIMINARY_ESTIMATE_DISCLAIMER,
+  SHORT_POLICY_AGREEMENT_LINE,
+} from "./defaults";
 import type { Estimate, EstimateLineItem } from "./aiService";
 
 const DEFAULT_NAVY = "#1e3a5f";
@@ -253,6 +256,13 @@ export function buildInvoicePdf(opts: {
         }
         doc.text(block.body, { width: doc.page.width - 108 });
       }
+    } else {
+      // With policies hidden, still surface a short one-line agreement
+      // statement so the customer knows policies apply even though the
+      // full text isn't shown on this estimate.
+      doc.moveDown(0.8);
+      doc.font("Helvetica").fontSize(9.5).fillColor(SLATE);
+      doc.text(SHORT_POLICY_AGREEMENT_LINE, { width: doc.page.width - 108 });
     }
 
     // Every quote PDF carries the preliminary-estimate disclaimer, regardless
