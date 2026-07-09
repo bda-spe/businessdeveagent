@@ -390,6 +390,7 @@ export async function generateAgentResponse(params: {
     estimateDisclaimer?: string | null;
     acceptanceLanguage?: string | null;
   } | null;
+  feedback?: { rating: number | null; notes: string }[];
 }): Promise<{ agentResponse: string; estimate: Estimate }> {
   const {
     business,
@@ -405,6 +406,7 @@ export async function generateAgentResponse(params: {
     estimateRules,
     agentPreferences,
     quoteFormat,
+    feedback,
   } = params;
   const fallback = fallbackEstimate(prompt, services, pricing);
 
@@ -435,6 +437,10 @@ Respond ONLY with a JSON object of shape: {"message": string, "estimate": {"cust
   if (agentPreferences)
     lines.push(
       `Confirmed agent preferences & standards (follow these strictly — they override generic behavior; respect the customer tone, required intake questions, estimating standards, quote/policy standards, low-confidence rules, services not to quote, and include the final customer disclaimer): ${JSON.stringify(agentPreferences)}`,
+    );
+  if (feedback && feedback.length > 0)
+    lines.push(
+      `BUSINESS OWNER FEEDBACK from previous test conversations — incorporate these corrections into your behavior:\n${feedback.map((f) => `- ${f.rating != null ? `(rated ${f.rating}/5) ` : ""}${f.notes || "(no written notes — treat the rating as a satisfaction signal: low ratings mean the previous style of response missed the mark)"}`).join("\n")}`,
     );
   if (quoteFormat) {
     if (quoteFormat.selectedTemplate)

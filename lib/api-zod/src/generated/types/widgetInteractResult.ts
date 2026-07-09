@@ -8,7 +8,13 @@
 import type { Estimate } from './estimate';
 
 export interface WidgetInteractResult {
-  leadId: number;
+  /** @nullable */
+  leadId?: number | null;
+  /**
+     * Set instead of leadId when this interaction ran in safe test mode.
+     * @nullable
+     */
+  sandboxTestId?: number | null;
   message: string;
   estimate: Estimate;
   disclaimer: string;

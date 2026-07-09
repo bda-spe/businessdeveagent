@@ -3,3 +3,4 @@
 - [AI behavior enforcement](ai-behavior-enforcement.md) — strict AI output rules (exact sentences, forbidden words) need code post-processing, not just prompts; public AI endpoints need CORS allowlisting + rate limits.
 - [LLM endpoint safety](llm-endpoint-safety.md) — rate-limit every AI route (even authed), scope chat storage per tenant, clip history to schema max length.
 - [Stripe webhook subscription linkage](stripe-webhook-linkage.md) — invoice webhooks must match the invoice's subscription id to the stored one; in stripe v18+ it lives at invoice.parent.subscription_details.subscription.
+- [Embedding a production widget for safe live testing](widget-test-mode.md) — reuse the real widget.js in a test-mode iframe with a postMessage bridge instead of building a parallel mock UI.

@@ -85,7 +85,9 @@ import type {
   WidgetQuestionsInput,
   WidgetQuestionsResult,
   WidgetSettings,
-  WidgetSettingsInput
+  WidgetSettingsInput,
+  WidgetTestInteractInput,
+  WidgetTestQuestionsInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -4544,6 +4546,223 @@ export const useWidgetInteract = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getWidgetInteractMutationOptions(options));
+    }
+
+export const getGetWidgetTestConfigUrl = () => {
+
+
+
+
+  return `/api/widget-test/config`
+}
+
+/**
+ * @summary Authenticated widget config for the dashboard's live test mode
+ */
+export const getWidgetTestConfig = async ( options?: RequestInit): Promise<WidgetConfig> => {
+
+  return customFetch<WidgetConfig>(getGetWidgetTestConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWidgetTestConfigQueryKey = () => {
+    return [
+    `/api/widget-test/config`
+    ] as const;
+    }
+
+
+export const getGetWidgetTestConfigQueryOptions = <TData = Awaited<ReturnType<typeof getWidgetTestConfig>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWidgetTestConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWidgetTestConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWidgetTestConfig>>> = ({ signal }) => getWidgetTestConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWidgetTestConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWidgetTestConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getWidgetTestConfig>>>
+export type GetWidgetTestConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Authenticated widget config for the dashboard's live test mode
+ */
+
+export function useGetWidgetTestConfig<TData = Awaited<ReturnType<typeof getWidgetTestConfig>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWidgetTestConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWidgetTestConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getWidgetTestQuestionsUrl = () => {
+
+
+
+
+  return `/api/widget-test/questions`
+}
+
+/**
+ * @summary Authenticated widget follow-up questions used by the dashboard's live test mode
+ */
+export const widgetTestQuestions = async (widgetTestQuestionsInput: WidgetTestQuestionsInput, options?: RequestInit): Promise<WidgetQuestionsResult> => {
+
+  return customFetch<WidgetQuestionsResult>(getWidgetTestQuestionsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(widgetTestQuestionsInput)
+  }
+);}
+
+
+
+
+export const getWidgetTestQuestionsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof widgetTestQuestions>>, TError,{data: BodyType<WidgetTestQuestionsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof widgetTestQuestions>>, TError,{data: BodyType<WidgetTestQuestionsInput>}, TContext> => {
+
+const mutationKey = ['widgetTestQuestions'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof widgetTestQuestions>>, {data: BodyType<WidgetTestQuestionsInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  widgetTestQuestions(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WidgetTestQuestionsMutationResult = NonNullable<Awaited<ReturnType<typeof widgetTestQuestions>>>
+    export type WidgetTestQuestionsMutationBody = BodyType<WidgetTestQuestionsInput>
+    export type WidgetTestQuestionsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Authenticated widget follow-up questions used by the dashboard's live test mode
+ */
+export const useWidgetTestQuestions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof widgetTestQuestions>>, TError,{data: BodyType<WidgetTestQuestionsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof widgetTestQuestions>>,
+        TError,
+        {data: BodyType<WidgetTestQuestionsInput>},
+        TContext
+      > => {
+      return useMutation(getWidgetTestQuestionsMutationOptions(options));
+    }
+
+export const getWidgetTestInteractUrl = () => {
+
+
+
+
+  return `/api/widget-test/interact`
+}
+
+/**
+ * @summary Authenticated widget interaction for safe testing — never creates a lead or sends a real email
+ */
+export const widgetTestInteract = async (widgetTestInteractInput: WidgetTestInteractInput, options?: RequestInit): Promise<WidgetInteractResult> => {
+
+  return customFetch<WidgetInteractResult>(getWidgetTestInteractUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(widgetTestInteractInput)
+  }
+);}
+
+
+
+
+export const getWidgetTestInteractMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof widgetTestInteract>>, TError,{data: BodyType<WidgetTestInteractInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof widgetTestInteract>>, TError,{data: BodyType<WidgetTestInteractInput>}, TContext> => {
+
+const mutationKey = ['widgetTestInteract'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof widgetTestInteract>>, {data: BodyType<WidgetTestInteractInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  widgetTestInteract(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WidgetTestInteractMutationResult = NonNullable<Awaited<ReturnType<typeof widgetTestInteract>>>
+    export type WidgetTestInteractMutationBody = BodyType<WidgetTestInteractInput>
+    export type WidgetTestInteractMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Authenticated widget interaction for safe testing — never creates a lead or sends a real email
+ */
+export const useWidgetTestInteract = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof widgetTestInteract>>, TError,{data: BodyType<WidgetTestInteractInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof widgetTestInteract>>,
+        TError,
+        {data: BodyType<WidgetTestInteractInput>},
+        TContext
+      > => {
+      return useMutation(getWidgetTestInteractMutationOptions(options));
     }
 
 export const getListBillingPlansUrl = () => {

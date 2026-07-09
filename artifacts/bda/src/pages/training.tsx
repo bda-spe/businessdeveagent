@@ -1,11 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   useListSandboxTests,
-  useRunSandboxTest,
-  useSendSandboxMessage,
   useSendSandboxTestEmail,
   useSaveSandboxFeedback,
   useGetInvoiceSettings,
@@ -17,27 +12,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
   Card,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-} from "@/components/ui/form";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Bot,
-  User,
-  Send,
   Star,
   Calculator,
-  FileText,
   Mail,
   ChevronRight,
   Plus,
@@ -47,10 +32,6 @@ import {
 } from "lucide-react";
 import type { SandboxTest } from "@workspace/api-client-react";
 
-const testSchema = z.object({
-  prompt: z.string().min(1, "Say something to the agent"),
-});
-
 const STAGE_LABELS: Record<string, string> = {
   gathering: "Gathering details",
   confirming: "Confirming scope",
@@ -58,139 +39,88 @@ const STAGE_LABELS: Record<string, string> = {
   complete: "Estimate sent",
 };
 
-function conversationMessages(test: SandboxTest) {
-  if (Array.isArray(test.messages) && test.messages.length > 0) {
-    return test.messages;
-  }
-  return [
-    { role: "customer" as const, content: test.prompt },
-    { role: "agent" as const, content: test.agentResponse },
-  ];
-}
-
 export default function TrainingPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { data: history, isLoading: isLoadingHistory } = useListSandboxTests();
   const { data: invoiceSettings } = useGetInvoiceSettings();
   const { data: me } = useGetMe();
-  const runTest = useRunSandboxTest();
-  const sendMessage = useSendSandboxMessage();
   const sendEmail = useSendSandboxTestEmail();
   const saveFeedback = useSaveSandboxFeedback();
 
-  const [activeTest, setActiveTest] = useState<SandboxTest | null>(null);
+  const [activeTestId, setActiveTestId] = useState<number | null>(null);
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [feedbackNotes, setFeedbackNotes] = useState("");
   const [emailStatus, setEmailStatus] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const hasAutoLoaded = useRef(false);
+  const [sessionKey, setSessionKey] = useState(0);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const hasAutoSelected = useRef(false);
 
-  const form = useForm<z.infer<typeof testSchema>>({
-    resolver: zodResolver(testSchema),
-    defaultValues: { prompt: "" },
-  });
+  const activeTest = history?.find((t) => t.id === activeTestId) ?? null;
 
-  // Load most recent test by default on first visit only, so
-  // "New Conversation" doesn't immediately re-select the old chat.
+  // Auto-select the most recent test on first load only.
   useEffect(() => {
-    if (hasAutoLoaded.current) return;
-    if (history && history.length > 0 && !activeTest) {
-      hasAutoLoaded.current = true;
+    if (hasAutoSelected.current) return;
+    if (history && history.length > 0 && activeTestId == null) {
+      hasAutoSelected.current = true;
       selectTest(history[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [history, activeTest]);
+  }, [history, activeTestId]);
 
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      const viewport = scrollRef.current?.querySelector(
-        "[data-radix-scroll-area-viewport]",
-      );
-      if (viewport) viewport.scrollTop = viewport.scrollHeight;
-      else if (scrollRef.current)
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }, 100);
-  };
+  // The embedded widget (running in test mode) posts a message here as
+  // soon as it completes a live conversation, so we can immediately show
+  // the resulting estimate and feedback controls without polling.
+  useEffect(() => {
+    function handleMessage(e: MessageEvent) {
+      if (!e.data || e.data.source !== "bda-widget-test") return;
+      if (e.data.type === "result" && e.data.detail?.sandboxTestId) {
+        queryClient
+          .invalidateQueries({ queryKey: getListSandboxTestsQueryKey() })
+          .then(() => selectTest(e.data.detail.sandboxTestId, true));
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const selectTest = (test: SandboxTest) => {
-    setActiveTest(test);
-    setFeedbackRating(test.rating ?? 0);
-    setFeedbackNotes(test.feedbackNotes ?? "");
+  const selectTest = (testOrId: SandboxTest | number, byId = false) => {
+    const id = byId ? (testOrId as number) : (testOrId as SandboxTest).id;
+    setActiveTestId(id);
+    if (!byId) {
+      const test = testOrId as SandboxTest;
+      setFeedbackRating(test.rating ?? 0);
+      setFeedbackNotes(test.feedbackNotes ?? "");
+    } else {
+      setFeedbackRating(0);
+      setFeedbackNotes("");
+    }
     setEmailStatus(null);
-    scrollToBottom();
   };
 
   const startNew = () => {
-    hasAutoLoaded.current = true;
-    setActiveTest(null);
+    hasAutoSelected.current = true;
+    setActiveTestId(null);
     setFeedbackRating(0);
     setFeedbackNotes("");
     setEmailStatus(null);
-    form.reset();
+    setSessionKey((k) => k + 1);
   };
 
-  const handleTryAgain = () => {
-    if (!activeTest) return;
-    const prompt = activeTest.prompt;
-    startNew();
-    runTest.mutate(
-      { data: { prompt } },
-      {
-        onSuccess: (data) => {
-          setActiveTest(data);
-          queryClient.invalidateQueries({
-            queryKey: getListSandboxTestsQueryKey(),
-          });
-          scrollToBottom();
-        },
-        onError: () =>
-          toast({
-            title: "Could not restart the conversation. Try again.",
-            variant: "destructive",
-          }),
-      },
+  const handleTryAgain = useCallback(() => {
+    // Resets the conversation inside the same embedded widget so the very
+    // next reply reflects the feedback just saved, without a full reload.
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: "bda-widget-test-reset" },
+      "*",
     );
-  };
-
-  const isSending = runTest.isPending || sendMessage.isPending;
-
-  const onSubmit = (values: z.infer<typeof testSchema>) => {
-    const onSuccess = (data: SandboxTest) => {
-      setActiveTest(data);
-      form.reset();
-      queryClient.invalidateQueries({
-        queryKey: getListSandboxTestsQueryKey(),
-      });
-      scrollToBottom();
-    };
-    if (activeTest && activeTest.stage !== "complete") {
-      sendMessage.mutate(
-        { id: activeTest.id, data: { message: values.prompt } },
-        {
-          onSuccess,
-          onError: () =>
-            toast({
-              title: "The agent could not respond. Try again.",
-              variant: "destructive",
-            }),
-        },
-      );
-    } else {
-      runTest.mutate(
-        { data: { prompt: values.prompt } },
-        {
-          onSuccess,
-          onError: () =>
-            toast({
-              title: "Could not start the conversation. Try again.",
-              variant: "destructive",
-            }),
-        },
-      );
-    }
-  };
+    setActiveTestId(null);
+    setFeedbackRating(0);
+    setFeedbackNotes("");
+    setEmailStatus(null);
+  }, []);
 
   const handleSendEmail = () => {
     if (!activeTest) return;
@@ -200,9 +130,6 @@ export default function TrainingPage() {
         onSuccess: (result) => {
           setEmailStatus(result.message);
           if (result.sent) {
-            setActiveTest((prev) =>
-              prev ? { ...prev, emailSent: true } : prev,
-            );
             queryClient.invalidateQueries({
               queryKey: getListSandboxTestsQueryKey(),
             });
@@ -246,8 +173,7 @@ export default function TrainingPage() {
         },
       },
       {
-        onSuccess: (data) => {
-          setActiveTest(data);
+        onSuccess: () => {
           queryClient.invalidateQueries({
             queryKey: getListSandboxTestsQueryKey(),
           });
@@ -263,7 +189,6 @@ export default function TrainingPage() {
     );
   };
 
-  const messages = activeTest ? conversationMessages(activeTest) : [];
   const showEstimate =
     activeTest?.stage === "complete" && activeTest.estimate != null;
 
@@ -312,46 +237,29 @@ export default function TrainingPage() {
             </CardTitle>
           </CardHeader>
 
-          <ScrollArea className="flex-1 p-6" ref={scrollRef}>
-            <div className="space-y-6 pb-6">
-              {/* Welcome message */}
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                  <Bot className="h-4 w-4 text-blue-700" />
-                </div>
-                <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm p-4 text-slate-800 shadow-sm max-w-[80%]">
-                  Hello! I'm your digital agent. Describe a project like a
-                  customer would, and I'll ask questions, confirm the details,
-                  and prepare an estimate.
-                </div>
-              </div>
+          <div className="flex-1 min-h-[420px] bg-slate-50 relative">
+            <iframe
+              key={sessionKey}
+              ref={iframeRef}
+              src={`${import.meta.env.BASE_URL}widget-test.html`}
+              title="Agent test conversation"
+              className="w-full h-full border-0"
+              data-testid="iframe-widget-test"
+            />
+          </div>
 
-              {messages.map((m, i) =>
-                m.role === "customer" ? (
-                  <div className="flex gap-4 flex-row-reverse" key={i}>
-                    <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center shrink-0">
-                      <User className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="bg-slate-900 text-white rounded-2xl rounded-tr-sm p-4 shadow-sm max-w-[80%] whitespace-pre-wrap">
-                      {m.content}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-4" key={i}>
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                      <Bot className="h-4 w-4 text-blue-700" />
-                    </div>
-                    <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm p-4 text-slate-800 shadow-sm max-w-[80%] whitespace-pre-wrap">
-                      {m.content}
-                    </div>
-                  </div>
-                ),
+          <ScrollArea className="max-h-[45%] shrink-0 border-t border-slate-100">
+            <div className="p-6 space-y-4">
+              {!activeTest && (
+                <p className="text-sm text-slate-500">
+                  Chat with the widget above like a customer would. Once it
+                  produces an estimate, you'll be able to review it and leave
+                  feedback here.
+                </p>
               )}
 
               {showEstimate && activeTest?.estimate && (
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 shrink-0" />
-                  <div className="flex flex-col gap-4 max-w-[85%] w-full">
+                <div className="flex flex-col gap-4 w-full">
                     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                       <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
                         <span className="flex items-center gap-2 font-medium text-slate-700">
@@ -369,10 +277,6 @@ export default function TrainingPage() {
                         </Button>
                       </div>
                       <InvoiceTemplatePreview
-                        templateId={
-                          invoiceSettings?.selectedTemplate ??
-                          "modern_estimate_card"
-                        }
                         data={{
                           businessName: me?.business?.name ?? "Your Business",
                           customerEmail: activeTest.customerEmail ?? undefined,
@@ -489,13 +393,11 @@ export default function TrainingPage() {
                             variant="outline"
                             size="sm"
                             onClick={handleTryAgain}
-                            disabled={isSending || saveFeedback.isPending}
+                            disabled={saveFeedback.isPending}
                             data-testid="button-try-again"
                           >
                             <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-                            {isSending
-                              ? "Restarting..."
-                              : "Try Again with Updated Feedback"}
+                            Try Again with Updated Feedback
                           </Button>
                         )}
                       </div>
@@ -506,87 +408,10 @@ export default function TrainingPage() {
                         </p>
                       )}
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {isSending && (
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                    <Bot className="h-4 w-4 text-blue-700" />
-                  </div>
-                  <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm p-4 shadow-sm flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-slate-300 animate-bounce"></div>
-                    <div
-                      className="w-2 h-2 rounded-full bg-slate-300 animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 rounded-full bg-slate-300 animate-bounce"
-                      style={{ animationDelay: "0.4s" }}
-                    ></div>
-                  </div>
                 </div>
               )}
             </div>
           </ScrollArea>
-
-          <CardFooter className="p-4 border-t border-slate-100 bg-white shrink-0">
-            {activeTest?.stage === "complete" ? (
-              <div className="w-full flex items-center justify-between gap-4 text-sm text-slate-500">
-                <span>
-                  This conversation is complete. Start a new one to keep
-                  testing.
-                </span>
-                <Button onClick={startNew} data-testid="button-start-new-bottom">
-                  <Plus className="h-4 w-4 mr-2" /> New Conversation
-                </Button>
-              </div>
-            ) : (
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="w-full flex gap-2"
-                >
-                  <FormField
-                    control={form.control}
-                    name="prompt"
-                    render={({ field }) => (
-                      <FormItem className="flex-1 m-0">
-                        <FormControl>
-                          <Textarea
-                            placeholder={
-                              activeTest
-                                ? "Reply to the agent..."
-                                : "Type a scenario... (e.g. 'My sink is leaking under the cabinet, how much to fix it?')"
-                            }
-                            className="min-h-[60px] resize-none pr-12 rounded-xl focus-visible:ring-slate-400"
-                            data-testid="input-chat-message"
-                            {...field}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                form.handleSubmit(onSubmit)();
-                              }
-                            }}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="submit"
-                    size="icon"
-                    className="h-[60px] w-[60px] rounded-xl shrink-0 bg-slate-900 hover:bg-slate-800"
-                    disabled={isSending}
-                    data-testid="button-send-message"
-                  >
-                    <Send className="h-5 w-5" />
-                  </Button>
-                </form>
-              </Form>
-            )}
-          </CardFooter>
         </Card>
 
         {/* History Sidebar */}

@@ -25,6 +25,8 @@ export interface InvoiceSettings {
   /** @nullable */
   footerNote?: string | null;
   includedSections?: string[] | null;
+  /** When true, show full policy text on estimates; when false, show a single short agreement line. */
+  showPolicies?: boolean;
   /** @nullable */
   emailSubject?: string | null;
   /** @nullable */

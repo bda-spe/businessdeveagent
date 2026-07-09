@@ -529,80 +529,16 @@ export default function WidgetPage() {
               <LayoutTemplate className="h-5 w-5 text-purple-500" /> Live Preview
             </CardTitle>
           </CardHeader>
-          <div className="flex-1 relative min-h-[400px]">
-            {/* Fake Website Background */}
-            <div className="absolute inset-0 p-8 opacity-20 pointer-events-none">
-              <div className="w-full h-8 bg-slate-300 rounded mb-8"></div>
-              <div className="w-2/3 h-12 bg-slate-300 rounded mb-4"></div>
-              <div className="w-1/2 h-4 bg-slate-300 rounded mb-8"></div>
-              <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="h-32 bg-slate-300 rounded"></div>
-                <div className="h-32 bg-slate-300 rounded"></div>
-                <div className="h-32 bg-slate-300 rounded"></div>
-              </div>
-            </div>
-
-            {/* Widget Mockup */}
-            {currentValues.enabled && (
-              <div className={`absolute bottom-6 flex flex-col gap-4 w-[350px] transition-all duration-300 ${currentValues.position === 'bottom-left' ? 'left-6' : 'right-6'}`}>
-                {/* Chat window */}
-                <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col h-[400px] animate-in slide-in-from-bottom-8">
-                  {/* Header */}
-                  <div
-                    className="p-4 flex items-center gap-3"
-                    style={{ backgroundColor: currentValues.primaryColor, color: previewTextColor }}
-                  >
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-                      <MessageSquare className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="font-semibold leading-tight truncate">{business?.name ?? "Your Business"}</h4>
-                      <a
-                        href="https://businessdevelopmentagent.replit.app"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs italic leading-tight no-underline"
-                        style={{ opacity: 0.85 }}
-                      >
-                        Business Development Agent &copy;
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Messages area */}
-                  <div className="flex-1 p-4 bg-slate-50 flex flex-col gap-4">
-                    <div className="flex gap-2">
-                      <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px]"
-                        style={{ backgroundColor: currentValues.primaryColor, color: previewTextColor }}
-                      >
-                        {(business?.name ?? "BA").split(/\s+/).map((w) => w.charAt(0)).join("").slice(0, 2).toUpperCase()}
-                      </div>
-                      <div className="bg-white p-3 rounded-2xl rounded-tl-sm text-sm text-slate-700 shadow-sm border border-slate-100">
-                        {currentValues.greeting}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Input area */}
-                  <div className="p-3 bg-white border-t border-slate-100">
-                    <div className="bg-slate-100 rounded-full px-4 py-2 text-sm text-slate-400">
-                      Type your message...
-                    </div>
-                  </div>
-                </div>
-
-                {/* Launcher button */}
-                <div
-                  className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center cursor-pointer ${currentValues.position === 'bottom-left' ? 'self-start' : 'self-end'}`}
-                  style={{ backgroundColor: currentValues.primaryColor, color: previewTextColor }}
-                >
-                  <MessageSquare className="h-6 w-6" />
-                </div>
-              </div>
-            )}
-
-            {!currentValues.enabled && (
+          <div className="flex-1 relative min-h-[500px] bg-slate-50">
+            {currentValues.enabled ? (
+              <iframe
+                key={`${currentValues.primaryColor}-${currentValues.position}-${currentValues.greeting}`}
+                src={`${import.meta.env.BASE_URL}widget-test.html`}
+                title="Widget live preview"
+                className="absolute inset-0 w-full h-full border-0"
+                data-testid="iframe-widget-preview"
+              />
+            ) : (
               <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px]">
                 <div className="bg-white/90 p-4 rounded-xl shadow-sm text-sm font-medium text-slate-500 border border-slate-200">
                   Widget is currently disabled

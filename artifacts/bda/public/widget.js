@@ -8,8 +8,9 @@
       return s[s.length - 1];
     })();
 
+  var testMode = scriptEl.getAttribute("data-test-mode") === "true";
   var clientId = scriptEl.getAttribute("data-client-id");
-  if (!clientId) {
+  if (!testMode && !clientId) {
     console.error("[BDA] Missing data-client-id on widget script tag.");
     return;
   }
@@ -17,8 +18,21 @@
   // Derive the API base from the origin that served this script.
   var apiBase = new URL(scriptEl.src, window.location.href).origin;
 
+  // In test mode we hit the authenticated /widget-test/* routes (same
+  // request/response shapes as the public /widget/* routes) so a logged-in
+  // business owner can safely try the real widget without creating a real
+  // lead or sending a real email.
   function api(path) {
-    return apiBase + "/api" + path;
+    return apiBase + "/api" + (testMode ? path.replace(/^\/widget\//, "/widget-test/") : path);
+  }
+
+  function notifyParent(type, detail) {
+    if (!testMode || window.parent === window) return;
+    try {
+      window.parent.postMessage({ source: "bda-widget-test", type: type, detail: detail || null }, "*");
+    } catch (e) {
+      /* ignore cross-origin postMessage failures */
+    }
   }
 
   var NAVY = "#1e3a5f";
@@ -280,6 +294,7 @@
       fetch(api("/widget/questions"), {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: testMode ? "include" : "same-origin",
         body: JSON.stringify({
           clientId: clientId,
           projectDescription: state.description,
@@ -561,6 +576,7 @@
       fetch(api("/widget/interact"), {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: testMode ? "include" : "same-origin",
         body: JSON.stringify({
           clientId: clientId,
           name: state.name,
@@ -590,6 +606,10 @@
           state.result = data;
           state.step = 6;
           renderStep();
+          notifyParent("result", {
+            sandboxTestId: data && data.sandboxTestId,
+            message: data && data.message,
+          });
         })
         .catch(function (err) {
           submit.textContent = "Get my estimate";
@@ -879,7 +899,11 @@
     document.body.appendChild(root);
   }
 
-  fetch(api("/widget/config?clientId=" + encodeURIComponent(clientId)))
+  var configUrl = testMode
+    ? api("/widget/config")
+    : api("/widget/config?clientId=" + encodeURIComponent(clientId));
+
+  fetch(configUrl, { credentials: testMode ? "include" : "same-origin" })
     .then(function (r) {
       if (r.ok) return r.json();
       return null;
@@ -900,8 +924,34 @@
         else
           window.addEventListener("DOMContentLoaded", render, { once: true });
       }
+      if (testMode) {
+        // Test mode always opens straight into the conversation — there's
+        // no launcher button to click inside the embedded preview.
+        window.addEventListener("DOMContentLoaded", openTestPanel, { once: true });
+        if (document.body) openTestPanel();
+        // Let the dashboard restart the conversation in place (e.g. after
+        // the owner saves feedback) so the very next reply reflects it.
+        window.addEventListener("message", function (e) {
+          if (!e.data || e.data.type !== "bda-widget-test-reset") return;
+          state.step = 1;
+          state.description = "";
+          state.questions = [];
+          state.answers = [];
+          state.budget = "";
+          state.labor = "";
+          state.result = null;
+          if (state.open) renderStep();
+        });
+      }
     })
     .catch(function () {
       /* Fail silently on the host site. */
     });
+
+  function openTestPanel() {
+    if (!panel || state.open) return;
+    state.open = true;
+    panel.style.display = "flex";
+    renderStep();
+  }
 })();

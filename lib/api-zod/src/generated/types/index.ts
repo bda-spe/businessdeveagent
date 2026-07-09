@@ -94,3 +94,5 @@ export * from './widgetQuestionsInput';
 export * from './widgetQuestionsResult';
 export * from './widgetSettings';
 export * from './widgetSettingsInput';
+export * from './widgetTestInteractInput';
+export * from './widgetTestQuestionsInput';

@@ -1053,6 +1053,57 @@ paths:
               schema:
                 $ref: "#/components/schemas/WidgetInteractResult"
 
+  /widget-test/config:
+    get:
+      operationId: getWidgetTestConfig
+      tags: [widget]
+      summary: Authenticated widget config for the dashboard's live test mode
+      responses:
+        "200":
+          description: Widget config for the authenticated business, always enabled for testing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetConfig"
+
+  /widget-test/questions:
+    post:
+      operationId: widgetTestQuestions
+      tags: [widget]
+      summary: Authenticated widget follow-up questions used by the dashboard's live test mode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WidgetTestQuestionsInput"
+      responses:
+        "200":
+          description: Industry-specific follow-up questions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetQuestionsResult"
+
+  /widget-test/interact:
+    post:
+      operationId: widgetTestInteract
+      tags: [widget]
+      summary: Authenticated widget interaction for safe testing — never creates a lead or sends a real email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WidgetTestInteractInput"
+      responses:
+        "200":
+          description: AI response and generated estimate, recorded as a sandbox test
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetInteractResult"
+
   /billing/plans:
     get:
       operationId: listBillingPlans
@@ -1644,6 +1695,9 @@ components:
               items:
                 type: string
             - type: "null"
+        showPolicies:
+          type: boolean
+          description: When true, show full policy text on estimates; when false, show a single short agreement line.
         emailSubject:
           type: ["string", "null"]
         emailGreeting:
@@ -1686,6 +1740,9 @@ components:
           type: array
           items:
             type: string
+        showPolicies:
+          type: boolean
+          description: When true, show full policy text on estimates; when false, show a single short agreement line.
         emailSubject:
           type: ["string", "null"]
         emailGreeting:
@@ -2569,15 +2626,69 @@ components:
 
     WidgetInteractResult:
       type: object
-      required: [leadId, message, estimate, disclaimer]
+      required: [message, estimate, disclaimer]
       properties:
         leadId:
-          type: integer
+          type: ["integer", "null"]
+        sandboxTestId:
+          type: ["integer", "null"]
+          description: Set instead of leadId when this interaction ran in safe test mode.
         message:
           type: string
         estimate:
           $ref: "#/components/schemas/Estimate"
         disclaimer:
+          type: string
+
+    WidgetTestQuestionsInput:
+      type: object
+      required: [projectDescription]
+      properties:
+        projectDescription:
+          type: string
+          minLength: 1
+
+    WidgetTestInteractInput:
+      type: object
+      required:
+        [
+          name,
+          projectDescription,
+          serviceStreet,
+          serviceCity,
+          serviceState,
+          serviceZip,
+        ]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+        phone:
+          type: string
+        serviceStreet:
+          type: string
+          minLength: 1
+        serviceCity:
+          type: string
+          minLength: 1
+        serviceState:
+          type: string
+          minLength: 1
+        serviceZip:
+          type: string
+          minLength: 1
+        projectDescription:
+          type: string
+          minLength: 1
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/WidgetIntakeAnswer"
+        budget:
+          type: string
+        laborAssumption:
           type: string
 
     BillingPlan:

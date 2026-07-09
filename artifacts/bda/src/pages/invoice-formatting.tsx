@@ -10,7 +10,6 @@ import {
   useListServices,
   useGetPricing,
   getGetInvoiceSettingsQueryKey,
-  type InvoiceSettingsInputSelectedTemplate,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -40,14 +39,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ColorPickerPopover } from "@/components/color-picker";
 import {
   FileText,
-  CheckCircle2,
   ScrollText,
   ListChecks,
   Mail,
 } from "lucide-react";
 import {
   InvoiceTemplatePreview,
-  TEMPLATE_OPTIONS,
   type InvoiceRenderData,
 } from "@/components/invoice-templates";
 
@@ -70,6 +67,7 @@ const settingsSchema = z.object({
     .or(z.literal("")),
   ccOwner: z.boolean(),
   attachPdf: z.boolean(),
+  showPolicies: z.boolean(),
   brandColor: z
     .string()
     .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Enter a valid hex color")
@@ -176,36 +174,6 @@ export const SECTION_GROUPS: {
       },
     ],
   },
-  {
-    title: "Policies & Legal",
-    items: [
-      {
-        key: "cancellation_policy",
-        label: "Cancellation Policy",
-        description: "Your cancellation and rescheduling rules.",
-      },
-      {
-        key: "payment_terms",
-        label: "Payment Terms",
-        description: "Payment expectations and methods.",
-      },
-      {
-        key: "terms_conditions",
-        label: "Terms & Conditions",
-        description: "Your standard service terms.",
-      },
-      {
-        key: "estimate_disclaimer",
-        label: "Estimate Disclaimer",
-        description: "Preliminary-estimate disclaimer.",
-      },
-      {
-        key: "acceptance_language",
-        label: "Acceptance Language",
-        description: "What the customer agrees to.",
-      },
-    ],
-  },
 ];
 
 const ALL_SECTION_KEYS = SECTION_GROUPS.flatMap((g) =>
@@ -230,8 +198,6 @@ export default function InvoiceFormattingPage() {
   const { data: pricing } = useGetPricing();
   const saveSettings = useSaveInvoiceSettings();
 
-  const [selectedTemplate, setSelectedTemplate] =
-    useState<InvoiceSettingsInputSelectedTemplate>("modern_estimate_card");
   const [sections, setSections] = useState<string[]>(ALL_SECTION_KEYS);
 
   const form = useForm<SettingsValues>({
@@ -251,13 +217,13 @@ export default function InvoiceFormattingPage() {
       replyToEmail: "",
       ccOwner: true,
       attachPdf: true,
+      showPolicies: false,
       brandColor: "#1e3a5f",
     },
   });
 
   useEffect(() => {
     if (settings) {
-      setSelectedTemplate(settings.selectedTemplate);
       setSections(
         Array.isArray(settings.includedSections) &&
           settings.includedSections.length > 0
@@ -279,6 +245,7 @@ export default function InvoiceFormattingPage() {
         replyToEmail: settings.replyToEmail ?? "",
         ccOwner: settings.ccOwner ?? true,
         attachPdf: settings.attachPdf ?? true,
+        showPolicies: settings.showPolicies ?? false,
         brandColor: settings.brandColor ?? "#1e3a5f",
       });
     }
@@ -374,23 +341,14 @@ export default function InvoiceFormattingPage() {
       recommendedPriceHigh: Math.round(total * 1.15 * 100) / 100,
     },
     policies: {
-      cancellationPolicy: sections.includes("cancellation_policy")
-        ? watched.cancellationPolicy
-        : undefined,
-      paymentTerms: sections.includes("payment_terms")
-        ? watched.paymentTerms
-        : undefined,
-      estimateDisclaimer: sections.includes("estimate_disclaimer")
-        ? watched.estimateDisclaimer
-        : undefined,
-      termsConditions: sections.includes("terms_conditions")
-        ? watched.termsConditions
-        : undefined,
-      acceptanceLanguage: sections.includes("acceptance_language")
-        ? watched.acceptanceLanguage
-        : undefined,
+      cancellationPolicy: watched.cancellationPolicy,
+      paymentTerms: watched.paymentTerms,
+      estimateDisclaimer: watched.estimateDisclaimer,
+      termsConditions: watched.termsConditions,
+      acceptanceLanguage: watched.acceptanceLanguage,
       depositRequirements: watched.depositRequirements,
       footerNote: watched.footerNote,
+      showPolicies: watched.showPolicies,
     },
     brandColor: watched.brandColor,
   };
@@ -418,7 +376,7 @@ export default function InvoiceFormattingPage() {
     saveSettings.mutate(
       {
         data: {
-          selectedTemplate,
+          selectedTemplate: "modern_estimate_card",
           cancellationPolicy: values.cancellationPolicy,
           paymentTerms: values.paymentTerms,
           estimateDisclaimer: values.estimateDisclaimer,
@@ -433,6 +391,7 @@ export default function InvoiceFormattingPage() {
           replyToEmail: values.replyToEmail || null,
           ccOwner: values.ccOwner,
           attachPdf: values.attachPdf,
+          showPolicies: values.showPolicies,
           brandColor: values.brandColor || "#1e3a5f",
           includedSections: sections,
         },
@@ -479,15 +438,15 @@ export default function InvoiceFormattingPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
-          {/* Template selection */}
+          {/* Quote preview */}
           <section>
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">
-                  Quote Template
+                  Quote Preview
                 </h3>
                 <p className="text-sm text-slate-500 mt-1">
-                  Select the layout your customers will see.
+                  This is how every estimate will look to your customers.
                 </p>
               </div>
               <ColorPickerPopover
@@ -498,59 +457,15 @@ export default function InvoiceFormattingPage() {
                 testId="button-brand-color"
               />
             </div>
-            <div className="grid gap-6 md:grid-cols-2">
-              {TEMPLATE_OPTIONS.map((tpl) => {
-                const isSelected = selectedTemplate === tpl.id;
-                return (
-                  <div
-                    key={tpl.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setSelectedTemplate(tpl.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setSelectedTemplate(tpl.id);
-                      }
-                    }}
-                    data-testid={`template-card-${tpl.id}`}
-                    className={`text-left rounded-xl border-2 transition-all cursor-pointer overflow-hidden bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                      isSelected
-                        ? "border-blue-600 shadow-md"
-                        : "border-slate-200 hover:border-slate-300 shadow-sm"
-                    }`}
-                  >
-                    <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-semibold text-slate-900 text-sm flex items-center gap-2">
-                          {tpl.detailed ? (
-                            <ScrollText className="h-4 w-4 text-slate-500" />
-                          ) : (
-                            <FileText className="h-4 w-4 text-slate-500" />
-                          )}
-                          {tpl.name}
-                        </p>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          {tpl.tagline}
-                        </p>
-                      </div>
-                      {isSelected && (
-                        <span className="flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5 shrink-0">
-                          <CheckCircle2 className="h-3.5 w-3.5" /> Default
-                        </span>
-                      )}
-                    </div>
-                    <div className="h-80 overflow-y-auto bg-slate-100 p-3">
-                      <div className="rounded-lg shadow-sm overflow-hidden border border-slate-200">
-                        <InvoiceTemplatePreview
-                          templateId={tpl.id}
-                          data={previewData}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div
+              className="max-w-md rounded-xl border-2 border-slate-200 shadow-sm overflow-hidden bg-white"
+              data-testid="quote-preview-card"
+            >
+              <div className="h-96 overflow-y-auto bg-slate-100 p-3">
+                <div className="rounded-lg shadow-sm overflow-hidden border border-slate-200">
+                  <InvoiceTemplatePreview data={previewData} />
+                </div>
+              </div>
             </div>
           </section>
 
@@ -619,7 +534,8 @@ export default function InvoiceFormattingPage() {
                 Policies &amp; Terms
               </h3>
               <p className="text-sm text-slate-500 mt-1">
-                The wording that appears in the enabled policy sections.
+                The wording below is always available to your agent. Choose
+                whether the full policy text appears on customer estimates.
               </p>
             </div>
             <Card className="border-slate-200 shadow-sm">
@@ -629,7 +545,30 @@ export default function InvoiceFormattingPage() {
                   Policy Wording
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 grid gap-6 md:grid-cols-2">
+              <CardContent className="pt-6 space-y-6">
+                <FormField
+                  control={form.control}
+                  name="showPolicies"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <div>
+                        <FormLabel>Show policies on estimate</FormLabel>
+                        <FormDescription>
+                          Off: customers see a short agreement line. On:
+                          customers see your full policy wording below.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="switch-show-policies"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <div className="grid gap-6 md:grid-cols-2">
                 {POLICY_FIELDS.map((f) => (
                   <FormField
                     key={f.name}
@@ -655,6 +594,7 @@ export default function InvoiceFormattingPage() {
                     )}
                   />
                 ))}
+                </div>
               </CardContent>
             </Card>
           </section>

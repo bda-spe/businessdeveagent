@@ -561,6 +561,7 @@ export const GetInvoiceSettingsResponse = zod.object({
   "depositRequirements": zod.string().nullish(),
   "footerNote": zod.string().nullish(),
   "includedSections": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "showPolicies": zod.boolean().optional().describe('When true, show full policy text on estimates; when false, show a single short agreement line.'),
   "emailSubject": zod.string().nullish(),
   "emailGreeting": zod.string().nullish(),
   "emailBodyText": zod.string().nullish(),
@@ -585,6 +586,7 @@ export const SaveInvoiceSettingsBody = zod.object({
   "depositRequirements": zod.string().nullish(),
   "footerNote": zod.string().nullish(),
   "includedSections": zod.array(zod.string()).optional(),
+  "showPolicies": zod.boolean().optional().describe('When true, show full policy text on estimates; when false, show a single short agreement line.'),
   "emailSubject": zod.string().nullish(),
   "emailGreeting": zod.string().nullish(),
   "emailBodyText": zod.string().nullish(),
@@ -606,6 +608,7 @@ export const SaveInvoiceSettingsResponse = zod.object({
   "depositRequirements": zod.string().nullish(),
   "footerNote": zod.string().nullish(),
   "includedSections": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "showPolicies": zod.boolean().optional().describe('When true, show full policy text on estimates; when false, show a single short agreement line.'),
   "emailSubject": zod.string().nullish(),
   "emailGreeting": zod.string().nullish(),
   "emailBodyText": zod.string().nullish(),
@@ -1789,7 +1792,96 @@ export const WidgetInteractBody = zod.object({
 })
 
 export const WidgetInteractResponse = zod.object({
-  "leadId": zod.number(),
+  "leadId": zod.number().nullish(),
+  "sandboxTestId": zod.number().nullish().describe('Set instead of leadId when this interaction ran in safe test mode.'),
+  "message": zod.string(),
+  "estimate": zod.object({
+  "customerSummary": zod.string(),
+  "assumptions": zod.array(zod.string()),
+  "recommendedPriceLow": zod.number().nullish(),
+  "recommendedPriceHigh": zod.number().nullish(),
+  "invoiceLineItems": zod.array(zod.object({
+  "description": zod.string(),
+  "quantity": zod.number().nullish(),
+  "unitPrice": zod.number().nullish(),
+  "total": zod.number()
+})),
+  "subtotal": zod.number(),
+  "taxes": zod.number(),
+  "totalEstimate": zod.number(),
+  "confidenceScore": zod.number(),
+  "followUpQuestions": zod.array(zod.string()),
+  "missingInformation": zod.array(zod.string()).optional(),
+  "budgetFit": zod.string().nullish(),
+  "estimatedLaborersNeeded": zod.string().nullish(),
+  "estimatedDuration": zod.string().nullish(),
+  "whatCouldChangePrice": zod.array(zod.string()).optional(),
+  "recommendedNextStep": zod.string().nullish()
+}),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Authenticated widget config for the dashboard's live test mode
+ */
+export const GetWidgetTestConfigResponse = zod.object({
+  "clientId": zod.string(),
+  "businessName": zod.string(),
+  "greeting": zod.string(),
+  "primaryColor": zod.string(),
+  "position": zod.string(),
+  "enabled": zod.boolean(),
+  "budgetRanges": zod.array(zod.string()).describe('Dynamic budget range options derived from the business\'s pricing profile.')
+})
+
+
+/**
+ * @summary Authenticated widget follow-up questions used by the dashboard's live test mode
+ */
+
+
+
+export const WidgetTestQuestionsBody = zod.object({
+  "projectDescription": zod.string().min(1)
+})
+
+export const WidgetTestQuestionsResponse = zod.object({
+  "questions": zod.array(zod.string())
+})
+
+
+/**
+ * @summary Authenticated widget interaction for safe testing — never creates a lead or sends a real email
+ */
+
+
+
+
+
+
+
+
+export const WidgetTestInteractBody = zod.object({
+  "name": zod.string().min(1),
+  "email": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "serviceStreet": zod.string().min(1),
+  "serviceCity": zod.string().min(1),
+  "serviceState": zod.string().min(1),
+  "serviceZip": zod.string().min(1),
+  "projectDescription": zod.string().min(1),
+  "answers": zod.array(zod.object({
+  "question": zod.string(),
+  "answer": zod.string()
+})).optional(),
+  "budget": zod.string().optional(),
+  "laborAssumption": zod.string().optional()
+})
+
+export const WidgetTestInteractResponse = zod.object({
+  "leadId": zod.number().nullish(),
+  "sandboxTestId": zod.number().nullish().describe('Set instead of leadId when this interaction ran in safe test mode.'),
   "message": zod.string(),
   "estimate": zod.object({
   "customerSummary": zod.string(),

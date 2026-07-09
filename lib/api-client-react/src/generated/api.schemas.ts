@@ -346,6 +346,8 @@ export interface InvoiceSettings {
   /** @nullable */
   footerNote?: string | null;
   includedSections?: string[] | null;
+  /** When true, show full policy text on estimates; when false, show a single short agreement line. */
+  showPolicies?: boolean;
   /** @nullable */
   emailSubject?: string | null;
   /** @nullable */
@@ -392,6 +394,8 @@ export interface InvoiceSettingsInput {
   /** @nullable */
   footerNote?: string | null;
   includedSections?: string[];
+  /** When true, show full policy text on estimates; when false, show a single short agreement line. */
+  showPolicies?: boolean;
   /** @nullable */
   emailSubject?: string | null;
   /** @nullable */
@@ -999,10 +1003,41 @@ export interface WidgetInteractInput {
 }
 
 export interface WidgetInteractResult {
-  leadId: number;
+  /** @nullable */
+  leadId?: number | null;
+  /**
+     * Set instead of leadId when this interaction ran in safe test mode.
+     * @nullable
+     */
+  sandboxTestId?: number | null;
   message: string;
   estimate: Estimate;
   disclaimer: string;
+}
+
+export interface WidgetTestQuestionsInput {
+  /** @minLength 1 */
+  projectDescription: string;
+}
+
+export interface WidgetTestInteractInput {
+  /** @minLength 1 */
+  name: string;
+  email?: string;
+  phone?: string;
+  /** @minLength 1 */
+  serviceStreet: string;
+  /** @minLength 1 */
+  serviceCity: string;
+  /** @minLength 1 */
+  serviceState: string;
+  /** @minLength 1 */
+  serviceZip: string;
+  /** @minLength 1 */
+  projectDescription: string;
+  answers?: WidgetIntakeAnswer[];
+  budget?: string;
+  laborAssumption?: string;
 }
 
 export interface BillingPlan {

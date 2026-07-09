@@ -6,6 +6,7 @@ import {
   requireActiveSubscription,
 } from "../lib/auth";
 import { widgetPublicRouter, widgetSettingsRouter } from "./widget";
+import { widgetTestRouter } from "./widget-test";
 import accountRouter from "./account";
 import servicesRouter from "./services";
 import pricingRouter from "./pricing";
@@ -53,6 +54,7 @@ router.use(estimateRulesRouter);
 router.use(businessToneRouter);
 router.use(leadsRouter);
 router.use(widgetSettingsRouter);
+router.use(widgetTestRouter);
 router.use(dashboardRouter);
 router.use(assistantRouter);
 router.use(agentPreferencesRouter);
