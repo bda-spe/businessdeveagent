@@ -872,7 +872,7 @@
     var headerLogo = el(
       "img",
       "width:28px;height:28px;border-radius:8px;display:block;",
-      { src: apiBase + "/favicon.svg", alt: "" }
+      { src: apiBase + "/bda-logo.png", alt: "" }
     );
     headerLogoLink.appendChild(headerLogo);
     header.appendChild(headerText);
