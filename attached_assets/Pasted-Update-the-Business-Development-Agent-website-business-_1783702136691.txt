@@ -1,0 +1,253 @@
+Update the Business Development Agent website business profile flow.
+
+Goal:
+Rebuild the Services and Pricing sections so that service-specific pricing lives inside each individual service, while company-wide pricing settings remain global defaults.
+
+Current problem:
+Step 3 (Services) and Step 4 (Pricing) are disconnected. We need each unique service a company offers to have its own pricing model, labor requirements, duration, crew size, and estimating rules. Step 4 should only contain company-wide defaults and rules.
+
+--------------------------------------------------
+STEP 3: SERVICES (SERVICE CATALOG)
+--------------------------------------------------
+
+When a user clicks "Add Service", create a service form/modal.
+
+Each service should have:
+
+## Basic Information
+
+Service Name *
+Category
+Description *
+
+Example:
+Service Name: Asphalt Driveway Repair
+Category: Asphalt
+Description: Repair cracks, potholes, and damaged asphalt surfaces.
+
+--------------------------------------------------
+
+## Pricing Model
+
+Add a dropdown:
+
+How do you charge for this service?
+
+Options:
+- Fixed Price
+- Hourly
+- Unit-Based
+- Custom Quote
+
+Depending on selection, show relevant fields.
+
+--------------------------------------------------
+
+## Service Pricing
+
+Fields:
+
+Base Price ($)
+
+Minimum Price ($)
+
+Customer Billable Labor Rate ($/hr)
+- This is what the customer is charged
+- Overrides company default labor rate if entered
+
+Unit Type (optional)
+Options:
+- Square Foot
+- Linear Foot
+- Per Item
+- Per Visit
+- Other
+
+Unit Price ($)
+
+--------------------------------------------------
+
+## Labor Requirements
+
+Add service-specific labor information:
+
+Average Crew Size
+
+Minimum Crew Size
+
+Maximum Crew Size
+
+Estimated Labor Hours
+
+Estimated Duration:
+Options:
+- 1-2 hours
+- 2-8 hours
+- 8-14 hours
+- 2-3 days
+- 1 week+
+- Varies by job
+
+Example calculation:
+3 workers × 8 hours × $75/hr billable rate = $1,800 labor charge
+
+--------------------------------------------------
+
+## Estimate Requirements
+
+Checkboxes:
+
+Requires inspection before estimate
+
+Requires customer measurements/photos
+
+Requires material selection before pricing
+
+--------------------------------------------------
+
+## Typical Job Pricing Range
+
+Fields:
+
+Typical Low-End Job ($)
+
+Typical Average Job Cost ($)
+
+Typical High-End Job ($)
+
+--------------------------------------------------
+
+## AI Estimating Guidance
+
+Fields:
+
+Jobs That Are Usually Low-Cost
+
+Jobs That Are Usually High-Cost
+
+Factors That Increase Price
+(separate with commas)
+
+Factors That Reduce Price
+(separate with commas)
+
+Pricing Notes
+
+
+--------------------------------------------------
+STEP 4: COMPANY PRICING SETTINGS
+--------------------------------------------------
+
+Remove all service-specific pricing fields from Step 4.
+
+Step 4 should only contain company-wide defaults.
+
+Create these sections:
+
+--------------------------------------------------
+
+## Labor Defaults
+
+Customer Billable Labor Rate ($/hr)
+
+Average Employee Wage ($/hr)
+
+Purpose:
+- Customer Billable Labor Rate is used for estimates
+- Average Employee Wage is used internally for profitability calculations
+
+--------------------------------------------------
+
+## Materials
+
+Default Material Markup (%)
+
+Tax Rate (%)
+
+--------------------------------------------------
+
+## Travel
+
+Travel Fee Type:
+
+Options:
+- None
+- Flat Fee
+- Distance-Based
+- Custom
+
+Travel Fee Amount / Rules
+
+--------------------------------------------------
+
+## Weekend & Emergency
+
+Weekend Fee Type:
+
+Options:
+- None
+- Flat Fee
+- Percentage Increase
+- Custom
+
+
+Emergency Fee Type:
+
+Options:
+- None
+- Flat Fee
+- Percentage Increase
+- Custom
+
+--------------------------------------------------
+
+## Cancellation & Deposits
+
+Cancellation Fee ($)
+
+Cancellation Window:
+
+Options:
+- None
+- Less than 24 hours
+- Less than 48 hours
+- Less than 72 hours
+- Custom
+
+
+Deposit Required:
+Yes / No
+
+Deposit Amount (%)
+
+--------------------------------------------------
+
+
+
+--------------------------------------------------
+AI ESTIMATING LOGIC UPDATE
+--------------------------------------------------
+
+When generating estimates:
+
+1. First check if the service has its own pricing values.
+2. If missing, use company defaults.
+3. Calculate labor using:
+
+crew size × labor hours × billable labor rate
+
+4. Calculate internal profitability using:
+
+crew size × labor hours × employee wage
+
+5. Include:
+- service-specific pricing factors
+- duration
+- crew size
+- inspection requirements
+- typical job ranges
+
+The goal is that every service a company offers can have its own unique estimating logic.
+
+Do not remove existing functionality. Update the existing UI and database structure cleanly.
+

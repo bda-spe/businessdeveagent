@@ -23,4 +23,47 @@ export interface Service {
   estimatedDuration?: string | null;
   requiresInspection: boolean;
   active: boolean;
+  /**
+     * fixed_price, hourly, unit_based, or custom_quote
+     * @nullable
+     */
+  pricingModel?: string | null;
+  /**
+     * Customer-billed hourly rate for this service; overrides the company default when set
+     * @nullable
+     */
+  billableLaborRate?: number | null;
+  /**
+     * square_foot, linear_foot, per_item, per_visit, or other
+     * @nullable
+     */
+  unitType?: string | null;
+  /** @nullable */
+  unitPrice?: number | null;
+  /** @nullable */
+  avgCrewSize?: number | null;
+  /** @nullable */
+  minCrewSize?: number | null;
+  /** @nullable */
+  maxCrewSize?: number | null;
+  /** @nullable */
+  estimatedLaborHours?: number | null;
+  requiresMeasurements?: boolean;
+  requiresMaterialSelection?: boolean;
+  /** @nullable */
+  lowJobCost?: number | null;
+  /** @nullable */
+  avgJobCost?: number | null;
+  /** @nullable */
+  highJobCost?: number | null;
+  /** @nullable */
+  lowCostJobs?: string | null;
+  /** @nullable */
+  highCostJobs?: string | null;
+  /** @nullable */
+  priceIncreaseFactors?: string[] | null;
+  /** @nullable */
+  priceDecreaseFactors?: string[] | null;
+  /** @nullable */
+  pricingNotes?: string | null;
 }

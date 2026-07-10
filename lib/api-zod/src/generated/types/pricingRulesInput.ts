@@ -10,6 +10,8 @@ export interface PricingRulesInput {
   /** @nullable */
   laborRate?: number | null;
   /** @nullable */
+  employeeWage?: number | null;
+  /** @nullable */
   minimumJobCost?: number | null;
   /** @nullable */
   travelFeeType?: string | null;

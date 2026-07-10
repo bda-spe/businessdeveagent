@@ -419,7 +419,25 @@ export const ListServicesResponseItem = zod.object({
   "minimumPrice": zod.number().nullish(),
   "estimatedDuration": zod.string().nullish(),
   "requiresInspection": zod.boolean(),
-  "active": zod.boolean()
+  "active": zod.boolean(),
+  "pricingModel": zod.string().nullish().describe('fixed_price, hourly, unit_based, or custom_quote'),
+  "billableLaborRate": zod.number().nullish().describe('Customer-billed hourly rate for this service; overrides the company default when set'),
+  "unitType": zod.string().nullish().describe('square_foot, linear_foot, per_item, per_visit, or other'),
+  "unitPrice": zod.number().nullish(),
+  "avgCrewSize": zod.number().nullish(),
+  "minCrewSize": zod.number().nullish(),
+  "maxCrewSize": zod.number().nullish(),
+  "estimatedLaborHours": zod.number().nullish(),
+  "requiresMeasurements": zod.boolean().optional(),
+  "requiresMaterialSelection": zod.boolean().optional(),
+  "lowJobCost": zod.number().nullish(),
+  "avgJobCost": zod.number().nullish(),
+  "highJobCost": zod.number().nullish(),
+  "lowCostJobs": zod.string().nullish(),
+  "highCostJobs": zod.string().nullish(),
+  "priceIncreaseFactors": zod.array(zod.string()).nullish(),
+  "priceDecreaseFactors": zod.array(zod.string()).nullish(),
+  "pricingNotes": zod.string().nullish()
 })
 export const ListServicesResponse = zod.array(ListServicesResponseItem)
 
@@ -439,7 +457,25 @@ export const CreateServiceBody = zod.object({
   "minimumPrice": zod.number().nullish(),
   "estimatedDuration": zod.string().optional(),
   "requiresInspection": zod.boolean().optional(),
-  "active": zod.boolean().optional()
+  "active": zod.boolean().optional(),
+  "pricingModel": zod.string().nullish(),
+  "billableLaborRate": zod.number().nullish(),
+  "unitType": zod.string().nullish(),
+  "unitPrice": zod.number().nullish(),
+  "avgCrewSize": zod.number().nullish(),
+  "minCrewSize": zod.number().nullish(),
+  "maxCrewSize": zod.number().nullish(),
+  "estimatedLaborHours": zod.number().nullish(),
+  "requiresMeasurements": zod.boolean().optional(),
+  "requiresMaterialSelection": zod.boolean().optional(),
+  "lowJobCost": zod.number().nullish(),
+  "avgJobCost": zod.number().nullish(),
+  "highJobCost": zod.number().nullish(),
+  "lowCostJobs": zod.string().nullish(),
+  "highCostJobs": zod.string().nullish(),
+  "priceIncreaseFactors": zod.array(zod.string()).nullish(),
+  "priceDecreaseFactors": zod.array(zod.string()).nullish(),
+  "pricingNotes": zod.string().nullish()
 })
 
 export const CreateServiceResponse = zod.object({
@@ -452,7 +488,25 @@ export const CreateServiceResponse = zod.object({
   "minimumPrice": zod.number().nullish(),
   "estimatedDuration": zod.string().nullish(),
   "requiresInspection": zod.boolean(),
-  "active": zod.boolean()
+  "active": zod.boolean(),
+  "pricingModel": zod.string().nullish().describe('fixed_price, hourly, unit_based, or custom_quote'),
+  "billableLaborRate": zod.number().nullish().describe('Customer-billed hourly rate for this service; overrides the company default when set'),
+  "unitType": zod.string().nullish().describe('square_foot, linear_foot, per_item, per_visit, or other'),
+  "unitPrice": zod.number().nullish(),
+  "avgCrewSize": zod.number().nullish(),
+  "minCrewSize": zod.number().nullish(),
+  "maxCrewSize": zod.number().nullish(),
+  "estimatedLaborHours": zod.number().nullish(),
+  "requiresMeasurements": zod.boolean().optional(),
+  "requiresMaterialSelection": zod.boolean().optional(),
+  "lowJobCost": zod.number().nullish(),
+  "avgJobCost": zod.number().nullish(),
+  "highJobCost": zod.number().nullish(),
+  "lowCostJobs": zod.string().nullish(),
+  "highCostJobs": zod.string().nullish(),
+  "priceIncreaseFactors": zod.array(zod.string()).nullish(),
+  "priceDecreaseFactors": zod.array(zod.string()).nullish(),
+  "pricingNotes": zod.string().nullish()
 })
 
 
@@ -472,7 +526,25 @@ export const UpdateServiceBody = zod.object({
   "minimumPrice": zod.number().nullish(),
   "estimatedDuration": zod.string().optional(),
   "requiresInspection": zod.boolean().optional(),
-  "active": zod.boolean().optional()
+  "active": zod.boolean().optional(),
+  "pricingModel": zod.string().nullish(),
+  "billableLaborRate": zod.number().nullish(),
+  "unitType": zod.string().nullish(),
+  "unitPrice": zod.number().nullish(),
+  "avgCrewSize": zod.number().nullish(),
+  "minCrewSize": zod.number().nullish(),
+  "maxCrewSize": zod.number().nullish(),
+  "estimatedLaborHours": zod.number().nullish(),
+  "requiresMeasurements": zod.boolean().optional(),
+  "requiresMaterialSelection": zod.boolean().optional(),
+  "lowJobCost": zod.number().nullish(),
+  "avgJobCost": zod.number().nullish(),
+  "highJobCost": zod.number().nullish(),
+  "lowCostJobs": zod.string().nullish(),
+  "highCostJobs": zod.string().nullish(),
+  "priceIncreaseFactors": zod.array(zod.string()).nullish(),
+  "priceDecreaseFactors": zod.array(zod.string()).nullish(),
+  "pricingNotes": zod.string().nullish()
 })
 
 export const UpdateServiceResponse = zod.object({
@@ -485,7 +557,25 @@ export const UpdateServiceResponse = zod.object({
   "minimumPrice": zod.number().nullish(),
   "estimatedDuration": zod.string().nullish(),
   "requiresInspection": zod.boolean(),
-  "active": zod.boolean()
+  "active": zod.boolean(),
+  "pricingModel": zod.string().nullish().describe('fixed_price, hourly, unit_based, or custom_quote'),
+  "billableLaborRate": zod.number().nullish().describe('Customer-billed hourly rate for this service; overrides the company default when set'),
+  "unitType": zod.string().nullish().describe('square_foot, linear_foot, per_item, per_visit, or other'),
+  "unitPrice": zod.number().nullish(),
+  "avgCrewSize": zod.number().nullish(),
+  "minCrewSize": zod.number().nullish(),
+  "maxCrewSize": zod.number().nullish(),
+  "estimatedLaborHours": zod.number().nullish(),
+  "requiresMeasurements": zod.boolean().optional(),
+  "requiresMaterialSelection": zod.boolean().optional(),
+  "lowJobCost": zod.number().nullish(),
+  "avgJobCost": zod.number().nullish(),
+  "highJobCost": zod.number().nullish(),
+  "lowCostJobs": zod.string().nullish(),
+  "highCostJobs": zod.string().nullish(),
+  "priceIncreaseFactors": zod.array(zod.string()).nullish(),
+  "priceDecreaseFactors": zod.array(zod.string()).nullish(),
+  "pricingNotes": zod.string().nullish()
 })
 
 
@@ -505,6 +595,7 @@ export const DeleteServiceResponse = zod.void()
 export const GetPricingResponse = zod.object({
   "id": zod.number(),
   "laborRate": zod.number().nullish(),
+  "employeeWage": zod.number().nullish().describe('Internal average employee wage, used for profitability calculations (not shown to customers)'),
   "minimumJobCost": zod.number().nullish(),
   "travelFeeType": zod.string().nullish(),
   "travelFee": zod.number().nullish(),
@@ -543,6 +634,7 @@ export const GetPricingResponse = zod.object({
  */
 export const SavePricingBody = zod.object({
   "laborRate": zod.number().nullish(),
+  "employeeWage": zod.number().nullish(),
   "minimumJobCost": zod.number().nullish(),
   "travelFeeType": zod.string().nullish(),
   "travelFee": zod.number().nullish(),
@@ -578,6 +670,7 @@ export const SavePricingBody = zod.object({
 export const SavePricingResponse = zod.object({
   "id": zod.number(),
   "laborRate": zod.number().nullish(),
+  "employeeWage": zod.number().nullish().describe('Internal average employee wage, used for profitability calculations (not shown to customers)'),
   "minimumJobCost": zod.number().nullish(),
   "travelFeeType": zod.string().nullish(),
   "travelFee": zod.number().nullish(),

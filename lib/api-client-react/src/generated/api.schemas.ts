@@ -192,6 +192,49 @@ export interface Service {
   estimatedDuration?: string | null;
   requiresInspection: boolean;
   active: boolean;
+  /**
+     * fixed_price, hourly, unit_based, or custom_quote
+     * @nullable
+     */
+  pricingModel?: string | null;
+  /**
+     * Customer-billed hourly rate for this service; overrides the company default when set
+     * @nullable
+     */
+  billableLaborRate?: number | null;
+  /**
+     * square_foot, linear_foot, per_item, per_visit, or other
+     * @nullable
+     */
+  unitType?: string | null;
+  /** @nullable */
+  unitPrice?: number | null;
+  /** @nullable */
+  avgCrewSize?: number | null;
+  /** @nullable */
+  minCrewSize?: number | null;
+  /** @nullable */
+  maxCrewSize?: number | null;
+  /** @nullable */
+  estimatedLaborHours?: number | null;
+  requiresMeasurements?: boolean;
+  requiresMaterialSelection?: boolean;
+  /** @nullable */
+  lowJobCost?: number | null;
+  /** @nullable */
+  avgJobCost?: number | null;
+  /** @nullable */
+  highJobCost?: number | null;
+  /** @nullable */
+  lowCostJobs?: string | null;
+  /** @nullable */
+  highCostJobs?: string | null;
+  /** @nullable */
+  priceIncreaseFactors?: string[] | null;
+  /** @nullable */
+  priceDecreaseFactors?: string[] | null;
+  /** @nullable */
+  pricingNotes?: string | null;
 }
 
 export interface ServiceInput {
@@ -208,6 +251,40 @@ export interface ServiceInput {
   estimatedDuration?: string;
   requiresInspection?: boolean;
   active?: boolean;
+  /** @nullable */
+  pricingModel?: string | null;
+  /** @nullable */
+  billableLaborRate?: number | null;
+  /** @nullable */
+  unitType?: string | null;
+  /** @nullable */
+  unitPrice?: number | null;
+  /** @nullable */
+  avgCrewSize?: number | null;
+  /** @nullable */
+  minCrewSize?: number | null;
+  /** @nullable */
+  maxCrewSize?: number | null;
+  /** @nullable */
+  estimatedLaborHours?: number | null;
+  requiresMeasurements?: boolean;
+  requiresMaterialSelection?: boolean;
+  /** @nullable */
+  lowJobCost?: number | null;
+  /** @nullable */
+  avgJobCost?: number | null;
+  /** @nullable */
+  highJobCost?: number | null;
+  /** @nullable */
+  lowCostJobs?: string | null;
+  /** @nullable */
+  highCostJobs?: string | null;
+  /** @nullable */
+  priceIncreaseFactors?: string[] | null;
+  /** @nullable */
+  priceDecreaseFactors?: string[] | null;
+  /** @nullable */
+  pricingNotes?: string | null;
 }
 
 export interface ServiceUpdate {
@@ -223,12 +300,51 @@ export interface ServiceUpdate {
   estimatedDuration?: string;
   requiresInspection?: boolean;
   active?: boolean;
+  /** @nullable */
+  pricingModel?: string | null;
+  /** @nullable */
+  billableLaborRate?: number | null;
+  /** @nullable */
+  unitType?: string | null;
+  /** @nullable */
+  unitPrice?: number | null;
+  /** @nullable */
+  avgCrewSize?: number | null;
+  /** @nullable */
+  minCrewSize?: number | null;
+  /** @nullable */
+  maxCrewSize?: number | null;
+  /** @nullable */
+  estimatedLaborHours?: number | null;
+  requiresMeasurements?: boolean;
+  requiresMaterialSelection?: boolean;
+  /** @nullable */
+  lowJobCost?: number | null;
+  /** @nullable */
+  avgJobCost?: number | null;
+  /** @nullable */
+  highJobCost?: number | null;
+  /** @nullable */
+  lowCostJobs?: string | null;
+  /** @nullable */
+  highCostJobs?: string | null;
+  /** @nullable */
+  priceIncreaseFactors?: string[] | null;
+  /** @nullable */
+  priceDecreaseFactors?: string[] | null;
+  /** @nullable */
+  pricingNotes?: string | null;
 }
 
 export interface PricingRules {
   id: number;
   /** @nullable */
   laborRate?: number | null;
+  /**
+     * Internal average employee wage, used for profitability calculations (not shown to customers)
+     * @nullable
+     */
+  employeeWage?: number | null;
   /** @nullable */
   minimumJobCost?: number | null;
   /** @nullable */
@@ -293,6 +409,8 @@ export interface PricingRules {
 export interface PricingRulesInput {
   /** @nullable */
   laborRate?: number | null;
+  /** @nullable */
+  employeeWage?: number | null;
   /** @nullable */
   minimumJobCost?: number | null;
   /** @nullable */

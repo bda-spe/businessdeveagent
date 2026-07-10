@@ -44,13 +44,40 @@ export interface BusinessContext {
 export interface ServiceContext {
   name: string;
   description?: string | null;
+  category?: string | null;
   basePrice?: number | null;
   hourlyRate?: number | null;
   minimumPrice?: number | null;
+  estimatedDuration?: string | null;
+  requiresInspection?: boolean | null;
+  // Pricing model & service-specific pricing (overrides company defaults when set)
+  pricingModel?: string | null;
+  billableLaborRate?: number | null;
+  unitType?: string | null;
+  unitPrice?: number | null;
+  // Labor requirements
+  avgCrewSize?: number | null;
+  minCrewSize?: number | null;
+  maxCrewSize?: number | null;
+  estimatedLaborHours?: number | null;
+  // Estimate requirements
+  requiresMeasurements?: boolean | null;
+  requiresMaterialSelection?: boolean | null;
+  // Typical job pricing range
+  lowJobCost?: number | null;
+  avgJobCost?: number | null;
+  highJobCost?: number | null;
+  // AI estimating guidance
+  lowCostJobs?: string | null;
+  highCostJobs?: string | null;
+  priceIncreaseFactors?: unknown;
+  priceDecreaseFactors?: unknown;
+  pricingNotes?: string | null;
 }
 
 export interface PricingContext {
   laborRate?: number | null;
+  employeeWage?: number | null;
   emergencyFee?: number | null;
   travelFee?: number | null;
   weekendMultiplier?: number | null;
@@ -257,9 +284,17 @@ function fallbackEstimate(
   services: ServiceContext[],
   pricing: PricingContext | null,
 ): Estimate {
-  const labor = pricing?.laborRate ?? services[0]?.hourlyRate ?? 95;
-  const hours = 4;
-  const base = services[0]?.basePrice ?? labor * hours;
+  const service = services[0];
+  // Service-level pricing overrides company defaults when present.
+  const labor =
+    service?.billableLaborRate ??
+    pricing?.laborRate ??
+    service?.hourlyRate ??
+    95;
+  const crewSize = service?.avgCrewSize ?? 1;
+  const hours = service?.estimatedLaborHours ?? 4;
+  const laborCharge = crewSize * hours * labor;
+  const base = service?.basePrice ?? service?.avgJobCost ?? laborCharge;
   const subtotal = Math.max(base, pricing?.minimumJobCost ?? 0);
   const taxRate = pricing?.taxRate ?? 0;
   const taxes = Math.round(subtotal * (taxRate / 100) * 100) / 100;
@@ -276,7 +311,7 @@ function fallbackEstimate(
     recommendedPriceHigh: Math.round(total * 1.2 * 100) / 100,
     invoiceLineItems: [
       {
-        description: services[0]?.name ?? "Labor",
+        description: service?.name ?? "Labor",
         quantity: hours,
         unitPrice: labor,
         total: subtotal,
@@ -418,7 +453,10 @@ export async function generateAgentResponse(params: {
   } business${business.serviceArea ? ` serving ${business.serviceArea}` : ""}. A prospective customer has completed a short guided intake on the business's website. Your job: qualify the job and produce a realistic price estimate using the business's actual pricing data. Never use emojis. Never use the word "sandbox".
 
 BEHAVIOR RULES:
-- Use the business's typical job ranges (average/low/high job cost, crew sizes, typical duration, low-cost vs high-cost job examples, price increase/decrease factors) to anchor your estimate. Stay within realistic bounds for this business.
+- Each service may define its own pricing model, labor rate, crew size, labor hours, and typical job ranges. When a service provides its own value for a field, use it. When a service does NOT provide a value for a field, fall back to the business's company-wide pricing defaults (labor rate, employee wage, tax rate, travel/weekend/emergency fees, etc). Never mix — always prefer the most specific (service-level) value first.
+- Calculate the labor charge as: crew size × estimated labor hours × billable labor rate (service-level billableLaborRate if set, else the company laborRate). For fixed-price services, use the service's basePrice instead. For unit-based services, use unitPrice × the quantity/units implied by the customer's description.
+- Use each service's own typical job ranges (average/low/high job cost, crew sizes, estimated labor hours, low-cost vs high-cost job examples, price increase/decrease factors, pricing notes) to anchor your estimate for that service. If a service doesn't define these, use the business's company-wide typical job ranges instead. Stay within realistic bounds for this business.
+- If a service requires an on-site inspection, customer measurements/photos, or material selection before final pricing, reflect that in "missingInformation" and "recommendedNextStep", and lower confidenceScore accordingly since the estimate is necessarily preliminary.
 - If the customer selected a budget bracket (a specific range like "$50-$75", not "Not sure"), your "recommendedPriceLow" and "recommendedPriceHigh" MUST fall inside that exact bracket whenever the job realistically fits the business's typical pricing for this type of work — do not silently return a number outside the bracket the customer chose. Only go outside their selected bracket if the scope they described is clearly too large or too small to be done at that price, and in that case you MUST say so explicitly in "message" (e.g. "Based on what you described, this is likely to run higher than the $50-$75 range you selected, here's why...") — never diverge from their selection without explaining why.
 - "budgetFit": compare the customer's stated budget to your final estimate — one of "within_budget", "slightly_above", "above_budget", or "unknown" if no budget was given. This must be consistent with the actual recommendedPriceLow/High vs the customer's selected bracket.
 - "estimatedLaborersNeeded": short phrase like "2-3 person crew". "estimatedDuration": short phrase like "half day".

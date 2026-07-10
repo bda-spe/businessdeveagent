@@ -11,15 +11,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, Clock, MapPin, Calculator, Info } from "lucide-react";
+import { DollarSign, Clock, MapPin, Calculator, Info, Users } from "lucide-react";
 
 const pricingSchema = z.object({
   laborRate: z.coerce.number().optional().nullable(),
-  emergencyFee: z.coerce.number().optional().nullable(),
+  employeeWage: z.coerce.number().optional().nullable(),
+  minimumJobCost: z.coerce.number().optional().nullable(),
+  taxRate: z.coerce.number().optional().nullable(),
   travelFee: z.coerce.number().optional().nullable(),
   weekendMultiplier: z.coerce.number().optional().nullable(),
-  taxRate: z.coerce.number().optional().nullable(),
-  minimumJobCost: z.coerce.number().optional().nullable(),
+  emergencyFee: z.coerce.number().optional().nullable(),
   discounts: z.string().optional(),
   customNotes: z.string().optional(),
 });
@@ -34,11 +35,12 @@ export default function PricingPage() {
     resolver: zodResolver(pricingSchema),
     defaultValues: {
       laborRate: null,
-      emergencyFee: null,
+      employeeWage: null,
+      minimumJobCost: null,
+      taxRate: null,
       travelFee: null,
       weekendMultiplier: null,
-      taxRate: null,
-      minimumJobCost: null,
+      emergencyFee: null,
       discounts: "",
       customNotes: "",
     },
@@ -48,11 +50,12 @@ export default function PricingPage() {
     if (pricing) {
       form.reset({
         laborRate: pricing.laborRate,
-        emergencyFee: pricing.emergencyFee,
+        employeeWage: pricing.employeeWage,
+        minimumJobCost: pricing.minimumJobCost,
+        taxRate: pricing.taxRate,
         travelFee: pricing.travelFee,
         weekendMultiplier: pricing.weekendMultiplier,
-        taxRate: pricing.taxRate,
-        minimumJobCost: pricing.minimumJobCost,
+        emergencyFee: pricing.emergencyFee,
         discounts: pricing.discounts || "",
         customNotes: pricing.customNotes || "",
       });
@@ -87,20 +90,23 @@ export default function PricingPage() {
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Global Pricing Rules</h2>
-        <p className="text-slate-500 mt-1">Configure baseline fees and multipliers. The agent applies these on top of specific service costs.</p>
+        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Company-Wide Pricing Defaults</h2>
+        <p className="text-slate-500 mt-1">
+          These are your fallback rules. Any service in your Services catalog can define its own pricing model, labor rate, crew size, and job ranges — the agent uses those first, and only falls back to these company-wide defaults when a service doesn't specify its own value.
+        </p>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            
-            {/* Standard Rates Card */}
+
+            {/* Labor Defaults Card */}
             <Card className="border-slate-200 shadow-sm">
               <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
                 <CardTitle className="flex items-center text-lg">
-                  <Calculator className="w-5 h-5 mr-2 text-blue-600" /> Standard Rates
+                  <Users className="w-5 h-5 mr-2 text-blue-600" /> Labor Defaults
                 </CardTitle>
+                <CardDescription>Used whenever a service doesn't set its own labor rate.</CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
                 <FormField
@@ -108,16 +114,29 @@ export default function PricingPage() {
                   name="laborRate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Default Labor Rate ($/hr)</FormLabel>
+                      <FormLabel>Default Customer Billable Labor Rate ($/hr)</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)} />
                       </FormControl>
-                      <FormDescription>Used when a service lacks a specific rate.</FormDescription>
+                      <FormDescription>What you charge customers per labor hour by default.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+                <FormField
+                  control={form.control}
+                  name="employeeWage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Default Employee Wage ($/hr)</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)} />
+                      </FormControl>
+                      <FormDescription>What you pay your crew per hour — used internally, not shown to customers.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="minimumJobCost"
@@ -132,7 +151,17 @@ export default function PricingPage() {
                     </FormItem>
                   )}
                 />
+              </CardContent>
+            </Card>
 
+            {/* Materials & Tax Card */}
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
+                <CardTitle className="flex items-center text-lg">
+                  <Calculator className="w-5 h-5 mr-2 text-emerald-600" /> Materials & Tax
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
                 <FormField
                   control={form.control}
                   name="taxRate"
@@ -149,43 +178,14 @@ export default function PricingPage() {
               </CardContent>
             </Card>
 
-            {/* Fees & Multipliers Card */}
+            {/* Travel Card */}
             <Card className="border-slate-200 shadow-sm">
               <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
                 <CardTitle className="flex items-center text-lg">
-                  <Clock className="w-5 h-5 mr-2 text-amber-600" /> Fees & Multipliers
+                  <MapPin className="w-5 h-5 mr-2 text-purple-600" /> Travel
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
-                <FormField
-                  control={form.control}
-                  name="emergencyFee"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Emergency Callout Fee ($)</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)} />
-                      </FormControl>
-                      <FormDescription>Added to after-hours or urgent requests.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="weekendMultiplier"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Weekend Rate Multiplier (e.g. 1.5)</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.1" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={form.control}
                   name="travelFee"
@@ -201,12 +201,50 @@ export default function PricingPage() {
                 />
               </CardContent>
             </Card>
+
+            {/* Weekend & Emergency Card */}
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
+                <CardTitle className="flex items-center text-lg">
+                  <Clock className="w-5 h-5 mr-2 text-amber-600" /> Weekend & Emergency
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <FormField
+                  control={form.control}
+                  name="weekendMultiplier"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Weekend Rate Multiplier (e.g. 1.5)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.1" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="emergencyFee"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Emergency Callout Fee ($)</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)} />
+                      </FormControl>
+                      <FormDescription>Added to after-hours or urgent requests.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
           </div>
 
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
               <CardTitle className="flex items-center text-lg">
-                <Info className="w-5 h-5 mr-2 text-purple-600" /> Complex Rules
+                <Info className="w-5 h-5 mr-2 text-purple-600" /> Cancellation, Deposits & Discounts
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
@@ -234,15 +272,15 @@ export default function PricingPage() {
                 name="customNotes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Custom Pricing Notes</FormLabel>
+                    <FormLabel>Custom Pricing Notes (deposits, cancellation, etc.)</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="e.g. Always warn customers that exact pricing requires an on-site inspection. Permits are usually an extra $50-150 depending on the city." 
+                        placeholder="e.g. Require a 20% deposit for jobs over $2000. 24-hour cancellation notice required or a $50 fee applies. Permits are usually an extra $50-150 depending on the city." 
                         className="h-24"
                         {...field} 
                       />
                     </FormControl>
-                    <FormDescription>Any other pricing behavior the agent should know about.</FormDescription>
+                    <FormDescription>Any other company-wide pricing behavior the agent should know about.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

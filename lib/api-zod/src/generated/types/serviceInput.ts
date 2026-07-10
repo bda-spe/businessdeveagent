@@ -20,4 +20,38 @@ export interface ServiceInput {
   estimatedDuration?: string;
   requiresInspection?: boolean;
   active?: boolean;
+  /** @nullable */
+  pricingModel?: string | null;
+  /** @nullable */
+  billableLaborRate?: number | null;
+  /** @nullable */
+  unitType?: string | null;
+  /** @nullable */
+  unitPrice?: number | null;
+  /** @nullable */
+  avgCrewSize?: number | null;
+  /** @nullable */
+  minCrewSize?: number | null;
+  /** @nullable */
+  maxCrewSize?: number | null;
+  /** @nullable */
+  estimatedLaborHours?: number | null;
+  requiresMeasurements?: boolean;
+  requiresMaterialSelection?: boolean;
+  /** @nullable */
+  lowJobCost?: number | null;
+  /** @nullable */
+  avgJobCost?: number | null;
+  /** @nullable */
+  highJobCost?: number | null;
+  /** @nullable */
+  lowCostJobs?: string | null;
+  /** @nullable */
+  highCostJobs?: string | null;
+  /** @nullable */
+  priceIncreaseFactors?: string[] | null;
+  /** @nullable */
+  priceDecreaseFactors?: string[] | null;
+  /** @nullable */
+  pricingNotes?: string | null;
 }

@@ -10,6 +10,11 @@ export interface PricingRules {
   id: number;
   /** @nullable */
   laborRate?: number | null;
+  /**
+     * Internal average employee wage, used for profitability calculations (not shown to customers)
+     * @nullable
+     */
+  employeeWage?: number | null;
   /** @nullable */
   minimumJobCost?: number | null;
   /** @nullable */

@@ -1625,6 +1625,49 @@ components:
           type: boolean
         active:
           type: boolean
+        pricingModel:
+          type: ["string", "null"]
+          description: "fixed_price, hourly, unit_based, or custom_quote"
+        billableLaborRate:
+          type: ["number", "null"]
+          description: "Customer-billed hourly rate for this service; overrides the company default when set"
+        unitType:
+          type: ["string", "null"]
+          description: "square_foot, linear_foot, per_item, per_visit, or other"
+        unitPrice:
+          type: ["number", "null"]
+        avgCrewSize:
+          type: ["integer", "null"]
+        minCrewSize:
+          type: ["integer", "null"]
+        maxCrewSize:
+          type: ["integer", "null"]
+        estimatedLaborHours:
+          type: ["number", "null"]
+        requiresMeasurements:
+          type: boolean
+        requiresMaterialSelection:
+          type: boolean
+        lowJobCost:
+          type: ["number", "null"]
+        avgJobCost:
+          type: ["number", "null"]
+        highJobCost:
+          type: ["number", "null"]
+        lowCostJobs:
+          type: ["string", "null"]
+        highCostJobs:
+          type: ["string", "null"]
+        priceIncreaseFactors:
+          type: ["array", "null"]
+          items:
+            type: string
+        priceDecreaseFactors:
+          type: ["array", "null"]
+          items:
+            type: string
+        pricingNotes:
+          type: ["string", "null"]
 
     ServiceInput:
       type: object
@@ -1649,6 +1692,46 @@ components:
           type: boolean
         active:
           type: boolean
+        pricingModel:
+          type: ["string", "null"]
+        billableLaborRate:
+          type: ["number", "null"]
+        unitType:
+          type: ["string", "null"]
+        unitPrice:
+          type: ["number", "null"]
+        avgCrewSize:
+          type: ["integer", "null"]
+        minCrewSize:
+          type: ["integer", "null"]
+        maxCrewSize:
+          type: ["integer", "null"]
+        estimatedLaborHours:
+          type: ["number", "null"]
+        requiresMeasurements:
+          type: boolean
+        requiresMaterialSelection:
+          type: boolean
+        lowJobCost:
+          type: ["number", "null"]
+        avgJobCost:
+          type: ["number", "null"]
+        highJobCost:
+          type: ["number", "null"]
+        lowCostJobs:
+          type: ["string", "null"]
+        highCostJobs:
+          type: ["string", "null"]
+        priceIncreaseFactors:
+          type: ["array", "null"]
+          items:
+            type: string
+        priceDecreaseFactors:
+          type: ["array", "null"]
+          items:
+            type: string
+        pricingNotes:
+          type: ["string", "null"]
 
     ServiceUpdate:
       type: object
@@ -1671,6 +1754,46 @@ components:
           type: boolean
         active:
           type: boolean
+        pricingModel:
+          type: ["string", "null"]
+        billableLaborRate:
+          type: ["number", "null"]
+        unitType:
+          type: ["string", "null"]
+        unitPrice:
+          type: ["number", "null"]
+        avgCrewSize:
+          type: ["integer", "null"]
+        minCrewSize:
+          type: ["integer", "null"]
+        maxCrewSize:
+          type: ["integer", "null"]
+        estimatedLaborHours:
+          type: ["number", "null"]
+        requiresMeasurements:
+          type: boolean
+        requiresMaterialSelection:
+          type: boolean
+        lowJobCost:
+          type: ["number", "null"]
+        avgJobCost:
+          type: ["number", "null"]
+        highJobCost:
+          type: ["number", "null"]
+        lowCostJobs:
+          type: ["string", "null"]
+        highCostJobs:
+          type: ["string", "null"]
+        priceIncreaseFactors:
+          type: ["array", "null"]
+          items:
+            type: string
+        priceDecreaseFactors:
+          type: ["array", "null"]
+          items:
+            type: string
+        pricingNotes:
+          type: ["string", "null"]
 
     PricingRules:
       type: object
@@ -1680,6 +1803,9 @@ components:
           type: integer
         laborRate:
           type: ["number", "null"]
+        employeeWage:
+          type: ["number", "null"]
+          description: "Internal average employee wage, used for profitability calculations (not shown to customers)"
         minimumJobCost:
           type: ["number", "null"]
         travelFeeType:
@@ -1749,6 +1875,8 @@ components:
       type: object
       properties:
         laborRate:
+          type: ["number", "null"]
+        employeeWage:
           type: ["number", "null"]
         minimumJobCost:
           type: ["number", "null"]

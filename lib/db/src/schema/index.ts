@@ -76,6 +76,31 @@ export const servicesTable = pgTable("services", {
   requiresInspection: boolean("requires_inspection").notNull().default(false),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  // Pricing model & service-specific pricing
+  pricingModel: text("pricing_model"),
+  billableLaborRate: doublePrecision("billable_labor_rate"),
+  unitType: text("unit_type"),
+  unitPrice: doublePrecision("unit_price"),
+  // Labor requirements
+  avgCrewSize: integer("avg_crew_size"),
+  minCrewSize: integer("min_crew_size"),
+  maxCrewSize: integer("max_crew_size"),
+  estimatedLaborHours: doublePrecision("estimated_labor_hours"),
+  // Estimate requirements
+  requiresMeasurements: boolean("requires_measurements").notNull().default(false),
+  requiresMaterialSelection: boolean("requires_material_selection")
+    .notNull()
+    .default(false),
+  // Typical job pricing range
+  lowJobCost: doublePrecision("low_job_cost"),
+  avgJobCost: doublePrecision("avg_job_cost"),
+  highJobCost: doublePrecision("high_job_cost"),
+  // AI estimating guidance
+  lowCostJobs: text("low_cost_jobs"),
+  highCostJobs: text("high_cost_jobs"),
+  priceIncreaseFactors: jsonb("price_increase_factors"),
+  priceDecreaseFactors: jsonb("price_decrease_factors"),
+  pricingNotes: text("pricing_notes"),
 });
 
 export const pricingRulesTable = pgTable("pricing_rules", {
@@ -85,6 +110,7 @@ export const pricingRulesTable = pgTable("pricing_rules", {
     .references(() => businessesTable.id, { onDelete: "cascade" })
     .unique(),
   laborRate: doublePrecision("labor_rate"),
+  employeeWage: doublePrecision("employee_wage"),
   minimumJobCost: doublePrecision("minimum_job_cost"),
   travelFeeType: text("travel_fee_type"),
   travelFee: doublePrecision("travel_fee"),
