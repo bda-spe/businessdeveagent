@@ -178,6 +178,7 @@ export const invoiceSettingsTable = pgTable("invoice_settings", {
   footerNote: text("footer_note"),
   includedSections: jsonb("included_sections"),
   showPolicies: boolean("show_policies").notNull().default(false),
+  showLogo: boolean("show_logo").notNull().default(true),
   emailSubject: text("email_subject"),
   emailGreeting: text("email_greeting"),
   emailBodyText: text("email_body_text"),

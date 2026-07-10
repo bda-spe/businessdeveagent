@@ -26,6 +26,8 @@ export interface InvoiceSettings {
   footerNote?: string | null;
   /** When true, show full policy text on estimates; when false, show a single short agreement line. */
   showPolicies?: boolean;
+  /** When true and a company logo is uploaded, show it in the top-right of estimates; when false, omit it. */
+  showLogo?: boolean;
   /** @nullable */
   emailSubject?: string | null;
   /** @nullable */

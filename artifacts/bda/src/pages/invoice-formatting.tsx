@@ -65,6 +65,7 @@ const settingsSchema = z.object({
   ccOwner: z.boolean(),
   attachPdf: z.boolean(),
   showPolicies: z.boolean(),
+  showLogo: z.boolean(),
   brandColor: z
     .string()
     .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Enter a valid hex color")
@@ -152,6 +153,7 @@ export default function InvoiceFormattingPage() {
       ccOwner: true,
       attachPdf: true,
       showPolicies: false,
+      showLogo: true,
       brandColor: "#1e3a5f",
     },
   });
@@ -174,6 +176,7 @@ export default function InvoiceFormattingPage() {
         ccOwner: settings.ccOwner ?? true,
         attachPdf: settings.attachPdf ?? true,
         showPolicies: settings.showPolicies ?? false,
+        showLogo: settings.showLogo ?? true,
         brandColor: settings.brandColor ?? "#1e3a5f",
       });
     }
@@ -261,6 +264,8 @@ export default function InvoiceFormattingPage() {
       showPolicies: watched.showPolicies,
     },
     brandColor: watched.brandColor,
+    logoUrl: me?.business?.logoUrl ?? null,
+    showLogo: watched.showLogo,
   };
 
   // Live email preview
@@ -302,6 +307,7 @@ export default function InvoiceFormattingPage() {
           ccOwner: values.ccOwner,
           attachPdf: values.attachPdf,
           showPolicies: values.showPolicies,
+          showLogo: values.showLogo,
           brandColor: values.brandColor || "#1e3a5f",
         },
       },
@@ -359,6 +365,25 @@ export default function InvoiceFormattingPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
+                <FormField
+                  control={form.control}
+                  name="showLogo"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 space-y-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                      <FormLabel className="text-sm font-medium text-slate-700 cursor-pointer whitespace-nowrap">
+                        Show logo
+                      </FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={!me?.business?.logoUrl}
+                          data-testid="switch-show-logo"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="showPolicies"

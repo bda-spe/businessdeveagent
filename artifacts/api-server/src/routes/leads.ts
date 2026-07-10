@@ -137,6 +137,7 @@ router.post("/leads/:id/send-email", requireBusiness, async (req, res): Promise<
       settings: {
         selectedTemplate: settings.selectedTemplate,
         showPolicies: settings.showPolicies,
+        showLogo: settings.showLogo,
         brandColor: settings.brandColor,
         cancellationPolicy: settings.cancellationPolicy,
         paymentTerms: settings.paymentTerms,

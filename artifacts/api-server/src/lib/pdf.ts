@@ -16,6 +16,7 @@ const HAIRLINE = "#e2e8f0";
 export interface InvoicePdfSettings {
   selectedTemplate: string;
   showPolicies: boolean;
+  showLogo?: boolean;
   brandColor?: string | null;
   cancellationPolicy?: string | null;
   paymentTerms?: string | null;
@@ -140,7 +141,8 @@ export async function buildInvoicePdf(opts: {
   const brandSoft = tint(brand, 0.9);
   const brandRow = tint(brand, 0.955);
   const brandBorder = tint(brand, 0.65);
-  const logo = await fetchLogo(logoUrl);
+  const logo =
+    settings.showLogo === false ? null : await fetchLogo(logoUrl);
 
   return new Promise((resolve, reject) => {
     const margin = 50;
