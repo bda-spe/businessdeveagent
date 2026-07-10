@@ -1,0 +1,188 @@
+Add Company Logo Upload
+Add a Company Logo upload to Step 1 (Business Profile) of Company Onboarding.
+
+Requirements:
+- Add a "Company Logo" upload field.
+- Accept PNG, JPG, JPEG, and SVG.
+- Show a live preview after upload.
+- Allow the logo to be removed or replaced at any time.
+- Store the logo with the business profile.
+- Save the logo URL/path to the businesses table (logo_url or equivalent).
+- The logo should only be used on generated Service Estimate PDFs.
+- If no logo exists, simply omit the logo from the estimate without affecting the layout.
+- Do not display the logo anywhere else in the application unless added in the future.
+- Validate file size and image type before upload.
+Prompt 2 — Redesign the Service Estimate PDF
+Completely redesign the generated PDF while preserving all existing estimate logic, calculations, and content.
+
+Rename:
+"Service Quote"
+
+to
+
+"Service Estimate"
+
+The goal is a modern, premium, contractor-style estimate comparable to Jobber, Housecall Pro, Stripe, Square, or QuickBooks.
+
+Do not change any pricing calculations or AI output. Only redesign the presentation.
+
+----------------------------------
+Header
+----------------------------------
+
+Create a professional header.
+
+Left side:
+- Company Name
+- Company Phone Number
+- Company Email
+- Company Website (if available)
+
+Right side:
+- Company Logo (if uploaded)
+
+Do NOT display:
+- Company address
+- Estimate number
+
+Below the header place:
+- Date
+- Customer Name
+- Customer Email
+- Service Address
+
+Arrange these in a clean two-column layout.
+
+----------------------------------
+Branding
+----------------------------------
+
+Do NOT hardcode colors.
+
+Use the branding selected in Quote Formatting:
+- Primary color
+- Secondary color
+- Accent color
+- Font selection
+- Border radius preferences
+
+Automatically adapt the estimate styling using those settings.
+
+Maintain excellent readability regardless of chosen colors.
+
+----------------------------------
+Project Summary
+----------------------------------
+
+Place inside a clean bordered card.
+
+Include:
+- Project title
+- Customer description
+
+----------------------------------
+Services & Pricing
+----------------------------------
+
+Replace the current formatting with a modern table.
+
+Columns:
+
+• Service
+• Price
+
+Only display these two columns.
+
+Use:
+- alternating row colors
+- subtle borders
+- clean spacing
+
+----------------------------------
+Totals
+----------------------------------
+
+Create a summary card aligned to the right.
+
+Include:
+- Subtotal
+- Taxes & Fees
+- Estimated Total
+
+Make Estimated Total the largest value on the page.
+
+----------------------------------
+Estimated Range
+----------------------------------
+
+Display inside its own highlighted card immediately below the totals.
+
+----------------------------------
+Assumptions
+----------------------------------
+
+Display inside a clean bordered section using bullet points.
+
+----------------------------------
+Open Questions
+----------------------------------
+
+Display in a separate bordered section with improved spacing and typography.
+
+----------------------------------
+Preliminary Estimate Notice
+----------------------------------
+
+Move this into its own notice box near the bottom.
+
+Make it visually distinct without using harsh warning colors.
+
+----------------------------------
+Footer
+----------------------------------
+
+Include:
+
+Thank you for your business.
+
+Company phone number
+
+Company email
+
+Company website (if available)
+
+If multiple pages exist:
+Include page numbers.
+
+----------------------------------
+Layout
+----------------------------------
+
+Use:
+- rounded cards
+- generous whitespace
+- modern typography
+- consistent margins
+- professional spacing
+- subtle dividers
+- print-friendly styling
+
+Hide empty sections automatically.
+
+Do not leave large blank spaces.
+
+----------------------------------
+Future Compatibility
+----------------------------------
+
+Design the template so future sections can easily be added, including:
+- Photos
+- Signatures
+- Deposits
+- Payment Terms
+- Warranty Information
+- Attachments
+- Discounts
+- Optional Services
+
+The layout should remain clean and extensible without requiring another redesign.
