@@ -512,7 +512,7 @@ export default function BillingPage() {
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-                    <span>Automated estimates/quotes</span>
+                    <span>Automated estimates</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="h-4 w-4 text-emerald-500 shrink-0" />
@@ -624,7 +624,7 @@ export default function BillingPage() {
             <ul className="space-y-1 text-slate-600">
               {[
                 "Business profile & services",
-                "Pricing rules & quote templates",
+                "Pricing rules & estimate templates",
                 "Agent preferences & training",
                 "Widget configuration & embed code",
                 "Leads & conversations",

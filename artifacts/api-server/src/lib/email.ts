@@ -72,7 +72,7 @@ export function composeEstimateEmail(opts: {
     lines.push(`Service address: ${serviceAddress}`, "");
   }
   lines.push(
-    "Quote summary:",
+    "Estimate summary:",
     ...items.map((li) => `- ${li.description}: $${li.total.toFixed(2)}`),
   );
   if (taxes > 0) lines.push(`- Taxes & fees: $${taxes.toFixed(2)}`);

@@ -17,7 +17,7 @@ export const DEFAULT_INVOICE_LANGUAGE = {
   estimateDisclaimer:
     "This estimate is based on the information provided by the customer and is intended as preliminary pricing. Final pricing may change after inspection, measurement, material review, or changes to project scope.",
   termsConditions:
-    "All work is performed by trained professionals in accordance with applicable local codes and standards. Workmanship is guaranteed for 90 days from the date of service. Materials are covered by their respective manufacturer warranties. Any additional work outside the agreed scope will be quoted separately before proceeding.",
+    "All work is performed by trained professionals in accordance with applicable local codes and standards. Workmanship is guaranteed for 90 days from the date of service. Materials are covered by their respective manufacturer warranties. Any additional work outside the agreed scope will be estimated separately before proceeding.",
   acceptanceLanguage:
     "By approving this estimate or scheduling service, the customer acknowledges and agrees to the payment terms, cancellation policy, service conditions, and terms and conditions stated herein.",
   depositRequirements:
@@ -25,10 +25,10 @@ export const DEFAULT_INVOICE_LANGUAGE = {
   footerNote: "Thank you for your business. We look forward to serving you.",
 };
 
-// Preliminary-estimate disclaimer shown with every quote output (widget
-// result, PDF, emails, Test Agent). Keep the user-facing term "Quote".
+// Preliminary-estimate disclaimer shown with every estimate output (widget
+// result, PDF, emails, Test Agent).
 export const PRELIMINARY_ESTIMATE_DISCLAIMER =
-  "This quote is a preliminary estimate based on the information provided. It is not a final service agreement. Final pricing may change after review, inspection, measurement, material confirmation, or changes to project scope.";
+  "This estimate is preliminary and based on the information provided. It is not a final service agreement. Final pricing may change after review, inspection, measurement, material confirmation, or changes to project scope.";
 
 // Shown on every estimate (PDF + email) when the business has "Show
 // policies on estimate" turned off, so customers still know policies apply

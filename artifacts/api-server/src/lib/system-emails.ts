@@ -173,7 +173,7 @@ export async function sendSubscriptionCanceledEmail(opts: {
   const body =
     p(`Hi ${opts.ownerName},`) +
     p(`We've confirmed the cancellation of your <strong>Business Development Agent</strong> subscription for <strong>${opts.businessName}</strong>.`) +
-    p("Your Business Development Agent is now inactive and the website widget has been disabled. <strong>All of your data has been preserved</strong> &mdash; your business profile, services, pricing, quote templates, agent preferences, and widget configuration are all saved.") +
+    p("Your Business Development Agent is now inactive and the website widget has been disabled. <strong>All of your data has been preserved</strong> &mdash; your business profile, services, pricing, estimate templates, agent preferences, and widget configuration are all saved.") +
     p("If you'd like to reactivate at any time, simply visit your billing page and select a plan. Your widget will be restored instantly using your existing embed code.");
 
   await sendHtmlEmail({

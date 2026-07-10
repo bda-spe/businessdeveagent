@@ -40,7 +40,7 @@ export default function TrialLockGate({
           </p>
           <p className="mt-2 text-sm text-slate-500">
             Reactivate your subscription to continue managing your business
-            profile, quotes, services, pricing, testing, and website widget.
+            profile, estimates, services, pricing, testing, and website widget.
           </p>
           <Button className="mt-6" onClick={() => setLocation("/billing")}>
             Continue to Billing

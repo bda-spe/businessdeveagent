@@ -56,5 +56,7 @@ export interface Business {
   trialEndsAt?: string | null;
   planType?: string;
   buildFeePaid?: boolean;
+  /** @nullable */
+  logoUrl?: string | null;
   createdAt?: string;
 }

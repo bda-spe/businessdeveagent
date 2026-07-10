@@ -55,7 +55,7 @@ export default function LandingPage() {
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold tracking-tight mb-4">How BDA works for your business</h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                Every visitor to your website is your next job. Your agent greets them instantly, quotes the work, and wins the business — even while you're out on a job site.
+                Every visitor to your website is your next job. Your agent greets them instantly, estimates the work, and wins the business — even while you're out on a job site.
               </p>
             </div>
             
@@ -65,14 +65,14 @@ export default function LandingPage() {
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-bold mb-3">1. Train on Your Business</h3>
-                <p className="text-slate-600 leading-relaxed">Upload your business facts , service areas, and job details. The agent learns exactly how you operate to provide accurate quotes to secure more clients.</p>
+                <p className="text-slate-600 leading-relaxed">Upload your business facts , service areas, and job details. The agent learns exactly how you operate to provide accurate estimates to secure more clients.</p>
               </div>
               <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
                 <div className="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center mb-6">
                   <MessageSquare className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-bold mb-3">2. Qualify Prospects</h3>
-                <p className="text-slate-600 leading-relaxed">The agent chats with visitors on your site, asks the right questions, and generates accurate quotes for their needs.</p>
+                <p className="text-slate-600 leading-relaxed">The agent chats with visitors on your site, asks the right questions, and generates accurate estimates for their needs.</p>
               </div>
               <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
                 <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center mb-6">
@@ -80,7 +80,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold mb-3">3. Generate More Business</h3>
                 <p className="text-slate-600 leading-relaxed">
-                  Accurate quotes given in real-time help business win more work without ever having to chase down a lead. Get started today!
+                  Accurate estimates given in real-time help business win more work without ever having to chase down a lead. Get started today!
                 </p>
               </div>
             </div>

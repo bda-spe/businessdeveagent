@@ -120,6 +120,7 @@ router.post("/leads/:id/send-email", requireBusiness, async (req, res): Promise<
   if (settings.attachPdf && lead.estimate) {
     pdfBuffer = await buildInvoicePdf({
       businessName: req.business!.name,
+      logoUrl: req.business!.logoUrl,
       customerEmail: lead.email,
       customerPhone: lead.phone,
       projectDescription: lead.projectDescription || "",
@@ -150,7 +151,7 @@ router.post("/leads/:id/send-email", requireBusiness, async (req, res): Promise<
     subject: lead.emailSubject,
     text: lead.emailBody,
     attachment: pdfBuffer
-      ? { filename: "estimate.pdf", content: pdfBuffer }
+      ? { filename: "Service-Estimate.pdf", content: pdfBuffer }
       : null,
   });
   if (result.sent) {

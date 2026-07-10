@@ -141,7 +141,7 @@ const PREF_SECTIONS = [
   },
   {
     key: "invoicePolicyStandards",
-    label: "Quote & Policy Standards",
+    label: "Estimate & Policy Standards",
     description:
       "Deposits, payment, cancellation, and warranty practices the agent should respect.",
   },
@@ -152,7 +152,7 @@ const PREF_SECTIONS = [
   },
   {
     key: "servicesNotToQuote",
-    label: "Services Not to Quote",
+    label: "Services Not to Estimate",
     description:
       "Job types your agent should never price, and what to say instead.",
   },
@@ -352,7 +352,7 @@ export default function AgentSettingsPage() {
       URL.revokeObjectURL(url);
     } catch {
       toast({
-        title: "Could not download the PDF quote.",
+        title: "Could not download the PDF estimate.",
         variant: "destructive",
       });
     }
@@ -1008,7 +1008,7 @@ export default function AgentSettingsPage() {
                 onClick={handleDownloadPdf}
                 data-testid="button-download-pdf"
               >
-                <Download className="h-3.5 w-3.5 mr-1.5" /> PDF Quote
+                <Download className="h-3.5 w-3.5 mr-1.5" /> PDF Estimate
               </Button>
             </div>
             <InvoiceTemplatePreview
@@ -1117,7 +1117,7 @@ export default function AgentSettingsPage() {
               </h3>
               <p className="text-sm text-slate-500 max-w-md mx-auto mb-5">
                 {testAgentDone
-                  ? "We'll analyze your business profile, services, pricing, quote settings, and your test feedback to draft the standards your agent will follow."
+                  ? "We'll analyze your business profile, services, pricing, estimate settings, and your test feedback to draft the standards your agent will follow."
                   : "Tip: run a few tests above first — your feedback there teaches the agent your preferences before we draft its standards."}
               </p>
               <Button
@@ -1220,7 +1220,7 @@ export default function AgentSettingsPage() {
               <Lock className="h-5 w-5" /> Agent Preferences &amp; Standards
             </CardTitle>
             <CardDescription>
-              Complete a test conversation above that produces a quote to
+              Complete a test conversation above that produces an estimate to
               unlock your agent's preferences and standards.
             </CardDescription>
           </CardHeader>

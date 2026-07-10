@@ -18,6 +18,62 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * Returns a presigned GCS URL for direct upload. The client sends JSON
+ * metadata here, then uploads the file directly to the returned URL.
+ * @summary Request a presigned URL for file upload
+ */
+
+
+
+
+
+export const RequestUploadUrlBody = zod.object({
+  "name": zod.string().min(1).describe('Original file name.'),
+  "size": zod.number().min(1).describe('File size in bytes.'),
+  "contentType": zod.string().min(1).describe('MIME type of the file (e.g. `image\/jpeg`).')
+})
+
+
+
+
+
+
+export const RequestUploadUrlResponse = zod.object({
+  "uploadURL": zod.string().url().describe('Presigned GCS URL for PUT upload.'),
+  "objectPath": zod.string().describe('Normalized object path (e.g. `\/objects\/uploads\/uuid`). Store this in your database.'),
+  "metadata": zod.object({
+  "name": zod.string().min(1).describe('Original file name.'),
+  "size": zod.number().min(1).describe('File size in bytes.'),
+  "contentType": zod.string().min(1).describe('MIME type of the file (e.g. `image\/jpeg`).')
+}).optional()
+})
+
+
+/**
+ * Unconditionally public — no authentication or ACL checks.
+ * Searches PUBLIC_OBJECT_SEARCH_PATHS for the given file path.
+ * @summary Serve a public asset from PUBLIC_OBJECT_SEARCH_PATHS
+ */
+export const GetPublicObjectParams = zod.object({
+  "filePath": zod.coerce.string().describe('Relative file path within the public search paths.')
+})
+
+export const GetPublicObjectResponse = zod.unknown()
+
+
+/**
+ * Serves object entities uploaded via presigned URLs. These can optionally
+ * be protected with authentication or ACL checks based on the use case.
+ * @summary Serve an object entity from PRIVATE_OBJECT_DIR
+ */
+export const GetStorageObjectParams = zod.object({
+  "objectPath": zod.coerce.string().describe('Object path within the private object dir (e.g. `uploads\/some-uuid`).')
+})
+
+export const GetStorageObjectResponse = zod.unknown()
+
+
+/**
  * @summary Get current user and their business
  */
 export const GetMeResponse = zod.object({
@@ -56,6 +112,7 @@ export const GetMeResponse = zod.object({
   "trialEndsAt": zod.string().nullish(),
   "planType": zod.string().optional(),
   "buildFeePaid": zod.boolean().optional(),
+  "logoUrl": zod.string().nullish(),
   "createdAt": zod.string().optional()
 }),zod.null()]).optional(),
   "onboardingComplete": zod.boolean(),
@@ -113,6 +170,7 @@ export const CreateBusinessResponse = zod.object({
   "trialEndsAt": zod.string().nullish(),
   "planType": zod.string().optional(),
   "buildFeePaid": zod.boolean().optional(),
+  "logoUrl": zod.string().nullish(),
   "createdAt": zod.string().optional()
 })
 
@@ -150,6 +208,7 @@ export const GetBusinessResponse = zod.object({
   "trialEndsAt": zod.string().nullish(),
   "planType": zod.string().optional(),
   "buildFeePaid": zod.boolean().optional(),
+  "logoUrl": zod.string().nullish(),
   "createdAt": zod.string().optional()
 })
 
@@ -174,7 +233,8 @@ export const UpdateBusinessBody = zod.object({
   "addressLine2": zod.string().optional(),
   "addressCity": zod.string().optional(),
   "addressState": zod.string().optional(),
-  "addressZip": zod.string().optional()
+  "addressZip": zod.string().optional(),
+  "logoUrl": zod.string().nullish()
 })
 
 export const UpdateBusinessResponse = zod.object({
@@ -207,6 +267,7 @@ export const UpdateBusinessResponse = zod.object({
   "trialEndsAt": zod.string().nullish(),
   "planType": zod.string().optional(),
   "buildFeePaid": zod.boolean().optional(),
+  "logoUrl": zod.string().nullish(),
   "createdAt": zod.string().optional()
 })
 
@@ -248,6 +309,7 @@ export const UpdateBusinessEmailResponse = zod.object({
   "trialEndsAt": zod.string().nullish(),
   "planType": zod.string().optional(),
   "buildFeePaid": zod.boolean().optional(),
+  "logoUrl": zod.string().nullish(),
   "createdAt": zod.string().optional()
 })
 
@@ -293,6 +355,7 @@ export const ApproveBusinessProfileResponse = zod.object({
   "trialEndsAt": zod.string().nullish(),
   "planType": zod.string().optional(),
   "buildFeePaid": zod.boolean().optional(),
+  "logoUrl": zod.string().nullish(),
   "createdAt": zod.string().optional()
 })
 
@@ -1575,6 +1638,7 @@ export const ConfirmBusinessProfileResponse = zod.object({
   "trialEndsAt": zod.string().nullish(),
   "planType": zod.string().optional(),
   "buildFeePaid": zod.boolean().optional(),
+  "logoUrl": zod.string().nullish(),
   "createdAt": zod.string().optional()
 })
 

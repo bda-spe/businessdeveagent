@@ -125,7 +125,7 @@ function composeEmail(opts: {
     "",
     replacePlaceholders(settings.emailBodyText || "", vars),
     "",
-    "Quote summary:",
+    "Estimate summary:",
     ...items.map((li) => `- ${li.description}: $${li.total.toFixed(2)}`),
   ];
   if (taxes > 0) lines.push(`- Taxes & fees: $${taxes.toFixed(2)}`);
@@ -168,10 +168,12 @@ async function buildPdfForTest(
   test: typeof sandboxTestsTable.$inferSelect,
   settings: Awaited<ReturnType<typeof getOrCreateSettings>>,
   businessName: string,
+  logoUrl?: string | null,
 ): Promise<Buffer | null> {
   if (!test.estimate) return null;
   return buildInvoicePdf({
     businessName,
+    logoUrl,
     customerEmail: test.customerEmail,
     projectDescription: test.prompt,
     date: new Date(test.createdAt).toLocaleDateString("en-US", {
@@ -349,6 +351,7 @@ router.post(
               },
               ctx.settings,
               req.business!.name,
+              req.business!.logoUrl,
             )
           : null;
         const result = await sendEstimateEmail({
@@ -357,7 +360,7 @@ router.post(
           replyTo: ctx.settings.replyToEmail,
           subject: emailSubject,
           text: emailBody,
-          attachment: pdf ? { filename: "estimate.pdf", content: pdf } : null,
+          attachment: pdf ? { filename: "Service-Estimate.pdf", content: pdf } : null,
         });
         emailSent = result.sent;
       }
@@ -413,7 +416,7 @@ router.post(
     }
     const ctx = await loadAgentContext(bid);
     const pdf = ctx.settings.attachPdf
-      ? await buildPdfForTest(existing, ctx.settings, req.business!.name)
+      ? await buildPdfForTest(existing, ctx.settings, req.business!.name, req.business!.logoUrl)
       : null;
     const result = await sendEstimateEmail({
       to: existing.customerEmail,
@@ -421,7 +424,7 @@ router.post(
       replyTo: ctx.settings.replyToEmail,
       subject: existing.emailSubject,
       text: existing.emailBody,
-      attachment: pdf ? { filename: "estimate.pdf", content: pdf } : null,
+      attachment: pdf ? { filename: "Service-Estimate.pdf", content: pdf } : null,
     });
     if (result.sent) {
       await db
@@ -462,6 +465,7 @@ router.get(
       existing,
       ctx.settings,
       req.business!.name,
+      req.business!.logoUrl,
     );
     if (!pdf) {
       res.status(404).json({ error: "No invoice available for this test" });

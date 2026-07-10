@@ -24,4 +24,6 @@ export interface BusinessUpdate {
   addressCity?: string;
   addressState?: string;
   addressZip?: string;
+  /** @nullable */
+  logoUrl?: string | null;
 }

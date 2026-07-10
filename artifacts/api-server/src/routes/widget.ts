@@ -320,7 +320,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
     );
     res.status(400).json({
       error: missingAddress
-        ? "A complete service address (street, city, state, and ZIP code) is required before a quote can be generated."
+        ? "A complete service address (street, city, state, and ZIP code) is required before an estimate can be generated."
         : "Some required information is missing or invalid. Please review your answers and try again.",
     });
     return;
@@ -342,7 +342,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
     );
     res.status(400).json({
       error:
-        "A complete service address (street, city, state, and ZIP code) is required before a quote can be generated.",
+        "A complete service address (street, city, state, and ZIP code) is required before an estimate can be generated.",
     });
     return;
   }
@@ -361,7 +361,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
       "[widget/interact] rejected: missing customer contact info",
     );
     res.status(400).json({
-      error: "An email address or phone number is required so we can follow up on your quote.",
+      error: "An email address or phone number is required so we can follow up on your estimate.",
     });
     return;
   }
@@ -427,7 +427,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
     );
     res.status(400).json({
       error:
-        "This business hasn't finished setting up its pricing yet, so a quote can't be generated. Please try again later or contact the business directly.",
+        "This business hasn't finished setting up its pricing yet, so an estimate can't be generated. Please try again later or contact the business directly.",
     });
     return;
   }
@@ -587,6 +587,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
         if (settings.attachPdf) {
           pdfBuffer = await buildInvoicePdf({
             businessName: business.name,
+            logoUrl: business.logoUrl,
             customerEmail,
             customerPhone,
             serviceAddress,
@@ -618,7 +619,7 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
           subject: composed.subject,
           text: composed.body,
           attachment: pdfBuffer
-            ? { filename: "quote.pdf", content: pdfBuffer }
+            ? { filename: "Service-Estimate.pdf", content: pdfBuffer }
             : null,
         });
         logger.info(

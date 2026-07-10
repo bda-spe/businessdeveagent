@@ -55,6 +55,7 @@ export const businessesTable = pgTable("businesses", {
   trialEndsAt: timestamp("trial_ends_at", { mode: "string" }),
   planType: varchar("plan_type", { length: 64 }).notNull().default("none"),
   buildFeePaid: boolean("build_fee_paid").notNull().default(false),
+  logoUrl: text("logo_url"),
   stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
   stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),

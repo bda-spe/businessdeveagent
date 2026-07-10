@@ -24,6 +24,7 @@ import {
   useConfirmBusinessProfile,
   useListBusinessIndustries,
   useSetBusinessIndustries,
+  useRequestUploadUrl,
   getGetBusinessQueryKey,
   getGetMeQueryKey,
   getGetBusinessOperationsQueryKey,
@@ -178,7 +179,7 @@ function IndustryPicker({
   return (
     <div className="space-y-3">
       <p className="text-xs text-slate-500">
-        Select all categories that apply to your business. These help your BDA ask better quote questions and generate more accurate estimates.
+        Select all categories that apply to your business. These help your BDA ask better estimate questions and generate more accurate estimates.
       </p>
 
       {value.length > 0 && (
@@ -467,6 +468,14 @@ const s1Schema = z.object({
 });
 type S1 = z.infer<typeof s1Schema>;
 
+const LOGO_MAX_BYTES = 5 * 1024 * 1024;
+const LOGO_ACCEPT = ".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml";
+const LOGO_ALLOWED_TYPES = ["image/png", "image/jpeg", "image/svg+xml"];
+
+function logoSrc(objectPath: string): string {
+  return `/api/storage${objectPath}`;
+}
+
 function Step1({
   biz,
   initialIndustries,
@@ -474,7 +483,7 @@ function Step1({
 }: {
   biz: Business | undefined;
   initialIndustries: PickedIndustry[];
-  onSave: (d: S1, industries: PickedIndustry[], customIndustry: string) => Promise<void>;
+  onSave: (d: S1, industries: PickedIndustry[], customIndustry: string, logoUrl: string | null) => Promise<void>;
 }) {
   const form = useForm<S1>({ resolver: zodResolver(s1Schema),
     defaultValues: { name: "", website: "", phone: "", email: "", serviceArea: "" } });
@@ -482,6 +491,53 @@ function Step1({
   const [industries, setIndustries] = useState<PickedIndustry[]>(initialIndustries);
   const [customIndustry, setCustomIndustry] = useState(biz?.customIndustry ?? "");
   const [industryError, setIndustryError] = useState("");
+  const [logoUrl, setLogoUrl] = useState<string | null>(biz?.logoUrl ?? null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState("");
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const requestUploadUrl = useRequestUploadUrl();
+
+  const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setLogoError("");
+    const typeOk = LOGO_ALLOWED_TYPES.includes(file.type) ||
+      /\.(png|jpe?g|svg)$/i.test(file.name);
+    if (!typeOk) {
+      setLogoError("Please upload a PNG, JPG, or SVG image.");
+      return;
+    }
+    if (file.size > LOGO_MAX_BYTES) {
+      setLogoError("Logo must be 5 MB or smaller.");
+      return;
+    }
+    setLogoUploading(true);
+    try {
+      const { uploadURL, objectPath } = await requestUploadUrl.mutateAsync({
+        data: {
+          name: file.name,
+          size: file.size,
+          contentType: file.type || "application/octet-stream",
+        },
+      });
+      const put = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type || "application/octet-stream" },
+      });
+      if (!put.ok) throw new Error("Upload failed");
+      setLogoUrl(objectPath);
+    } catch {
+      setLogoError("Upload failed. Please try again.");
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  useEffect(() => {
+    setLogoUrl(biz?.logoUrl ?? null);
+  }, [biz?.logoUrl]);
 
   useEffect(() => {
     if (biz) form.reset({
@@ -518,7 +574,7 @@ function Step1({
     }
     setIndustryError("");
     setSaving(true);
-    await onSave(d, industries, customIndustry.trim()).finally(() => setSaving(false));
+    await onSave(d, industries, customIndustry.trim(), logoUrl).finally(() => setSaving(false));
   };
 
   const fe = form.formState.errors;
@@ -529,6 +585,51 @@ function Step1({
           <Label>Business Name *</Label>
           <Input {...form.register("name")} placeholder="Acme Plumbing Co." />
           {fe.name && <p className="text-xs text-red-500">{fe.name.message}</p>}
+        </div>
+        <div className="space-y-1 sm:col-span-2">
+          <Label>Company Logo <span className="text-slate-400 font-normal">(appears on your estimate PDFs)</span></Label>
+          <input
+            ref={logoInputRef}
+            type="file"
+            accept={LOGO_ACCEPT}
+            className="hidden"
+            onChange={handleLogoSelect}
+          />
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-20 shrink-0 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+              {logoUrl ? (
+                <img src={logoSrc(logoUrl)} alt="Company logo" className="h-full w-full object-contain" />
+              ) : (
+                <span className="text-[10px] text-slate-400 text-center px-1">No logo</span>
+              )}
+            </div>
+            <div className="space-y-1">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={logoUploading}
+                  onClick={() => logoInputRef.current?.click()}
+                >
+                  {logoUploading ? "Uploading…" : logoUrl ? "Replace logo" : "Upload logo"}
+                </Button>
+                {logoUrl && !logoUploading && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500 hover:text-red-600"
+                    onClick={() => { setLogoUrl(null); setLogoError(""); }}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-slate-400">PNG, JPG, or SVG · up to 5 MB</p>
+              {logoError && <p className="text-xs text-red-500">{logoError}</p>}
+            </div>
+          </div>
         </div>
         <div className="space-y-1">
           <Label>Phone *</Label>
@@ -761,7 +862,7 @@ function ServiceCard({ svc, onSave, onDelete }: {
       <div className="flex items-center gap-6">
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input type="checkbox" {...form.register("requiresInspection")} className="accent-[#1e3a5f]" />
-          Requires inspection before quote
+          Requires inspection before estimate
         </label>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input type="checkbox" {...form.register("active")} className="accent-[#1e3a5f]" />
@@ -1476,9 +1577,9 @@ export default function BusinessPage() {
   const invalidate = (...keys: (() => readonly unknown[])[]) =>
     keys.forEach((k) => qc.invalidateQueries({ queryKey: k() }));
 
-  const handleSave1 = async (d: S1, industries: PickedIndustry[], customIndustry: string) => {
+  const handleSave1 = async (d: S1, industries: PickedIndustry[], customIndustry: string, logoUrl: string | null) => {
     await Promise.all([
-      updateBusiness.mutateAsync({ data: d }),
+      updateBusiness.mutateAsync({ data: { ...d, logoUrl } }),
       setBusinessIndustries.mutateAsync({ data: { industries, customIndustry: customIndustry || undefined } }),
     ]);
     invalidate(getGetBusinessQueryKey, getGetMeQueryKey, getListBusinessIndustriesQueryKey);
