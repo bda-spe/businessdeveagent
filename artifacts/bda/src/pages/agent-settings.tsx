@@ -345,7 +345,7 @@ export default function AgentSettingsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `estimate-${activeTest.id}.pdf`;
+      a.download = "Service-Estimate.pdf";
       document.body.appendChild(a);
       a.click();
       a.remove();

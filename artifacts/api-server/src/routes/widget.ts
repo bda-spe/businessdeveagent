@@ -587,7 +587,11 @@ widgetPublicRouter.post("/widget/interact", widgetRateLimit, async (req, res): P
         if (settings.attachPdf) {
           pdfBuffer = await buildInvoicePdf({
             businessName: business.name,
+            businessPhone: business.phone,
+            businessEmail: business.email,
+            businessWebsite: business.website,
             logoUrl: business.logoUrl,
+            customerName: parsed.data.name,
             customerEmail,
             customerPhone,
             serviceAddress,

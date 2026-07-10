@@ -167,13 +167,15 @@ function composeEmail(opts: {
 async function buildPdfForTest(
   test: typeof sandboxTestsTable.$inferSelect,
   settings: Awaited<ReturnType<typeof getOrCreateSettings>>,
-  businessName: string,
-  logoUrl?: string | null,
+  business: NonNullable<Express.Request["business"]>,
 ): Promise<Buffer | null> {
   if (!test.estimate) return null;
   return buildInvoicePdf({
-    businessName,
-    logoUrl,
+    businessName: business.name,
+    businessPhone: business.phone,
+    businessEmail: business.email,
+    businessWebsite: business.website,
+    logoUrl: business.logoUrl,
     customerEmail: test.customerEmail,
     projectDescription: test.prompt,
     date: new Date(test.createdAt).toLocaleDateString("en-US", {
@@ -350,8 +352,7 @@ router.post(
                 estimate: turn.estimate,
               },
               ctx.settings,
-              req.business!.name,
-              req.business!.logoUrl,
+              req.business!,
             )
           : null;
         const result = await sendEstimateEmail({
@@ -416,7 +417,7 @@ router.post(
     }
     const ctx = await loadAgentContext(bid);
     const pdf = ctx.settings.attachPdf
-      ? await buildPdfForTest(existing, ctx.settings, req.business!.name, req.business!.logoUrl)
+      ? await buildPdfForTest(existing, ctx.settings, req.business!)
       : null;
     const result = await sendEstimateEmail({
       to: existing.customerEmail,
@@ -461,12 +462,7 @@ router.get(
       return;
     }
     const ctx = await loadAgentContext(bid);
-    const pdf = await buildPdfForTest(
-      existing,
-      ctx.settings,
-      req.business!.name,
-      req.business!.logoUrl,
-    );
+    const pdf = await buildPdfForTest(existing, ctx.settings, req.business!);
     if (!pdf) {
       res.status(404).json({ error: "No invoice available for this test" });
       return;
@@ -474,7 +470,7 @@ router.get(
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="estimate-${existing.id}.pdf"`,
+      `attachment; filename="Service-Estimate.pdf"`,
     );
     res.send(pdf);
   },

@@ -120,7 +120,11 @@ router.post("/leads/:id/send-email", requireBusiness, async (req, res): Promise<
   if (settings.attachPdf && lead.estimate) {
     pdfBuffer = await buildInvoicePdf({
       businessName: req.business!.name,
+      businessPhone: req.business!.phone,
+      businessEmail: req.business!.email,
+      businessWebsite: req.business!.website,
       logoUrl: req.business!.logoUrl,
+      customerName: lead.customerName,
       customerEmail: lead.email,
       customerPhone: lead.phone,
       projectDescription: lead.projectDescription || "",

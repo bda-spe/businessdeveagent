@@ -221,6 +221,9 @@ importers:
       stripe:
         specifier: ^22.3.0
         version: 22.3.0(@types/node@25.9.4)
+      svg-to-pdfkit:
+        specifier: ^0.1.8
+        version: 0.1.8
     devDependencies:
       '@types/cookie-parser':
         specifier: ^1.4.10
@@ -3398,6 +3401,9 @@ packages:
   stubs@3.0.0:
     resolution: {integrity: sha512-PdHt7hHUJKxvTCgbKX9C1V/ftOcjJQgz8BZwNfV5c4B6dcGqlpelTbJ999jBGZ2jYiPAwcX5dP6oBwVlBlUbxw==}
 
+  svg-to-pdfkit@0.1.8:
+    resolution: {integrity: sha512-QItiGZBy5TstGy+q8mjQTMGRlDDOARXLxH+sgVm1n/LYeo0zFcQlcCh8m4zi8QxctrxB9Kue/lStc/RD5iLadQ==}
+
   swr@2.3.4:
     resolution: {integrity: sha512-bYd2lrhc+VarcpkgWclcUi92wYCpOgMws9Sd1hG1ntAu0NEy+14CbotuFjshBU2kt9rYj9TSmDcybpxpeTU1fg==}
     peerDependencies:
@@ -6464,6 +6470,10 @@ snapshots:
       anynum: 1.0.1
 
   stubs@3.0.0: {}
+
+  svg-to-pdfkit@0.1.8:
+    dependencies:
+      pdfkit: 0.19.1
 
   swr@2.3.4(react@19.1.0):
     dependencies:
