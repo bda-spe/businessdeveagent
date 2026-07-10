@@ -44,6 +44,12 @@ export interface InvoiceRenderData {
   estimate: InvoiceEstimateData;
   policies: InvoicePolicyData;
   brandColor?: string;
+  logoUrl?: string | null;
+  showLogo?: boolean;
+}
+
+function logoSrc(objectPath: string): string {
+  return `/api/storage${objectPath}`;
 }
 
 function money(n: number | null | undefined): string {
@@ -83,10 +89,20 @@ function FooterNote({ note }: { note?: string | null }) {
 function ModernEstimateCard({ data }: { data: InvoiceRenderData }) {
   const { estimate, policies } = data;
   const brand = data.brandColor || "#1e3a5f";
+  const showLogo = data.showLogo !== false && !!data.logoUrl;
   return (
     <div className="bg-white text-xs text-slate-700">
-      <div className="text-white p-5" style={{ backgroundColor: brand }}>
-        <p className="text-base font-bold">{data.businessName}</p>
+      <div className="text-white p-5 relative" style={{ backgroundColor: brand }}>
+        {showLogo && (
+          <div className="absolute top-3 right-3 h-12 w-12 rounded-md bg-white flex items-center justify-center overflow-hidden shrink-0">
+            <img
+              src={logoSrc(data.logoUrl as string)}
+              alt="Company logo"
+              className="h-full w-full object-contain"
+            />
+          </div>
+        )}
+        <p className="text-base font-bold pr-14">{data.businessName}</p>
         <p className="text-slate-300">Service Estimate</p>
         <div className="mt-3">
           <p className="text-slate-400 text-[11px] uppercase tracking-wide">
