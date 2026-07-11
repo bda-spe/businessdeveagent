@@ -65,7 +65,7 @@ export default function LandingPage() {
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-bold mb-3">1. Train on Your Business</h3>
-                <p className="text-slate-600 leading-relaxed">Upload your business facts , service areas, and job details. The agent learns exactly how you operate to provide accurate estimates to secure more clients.</p>
+                <p className="text-slate-600 leading-relaxed">BDA asks about your. businesses service areas, and job details. The agent learns exactly how you operate to provide accurate estimates to secure more clients.</p>
               </div>
               <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
                 <div className="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center mb-6">
