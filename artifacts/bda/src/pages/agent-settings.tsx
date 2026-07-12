@@ -117,7 +117,7 @@ const widgetSchema = z.object({
     .string()
     .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Must be a valid hex color"),
   font: z.enum(["inter", "system", "serif", "rounded", "mono"]),
-  position: z.enum(["bottom-right", "bottom-left"]),
+  position: z.enum(["bottom-right", "bottom-left", "top-right", "top-left"]),
   enabled: z.boolean(),
 });
 
@@ -220,7 +220,7 @@ export default function AgentSettingsPage() {
       greeting: "Hi! How can we help you today?",
       primaryColor: "#0f172a",
       font: "inter",
-      position: "bottom-right",
+      position: "top-right",
       enabled: true,
     },
   });
@@ -693,6 +693,12 @@ export default function AgentSettingsPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="top-right">
+                              Top Right
+                            </SelectItem>
+                            <SelectItem value="top-left">
+                              Top Left
+                            </SelectItem>
                             <SelectItem value="bottom-right">
                               Bottom Right
                             </SelectItem>

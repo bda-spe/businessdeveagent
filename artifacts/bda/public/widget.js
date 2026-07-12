@@ -42,7 +42,7 @@
     greeting: "Answer a few quick questions and we'll prepare an estimate.",
     primaryColor: NAVY,
     font: "inter",
-    position: "bottom-right",
+    position: "top-right",
     enabled: true,
     budgetRanges: null,
   };
@@ -817,12 +817,13 @@
 
   function render() {
     injectStyles();
-    var side = config.position === "bottom-left" ? "left:16px;" : "right:16px;";
+    var side = (config.position === "bottom-left" || config.position === "top-left") ? "left:16px;" : "right:16px;";
+    var vert = (config.position === "top-right" || config.position === "top-left") ? "top:16px;" : "bottom:16px;";
     var textColor = brandTextColor(config.primaryColor);
 
     root = el(
       "div",
-      "position:fixed;bottom:16px;" + side + "z-index:2147483000;" + FONT
+      "position:fixed;" + vert + side + "z-index:2147483000;" + FONT
     );
 
     launcher = el(
@@ -850,9 +851,10 @@
     launcher.appendChild(launcherLabel);
     launcher.appendChild(launcherBrand);
 
+    var panelMargin = (config.position === "top-right" || config.position === "top-left") ? "margin-top:14px;" : "margin-bottom:14px;";
     panel = el(
       "div",
-      "display:none;flex-direction:column;width:380px;max-width:calc(100vw - 32px);height:580px;max-height:calc(100vh - 110px);background:#fff;border:1px solid rgba(15,23,42,0.06);border-radius:20px;overflow:hidden;box-shadow:0 30px 70px rgba(15,23,42,0.28),0 4px 16px rgba(15,23,42,0.08);margin-bottom:14px;",
+      "display:none;flex-direction:column;width:380px;max-width:calc(100vw - 32px);height:580px;max-height:calc(100vh - 110px);background:#fff;border:1px solid rgba(15,23,42,0.06);border-radius:20px;overflow:hidden;box-shadow:0 30px 70px rgba(15,23,42,0.28),0 4px 16px rgba(15,23,42,0.08);" + panelMargin,
       { class: "bda-panel" }
     );
 
@@ -912,8 +914,13 @@
       if (state.open) renderStep();
     });
 
-    root.appendChild(panel);
-    root.appendChild(launcher);
+    if (config.position === "top-right" || config.position === "top-left") {
+      root.appendChild(launcher);
+      root.appendChild(panel);
+    } else {
+      root.appendChild(panel);
+      root.appendChild(launcher);
+    }
     document.body.appendChild(root);
   }
 
@@ -976,7 +983,7 @@
           if (typeof d.greeting === "string" && d.greeting.trim()) {
             config.greeting = d.greeting;
           }
-          if (d.position === "bottom-right" || d.position === "bottom-left") {
+          if (d.position === "bottom-right" || d.position === "bottom-left" || d.position === "top-right" || d.position === "top-left") {
             config.position = d.position;
           }
           var wasOpen = state.open;

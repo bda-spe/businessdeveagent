@@ -2788,7 +2788,7 @@ components:
           description: Font key applied to the widget's text (inter, system, serif, rounded, mono)
         position:
           type: string
-          description: bottom-right or bottom-left
+          description: top-right, top-left, bottom-right, or bottom-left
         enabled:
           type: boolean
 
