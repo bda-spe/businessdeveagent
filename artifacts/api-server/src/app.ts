@@ -91,14 +91,25 @@ app.post(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
-);
+// Skip Clerk entirely when it isn't configured yet (e.g. mid-migration, or a
+// health check hitting the app before secrets are set) — mirrors the same
+// guard in clerkProxyMiddleware.ts. Without this, every request — including
+// public routes mounted below — throws inside @clerk/backend instead of
+// reaching the app's own public/health routes.
+if (process.env.CLERK_SECRET_KEY) {
+  app.use(
+    clerkMiddleware((req) => ({
+      publishableKey: publishableKeyFromHost(
+        getClerkProxyHost(req) ?? "",
+        process.env.CLERK_PUBLISHABLE_KEY,
+      ),
+    })),
+  );
+} else {
+  logger.warn(
+    "CLERK_SECRET_KEY is not set — Clerk auth is disabled; authenticated routes will fail requireAuth until it's configured.",
+  );
+}
 
 app.use("/api", router);
 
