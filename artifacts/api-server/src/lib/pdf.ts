@@ -90,9 +90,9 @@ async function fetchLogo(logoUrl?: string | null): Promise<LogoAsset | null> {
   try {
     const service = new ObjectStorageService();
     const file = await service.getObjectEntityFile(logoUrl);
-    const [metadata] = await file.getMetadata();
-    const contentType = (metadata.contentType || "").toLowerCase();
-    const [buffer] = await file.download();
+    const response = await service.downloadObject(file);
+    const contentType = (response.headers.get("content-type") || "").toLowerCase();
+    const buffer = Buffer.from(await response.arrayBuffer());
     if (/svg/.test(contentType) || (!contentType && looksLikeSvg(buffer))) {
       return { kind: "svg", text: buffer.toString("utf8") };
     }
