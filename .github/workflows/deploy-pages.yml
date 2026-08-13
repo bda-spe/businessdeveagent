@@ -1,0 +1,60 @@
+name: Deploy frontend to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        working-directory: artifacts/bda
+        env:
+          # Project Pages site — must match the repo name exactly.
+          BASE_PATH: /businessdeveagent/
+          PORT: "5173"
+          # Points the deployed frontend at the Render backend.
+          VITE_API_BASE_URL: https://businessdeveagent.onrender.com
+          # Publishable key — designed to be public, safe to embed in a
+          # client bundle (unlike CLERK_SECRET_KEY, which never appears here).
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_cHJlY2lzZS1yaGluby05OS5jbGVyay5hY2NvdW50cy5kZXYk
+        run: pnpm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: artifacts/bda/dist/public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
