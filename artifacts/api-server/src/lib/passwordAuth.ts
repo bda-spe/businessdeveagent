@@ -57,19 +57,20 @@ export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 export const RESET_CODE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 /**
- * Frontend (GitHub Pages) and backend (Render) are different registrable
- * domains in production, so the session cookie must be sent cross-site:
- * SameSite=None requires Secure, and Secure requires HTTPS — which only
- * holds in production. Local dev (both on localhost, plain HTTP) uses
- * SameSite=Lax instead, since None+Secure would just make the cookie
- * silently fail to set over http://localhost.
+ * Frontend (app.businessdevagent.com) and backend (api.businessdevagent.com)
+ * are different subdomains but the same registrable domain in production, so
+ * the session cookie is same-site — SameSite=Lax is sufficient and, unlike
+ * SameSite=None, isn't subject to browsers' third-party-cookie blocking.
+ * Secure still requires HTTPS, which only holds in production; local dev
+ * (both on plain-HTTP localhost) needs secure:false or the cookie silently
+ * fails to set.
  */
 export function sessionCookieOptions(maxAgeMs: number = SESSION_TTL_MS): CookieOptions {
   const isProd = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    sameSite: "lax",
     maxAge: maxAgeMs,
     path: "/",
   };

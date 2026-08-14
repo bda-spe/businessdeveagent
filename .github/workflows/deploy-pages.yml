@@ -35,11 +35,13 @@ jobs:
       - name: Build frontend
         working-directory: artifacts/bda
         env:
-          # Project Pages site — must match the repo name exactly.
-          BASE_PATH: /businessdeveagent/
+          # Custom domain serves from the root, not a /reponame/ subpath.
+          BASE_PATH: /
           PORT: "5173"
-          # Points the deployed frontend at the Render backend.
-          VITE_API_BASE_URL: https://businessdeveagent.onrender.com
+          # Points the deployed frontend at the Render backend, now on the
+          # same registrable domain (businessdevagent.com) so the session
+          # cookie is same-site instead of third-party.
+          VITE_API_BASE_URL: https://api.businessdevagent.com
         run: pnpm run build
 
       - uses: actions/upload-pages-artifact@v3
