@@ -29,10 +29,10 @@ import { sendPasswordResetEmail } from "../lib/system-emails";
 
 const router: IRouter = Router();
 
-// Auth endpoints are the classic brute-force / credential-stuffing / email-
-// enumeration target — keyed by IP, tight enough to slow down automated
-// attempts without tripping up a real user who mistypes a password a few
-// times.
+// Login / password-reset are the classic brute-force / credential-stuffing /
+// email-enumeration target — keyed by IP, tight enough to slow down
+// automated attempts without tripping up a real user who mistypes a
+// password a few times.
 const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
@@ -41,7 +41,17 @@ const authRateLimit = rateLimit({
   message: { error: "Too many attempts. Please try again later." },
 });
 
-router.use(authRateLimit);
+// Signup isn't a credential-guessing target the same way, and sharing the
+// login limiter with it meant a few stray attempts (or another user behind
+// the same NAT/proxy) could lock a real signer-upper out of account
+// creation entirely. Give it its own, more generous budget.
+const signupRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many attempts. Please try again later." },
+});
 
 async function createSession(userId: number): Promise<string> {
   const token = generateSessionToken();
@@ -53,7 +63,7 @@ async function createSession(userId: number): Promise<string> {
   return token;
 }
 
-router.post("/auth/signup", async (req, res): Promise<void> => {
+router.post("/auth/signup", signupRateLimit, async (req, res): Promise<void> => {
   const parsed = SignupBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -97,7 +107,7 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
   );
 });
 
-router.post("/auth/login", async (req, res): Promise<void> => {
+router.post("/auth/login", authRateLimit, async (req, res): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -157,7 +167,7 @@ router.post("/auth/logout", async (req, res): Promise<void> => {
   res.json(LogoutResponse.parse({ success: true }));
 });
 
-router.post("/auth/forgot-password", async (req, res): Promise<void> => {
+router.post("/auth/forgot-password", authRateLimit, async (req, res): Promise<void> => {
   const parsed = ForgotPasswordBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -193,7 +203,7 @@ router.post("/auth/forgot-password", async (req, res): Promise<void> => {
   res.json(genericResponse);
 });
 
-router.post("/auth/reset-password", async (req, res): Promise<void> => {
+router.post("/auth/reset-password", authRateLimit, async (req, res): Promise<void> => {
   const parsed = ResetPasswordBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });

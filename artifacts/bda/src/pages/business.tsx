@@ -1,19 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  useGetMe,
+  useCreateBusiness,
   useGetBusiness,
   useUpdateBusiness,
   useGetBusinessOperations,
   useSaveBusinessOperations,
-  useListServices,
-  useCreateService,
-  useUpdateService,
-  useDeleteService,
-  useGetPricing,
-  useSavePricing,
   useGetBusinessPolicies,
   useSaveBusinessPolicies,
   useAiDraftPolicy,
@@ -31,8 +27,6 @@ import {
   getGetBusinessPoliciesQueryKey,
   getGetEstimateRulesQueryKey,
   getGetBusinessToneQueryKey,
-  getGetPricingQueryKey,
-  getListServicesQueryKey,
   getListBusinessIndustriesQueryKey,
 } from "@workspace/api-client-react";
 import type {
@@ -42,8 +36,6 @@ import type {
   BusinessPolicies,
   EstimateRules,
   BusinessTone,
-  PricingRules,
-  Service,
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -56,23 +48,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
   CheckCircle2,
-  Circle,
   Sparkles,
-  Plus,
-  Trash2,
   Pencil,
-  HelpCircle,
   X,
   Check,
   Star,
@@ -112,8 +93,9 @@ const TONE_OPTIONS = [
   "Direct","Warm","Family-Owned","Corporate",
 ];
 const STEPS = [
-  "Basic Info","Operations","Services","Pricing","Policies","Tone & Review",
+  "Basics","Operations","Policies","Tone & Review",
 ];
+const TOTAL_STEPS = STEPS.length;
 const YEAR_NOW = new Date().getFullYear();
 const YEARS = Array.from({ length: YEAR_NOW - 1899 }, (_, i) => YEAR_NOW - i);
 
@@ -421,22 +403,30 @@ function BdaHelperCard() {
           <Sparkles className="h-4 w-4 text-white" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-semibold text-[#1e3a5f]">BDA Setup Helper</p>
-          <p className="text-xs text-slate-500">Need help? I can help with questions about a field we capture, write policies, estimate rules, and customer-facing language after you enter the basics.</p>
+          <p className="text-sm font-semibold text-[#1e3a5f]">Stuck on a field?</p>
+          <p className="text-xs text-slate-500">Tips for filling this out quickly</p>
         </div>
-        <HelpCircle className="h-4 w-4 text-slate-400 shrink-0" />
+        <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
+      {open && (
+        <ul className="mt-3 pl-11 space-y-1.5 text-xs text-slate-600 list-disc marker:text-blue-300">
+          <li>Only the fields marked with * are required to move on — everything else can be filled in later.</li>
+          <li>Use the assistant panel on the right if you want help wording anything.</li>
+          <li>You can jump back to any completed step using the progress bar above.</li>
+        </ul>
+      )}
     </div>
   );
 }
 
 // ── Nav buttons ───────────────────────────────────────────────────────────────
 
-function StepNav({ step, onBack, saving, saveLabel = "Save & Continue" }: {
+function StepNav({ step, onBack, saving, saveLabel = "Save & Continue", onSkip }: {
   step: number;
   onBack: () => void;
   saving: boolean;
   saveLabel?: string;
+  onSkip?: () => void;
 }) {
   return (
     <div className="flex items-center justify-between pt-6 border-t border-slate-100 mt-6">
@@ -444,10 +434,17 @@ function StepNav({ step, onBack, saving, saveLabel = "Save & Continue" }: {
         <ChevronLeft className="h-4 w-4 mr-1" />
         Back
       </Button>
-      <Button type="submit" disabled={saving} className="bg-[#1e3a5f] hover:bg-[#162d4d]">
-        {saving ? "Saving…" : saveLabel}
-        {!saving && step < 6 && <ChevronRight className="h-4 w-4 ml-1" />}
-      </Button>
+      <div className="flex items-center gap-4">
+        {onSkip && (
+          <button type="button" onClick={onSkip} className="text-sm text-slate-400 hover:text-slate-600 underline underline-offset-2">
+            Skip for now
+          </button>
+        )}
+        <Button type="submit" disabled={saving} className="bg-[#1e3a5f] hover:bg-[#162d4d]">
+          {saving ? "Saving…" : saveLabel}
+          {!saving && step < TOTAL_STEPS && <ChevronRight className="h-4 w-4 ml-1" />}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -708,10 +705,11 @@ const s2Schema = z.object({
 });
 type S2 = z.infer<typeof s2Schema>;
 
-function Step2({ ops, onSave, onBack }: {
+function Step2({ ops, onSave, onBack, onSkip }: {
   ops: BusinessOperations | undefined;
   onSave: (d: S2, hours: WeekHours) => Promise<void>;
   onBack: () => void;
+  onSkip: () => void;
 }) {
   const form = useForm<S2>({ resolver: zodResolver(s2Schema) });
   const [saving, setSaving] = useState(false);
@@ -800,435 +798,12 @@ function Step2({ ops, onSave, onBack }: {
           <Textarea {...form.register("emergencyNotes")} placeholder="e.g. 24/7 emergency service available, $150 call-out fee applies" className="resize-none h-20" />
         )}
       </div>
-      <StepNav step={2} onBack={onBack} saving={saving} />
+      <StepNav step={2} onBack={onBack} saving={saving} onSkip={onSkip} />
     </form>
   );
 }
 
-// ── Step 3: Services ──────────────────────────────────────────────────────────
-
-const svcSchema = z.object({
-  name: z.string().min(1, "Service name is required"),
-  category: z.string().optional(),
-  description: z.string().max(1000).optional(),
-  basePrice: z.coerce.number().nonnegative().optional().nullable(),
-  hourlyRate: z.coerce.number().nonnegative().optional().nullable(),
-  minimumPrice: z.coerce.number().nonnegative().optional().nullable(),
-  estimatedDuration: z.string().optional(),
-  requiresInspection: z.boolean().optional(),
-  active: z.boolean().optional(),
-});
-type SvcForm = z.infer<typeof svcSchema>;
-
-function ServiceCard({ svc, onSave, onDelete }: {
-  svc: Service;
-  onSave: (id: number, d: SvcForm) => Promise<void>;
-  onDelete: (id: number) => Promise<void>;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const form = useForm<SvcForm>({ resolver: zodResolver(svcSchema),
-    defaultValues: {
-      name: svc.name, category: svc.category ?? "", description: svc.description ?? "",
-      basePrice: svc.basePrice ?? null, hourlyRate: svc.hourlyRate ?? null,
-      minimumPrice: svc.minimumPrice ?? null, estimatedDuration: svc.estimatedDuration ?? "",
-      requiresInspection: svc.requiresInspection, active: svc.active,
-    }});
-
-  if (!editing) return (
-    <div className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 bg-white">
-      <div>
-        <p className="font-medium text-sm">{svc.name}</p>
-        <p className="text-xs text-slate-500">{svc.category || "No category"} {svc.basePrice ? `· $${svc.basePrice}` : ""}</p>
-      </div>
-      <div className="flex gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={() => setEditing(true)}><Pencil className="h-3.5 w-3.5" /></Button>
-        <Button type="button" variant="ghost" size="sm" className="text-red-500 hover:text-red-700" onClick={() => onDelete(svc.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="rounded-xl border border-blue-200 bg-blue-50/30 p-4 space-y-3">
-      <div className="grid sm:grid-cols-2 gap-3">
-        <div className="space-y-1"><Label className="text-xs">Service Name *</Label><Input {...form.register("name")} /></div>
-        <div className="space-y-1"><Label className="text-xs">Category</Label><Input {...form.register("category")} placeholder="e.g. Repair, Installation" /></div>
-        <div className="space-y-1 sm:col-span-2"><Label className="text-xs">Description</Label><Textarea {...form.register("description")} className="resize-none h-16 text-sm" placeholder="Describe the service…" /></div>
-        <div className="space-y-1"><Label className="text-xs">Base Price ($)</Label><Input type="number" step="0.01" {...form.register("basePrice")} /></div>
-        <div className="space-y-1"><Label className="text-xs">Hourly Rate ($/hr)</Label><Input type="number" step="0.01" {...form.register("hourlyRate")} /></div>
-        <div className="space-y-1"><Label className="text-xs">Minimum Price ($)</Label><Input type="number" step="0.01" {...form.register("minimumPrice")} /></div>
-        <div className="space-y-1"><Label className="text-xs">Estimated Duration</Label><Input {...form.register("estimatedDuration")} placeholder="e.g. 2-4 hours" /></div>
-      </div>
-      <div className="flex items-center gap-6">
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" {...form.register("requiresInspection")} className="accent-[#1e3a5f]" />
-          Requires inspection before estimate
-        </label>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" {...form.register("active")} className="accent-[#1e3a5f]" />
-          Active
-        </label>
-      </div>
-      <div className="flex gap-2">
-        <Button type="button" size="sm" disabled={saving} onClick={form.handleSubmit(async (d) => {
-          setSaving(true);
-          await onSave(svc.id, d).finally(() => setSaving(false));
-          setEditing(false);
-        })}>
-          {saving ? "Saving…" : "Save"}
-        </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
-      </div>
-    </div>
-  );
-}
-
-function Step3({ services, onSave, onDelete, onAdd, onBack, onNext }: {
-  services: Service[];
-  onSave: (id: number, d: SvcForm) => Promise<void>;
-  onDelete: (id: number) => Promise<void>;
-  onAdd: (d: SvcForm) => Promise<void>;
-  onBack: () => void;
-  onNext: () => void;
-}) {
-  const [adding, setAdding] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const form = useForm<SvcForm>({ resolver: zodResolver(svcSchema),
-    defaultValues: { name: "", category: "", description: "", active: true, requiresInspection: false } });
-
-  return (
-    <div className="space-y-4">
-      <div className="space-y-3">
-        {services.map((s) => (
-          <ServiceCard key={s.id} svc={s} onSave={onSave} onDelete={onDelete} />
-        ))}
-        {services.length === 0 && !adding && (
-          <p className="text-sm text-slate-400 text-center py-8">No services yet. Add your first service below.</p>
-        )}
-      </div>
-      {!adding ? (
-        <Button type="button" variant="outline" onClick={() => setAdding(true)} className="w-full border-dashed">
-          <Plus className="h-4 w-4 mr-2" />Add Service
-        </Button>
-      ) : (
-        <div className="rounded-xl border border-blue-200 bg-blue-50/30 p-4 space-y-3">
-          <p className="text-sm font-semibold text-[#1e3a5f]">New Service</p>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div className="space-y-1"><Label className="text-xs">Service Name *</Label><Input {...form.register("name")} /></div>
-            <div className="space-y-1"><Label className="text-xs">Category</Label><Input {...form.register("category")} placeholder="e.g. Repair, Installation" /></div>
-            <div className="space-y-1 sm:col-span-2"><Label className="text-xs">Description</Label><Textarea {...form.register("description")} className="resize-none h-16 text-sm" placeholder="Describe the service…" /></div>
-            <div className="space-y-1"><Label className="text-xs">Base Price ($)</Label><Input type="number" step="0.01" {...form.register("basePrice")} /></div>
-            <div className="space-y-1"><Label className="text-xs">Hourly Rate ($/hr)</Label><Input type="number" step="0.01" {...form.register("hourlyRate")} /></div>
-            <div className="space-y-1"><Label className="text-xs">Minimum Price ($)</Label><Input type="number" step="0.01" {...form.register("minimumPrice")} /></div>
-            <div className="space-y-1"><Label className="text-xs">Estimated Duration</Label><Input {...form.register("estimatedDuration")} placeholder="e.g. 2-4 hours" /></div>
-          </div>
-          <div className="flex items-center gap-6">
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input type="checkbox" {...form.register("requiresInspection")} className="accent-[#1e3a5f]" />
-              Requires inspection
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input type="checkbox" {...form.register("active")} className="accent-[#1e3a5f]" />
-              Active
-            </label>
-          </div>
-          <div className="flex gap-2">
-            <Button type="button" size="sm" disabled={saving} onClick={form.handleSubmit(async (d) => {
-              setSaving(true);
-              await onAdd(d).finally(() => setSaving(false));
-              form.reset({ name: "", category: "", description: "", active: true, requiresInspection: false });
-              setAdding(false);
-            })}>
-              {saving ? "Adding…" : "Add Service"}
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setAdding(false)}>Cancel</Button>
-          </div>
-        </div>
-      )}
-      <div className="flex items-center justify-between pt-6 border-t border-slate-100 mt-6">
-        <Button type="button" variant="outline" onClick={onBack}><ChevronLeft className="h-4 w-4 mr-1" />Back</Button>
-        <Button type="button" onClick={onNext} className="bg-[#1e3a5f] hover:bg-[#162d4d]">
-          Continue <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// ── Step 4: Pricing ───────────────────────────────────────────────────────────
-
-const s4Schema = z.object({
-  laborRate: z.coerce.number().nonnegative().optional().nullable(),
-  minimumJobCost: z.coerce.number().nonnegative().optional().nullable(),
-  travelFeeType: z.string().optional(),
-  travelFee: z.coerce.number().nonnegative().optional().nullable(),
-  freeTravelRadius: z.coerce.number().int().nonnegative().optional().nullable(),
-  materialMarkup: z.coerce.number().nonnegative().optional().nullable(),
-  weekendFeeType: z.string().optional(),
-  weekendFeeValue: z.coerce.number().nonnegative().optional().nullable(),
-  emergencyFeeType: z.string().optional(),
-  emergencyFee: z.coerce.number().nonnegative().optional().nullable(),
-  cancellationFee: z.coerce.number().nonnegative().optional().nullable(),
-  cancellationWindow: z.string().optional(),
-  depositRequired: z.boolean().optional(),
-  depositType: z.string().optional(),
-  depositValue: z.coerce.number().nonnegative().optional().nullable(),
-  taxRate: z.coerce.number().nonnegative().optional().nullable(),
-  pricingNotes: z.string().max(1500).optional(),
-  avgJobCost: blankableNumber(),
-  lowJobCost: blankableNumber(),
-  highJobCost: blankableNumber(),
-  avgCrewSize: blankableNumber(true),
-  lowCrewSize: blankableNumber(true),
-  highCrewSize: blankableNumber(true),
-  typicalJobDuration: z.string().max(100).optional(),
-  lowCostJobs: z.string().max(2000).optional(),
-  highCostJobs: z.string().max(2000).optional(),
-  priceIncreaseFactorsText: z.string().max(1000).optional(),
-  priceDecreaseFactorsText: z.string().max(1000).optional(),
-});
-type S4 = z.infer<typeof s4Schema>;
-
-function blankableNumber(int = false) {
-  const base = int
-    ? z.coerce.number().int().nonnegative()
-    : z.coerce.number().nonnegative();
-  return z.preprocess(
-    (v) => (v === "" || v == null ? null : v),
-    base.nullable(),
-  ).optional();
-}
-
-const JOB_DURATION_OPTIONS = [
-  "1-2 hours",
-  "Half day",
-  "Full day",
-  "2-3 days",
-  "1 week+",
-  "Varies by job",
-];
-
-function tagsToText(v: unknown): string {
-  return Array.isArray(v) ? v.map(String).join(", ") : "";
-}
-
-function CurrencyInput(props: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
-  const { label, ...rest } = props;
-  return (
-    <div className="space-y-1">
-      <Label className="text-xs">{label}</Label>
-      <div className="relative">
-        <span className="absolute left-3 top-2.5 text-slate-400 text-sm">$</span>
-        <Input type="number" step="0.01" min={0} className="pl-6 text-sm" {...rest} />
-      </div>
-    </div>
-  );
-}
-
-function PctInput(props: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
-  const { label, ...rest } = props;
-  return (
-    <div className="space-y-1">
-      <Label className="text-xs">{label}</Label>
-      <div className="relative">
-        <Input type="number" step="0.01" min={0} max={100} className="pr-7 text-sm" {...rest} />
-        <span className="absolute right-3 top-2.5 text-slate-400 text-sm">%</span>
-      </div>
-    </div>
-  );
-}
-
-function Step4({ pricing, onSave, onBack }: {
-  pricing: PricingRules | undefined;
-  onSave: (d: S4) => Promise<void>;
-  onBack: () => void;
-}) {
-  const form = useForm<S4>({ resolver: zodResolver(s4Schema) });
-  const [saving, setSaving] = useState(false);
-  const travelType = form.watch("travelFeeType");
-  const weekendType = form.watch("weekendFeeType");
-  const emergencyType = form.watch("emergencyFeeType");
-  const depositOn = form.watch("depositRequired");
-
-  useEffect(() => {
-    if (pricing) form.reset({
-      laborRate: pricing.laborRate ?? null,
-      minimumJobCost: pricing.minimumJobCost ?? null,
-      travelFeeType: pricing.travelFeeType ?? "",
-      travelFee: pricing.travelFee ?? null,
-      freeTravelRadius: pricing.freeTravelRadius ?? null,
-      materialMarkup: pricing.materialMarkup ?? null,
-      weekendFeeType: pricing.weekendFeeType ?? "",
-      weekendFeeValue: pricing.weekendFeeValue ?? null,
-      emergencyFeeType: pricing.emergencyFeeType ?? "",
-      emergencyFee: pricing.emergencyFee ?? null,
-      cancellationFee: pricing.cancellationFee ?? null,
-      cancellationWindow: pricing.cancellationWindow ?? "",
-      depositRequired: pricing.depositRequired,
-      depositType: pricing.depositType ?? "",
-      depositValue: pricing.depositValue ?? null,
-      taxRate: pricing.taxRate ?? null,
-      pricingNotes: pricing.pricingNotes ?? "",
-      avgJobCost: pricing.avgJobCost ?? null,
-      lowJobCost: pricing.lowJobCost ?? null,
-      highJobCost: pricing.highJobCost ?? null,
-      avgCrewSize: pricing.avgCrewSize ?? null,
-      lowCrewSize: pricing.lowCrewSize ?? null,
-      highCrewSize: pricing.highCrewSize ?? null,
-      typicalJobDuration: pricing.typicalJobDuration ?? "",
-      lowCostJobs: pricing.lowCostJobs ?? "",
-      highCostJobs: pricing.highCostJobs ?? "",
-      priceIncreaseFactorsText: tagsToText(pricing.priceIncreaseFactors),
-      priceDecreaseFactorsText: tagsToText(pricing.priceDecreaseFactors),
-    });
-  }, [pricing]);
-
-  const onSubmit = async (d: S4) => { setSaving(true); await onSave(d).finally(() => setSaving(false)); };
-
-  return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-      <div className="grid sm:grid-cols-2 gap-4">
-        <CurrencyInput label="Default Labor Rate (per hr)" {...form.register("laborRate")} />
-        <CurrencyInput label="Minimum Job Charge" {...form.register("minimumJobCost")} />
-        <PctInput label="Material Markup" {...form.register("materialMarkup")} />
-        <PctInput label="Tax Rate" {...form.register("taxRate")} />
-      </div>
-      <Separator />
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Travel</p>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div className="space-y-1 sm:col-span-2">
-          <Label className="text-xs">Travel Fee Type</Label>
-          <select {...form.register("travelFeeType")} className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-white">
-            <option value="">None</option>
-            {["Flat Fee","Distance-Based","Custom"].map((v) => <option key={v} value={v}>{v}</option>)}
-          </select>
-        </div>
-        {travelType === "Flat Fee" && <CurrencyInput label="Flat Travel Fee" {...form.register("travelFee")} />}
-        {travelType === "Distance-Based" && (
-          <div className="space-y-1">
-            <Label className="text-xs">Free Travel Radius (miles)</Label>
-            <Input type="number" min={0} step={1} {...form.register("freeTravelRadius")} />
-          </div>
-        )}
-      </div>
-      <Separator />
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Weekend & Emergency</p>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <Label className="text-xs">Weekend Fee Type</Label>
-          <select {...form.register("weekendFeeType")} className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-white">
-            <option value="">None</option>
-            {["Flat Fee","Percentage Increase","Custom"].map((v) => <option key={v} value={v}>{v}</option>)}
-          </select>
-        </div>
-        {(weekendType === "Flat Fee") && <CurrencyInput label="Weekend Fee ($)" {...form.register("weekendFeeValue")} />}
-        {(weekendType === "Percentage Increase") && <PctInput label="Weekend Fee (%)" {...form.register("weekendFeeValue")} />}
-        <div className="space-y-1">
-          <Label className="text-xs">Emergency Fee Type</Label>
-          <select {...form.register("emergencyFeeType")} className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-white">
-            <option value="">None</option>
-            {["Flat Fee","Percentage Increase","Custom"].map((v) => <option key={v} value={v}>{v}</option>)}
-          </select>
-        </div>
-        {(emergencyType === "Flat Fee") && <CurrencyInput label="Emergency Fee ($)" {...form.register("emergencyFee")} />}
-        {(emergencyType === "Percentage Increase") && <PctInput label="Emergency Fee (%)" {...form.register("emergencyFee")} />}
-      </div>
-      <Separator />
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Cancellation & Deposit</p>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <CurrencyInput label="Cancellation Fee" {...form.register("cancellationFee")} />
-        <div className="space-y-1">
-          <Label className="text-xs">Cancellation Window</Label>
-          <select {...form.register("cancellationWindow")} className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-white">
-            <option value="">None</option>
-            {["Same day","Less than 24 hours","Less than 48 hours","Less than 72 hours","Custom"].map((v) => <option key={v} value={v}>{v}</option>)}
-          </select>
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Deposit Required</Label>
-            <Switch checked={!!depositOn} onCheckedChange={(v) => form.setValue("depositRequired", v)} />
-          </div>
-          {depositOn && (
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Deposit Type</Label>
-                <select {...form.register("depositType")} className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-white">
-                  <option value="">Select…</option>
-                  <option value="Flat Amount">Flat Amount</option>
-                  <option value="Percentage">Percentage</option>
-                </select>
-              </div>
-              {form.watch("depositType") === "Flat Amount"
-                ? <CurrencyInput label="Deposit Amount ($)" {...form.register("depositValue")} />
-                : <PctInput label="Deposit (%)" {...form.register("depositValue")} />
-              }
-            </div>
-          )}
-        </div>
-      </div>
-      <Separator />
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Typical Job Ranges</p>
-      <p className="text-xs text-slate-500 -mt-3">These help your BDA give realistic estimates anchored to jobs you actually do.</p>
-      <div className="grid sm:grid-cols-3 gap-4">
-        <CurrencyInput label="Average Job Cost" {...form.register("avgJobCost")} />
-        <CurrencyInput label="Typical Low-End Job" {...form.register("lowJobCost")} />
-        <CurrencyInput label="Typical High-End Job" {...form.register("highJobCost")} />
-      </div>
-      <div className="grid sm:grid-cols-3 gap-4">
-        <div className="space-y-1">
-          <Label className="text-xs">Average Crew Size</Label>
-          <Input type="number" min={0} step={1} className="text-sm" {...form.register("avgCrewSize")} />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Low-End Crew Size</Label>
-          <Input type="number" min={0} step={1} className="text-sm" {...form.register("lowCrewSize")} />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">High-End Crew Size</Label>
-          <Input type="number" min={0} step={1} className="text-sm" {...form.register("highCrewSize")} />
-        </div>
-      </div>
-      <div className="space-y-1">
-        <Label className="text-xs">Typical Job Duration</Label>
-        <select {...form.register("typicalJobDuration")} className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-white">
-          <option value="">Select…</option>
-          {JOB_DURATION_OPTIONS.map((v) => <option key={v} value={v}>{v}</option>)}
-        </select>
-      </div>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <Label className="text-xs">Jobs That Are Usually Low-Cost</Label>
-          <Textarea {...form.register("lowCostJobs")} maxLength={2000} rows={3} className="resize-none text-sm" placeholder="e.g. touch-up restriping, small repairs…" />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Jobs That Are Usually High-Cost</Label>
-          <Textarea {...form.register("highCostJobs")} maxLength={2000} rows={3} className="resize-none text-sm" placeholder="e.g. full lot layout, large installations…" />
-        </div>
-      </div>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <Label className="text-xs">Factors That Increase Price</Label>
-          <Input {...form.register("priceIncreaseFactorsText")} className="text-sm" placeholder="distance, materials, urgency, difficult access" />
-          <p className="text-[11px] text-slate-400">Separate with commas</p>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Factors That Reduce Price</Label>
-          <Input {...form.register("priceDecreaseFactorsText")} className="text-sm" placeholder="flexible timing, repeat customer, easy access" />
-          <p className="text-[11px] text-slate-400">Separate with commas</p>
-        </div>
-      </div>
-      <Separator />
-      <div className="space-y-1">
-        <Label className="text-xs">Pricing Notes</Label>
-        <Textarea {...form.register("pricingNotes")} maxLength={1500} rows={3} className="resize-none text-sm" placeholder="Any additional pricing context…" />
-      </div>
-      <StepNav step={4} onBack={onBack} saving={saving} />
-    </form>
-  );
-}
-
-// ── Step 5: Policies & Estimate Rules ─────────────────────────────────────────
+// ── Step 3: Policies & Estimate Rules ─────────────────────────────────────────
 
 const POLICY_FIELDS: { key: keyof S5Policies; label: string }[] = [
   { key: "paymentTerms", label: "Payment Terms" },
@@ -1286,11 +861,12 @@ function PolicyField({ fieldKey, label, value, onChange, onAiDraft, drafting }: 
   );
 }
 
-function Step5({ policies, estimateRules, onSave, onBack, aiDraft }: {
+function Step5({ policies, estimateRules, onSave, onBack, onSkip, aiDraft }: {
   policies: BusinessPolicies | undefined;
   estimateRules: EstimateRules | undefined;
   onSave: (p: S5Policies, e: S5Estimate, required: string[], questions: string[]) => Promise<void>;
   onBack: () => void;
+  onSkip: () => void;
   aiDraft: (field: string, current: string) => Promise<string>;
 }) {
   const [saving, setSaving] = useState(false);
@@ -1386,23 +962,26 @@ function Step5({ policies, estimateRules, onSave, onBack, aiDraft }: {
       </div>
       <div className="flex items-center justify-between pt-6 border-t border-slate-100">
         <Button type="button" variant="outline" onClick={onBack}><ChevronLeft className="h-4 w-4 mr-1" />Back</Button>
-        <Button type="button" disabled={saving} className="bg-[#1e3a5f] hover:bg-[#162d4d]"
-          onClick={async () => { setSaving(true); await onSave(pols, est, required, questions).finally(() => setSaving(false)); }}>
-          {saving ? "Saving…" : "Save & Continue"}
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
+        <div className="flex items-center gap-4">
+          <button type="button" onClick={onSkip} className="text-sm text-slate-400 hover:text-slate-600 underline underline-offset-2">
+            Skip for now
+          </button>
+          <Button type="button" disabled={saving} className="bg-[#1e3a5f] hover:bg-[#162d4d]"
+            onClick={async () => { setSaving(true); await onSave(pols, est, required, questions).finally(() => setSaving(false)); }}>
+            {saving ? "Saving…" : "Save & Continue"}
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
 
-// ── Step 6: Tone & Review ─────────────────────────────────────────────────────
+// ── Step 4: Tone & Review ─────────────────────────────────────────────────────
 
-function Step6({ biz, ops, services, pricing, policies, tone, industryCount, onSaveTone, onConfirm, onBack, onEdit }: {
+function Step6({ biz, ops, policies, tone, industryCount, onSaveTone, onConfirm, onBack, onEdit }: {
   biz: Business | undefined;
   ops: BusinessOperations | undefined;
-  services: Service[];
-  pricing: PricingRules | undefined;
   policies: BusinessPolicies | undefined;
   tone: BusinessTone | undefined;
   industryCount: number;
@@ -1497,25 +1076,22 @@ function Step6({ biz, ops, services, pricing, policies, tone, industryCount, onS
           {ops?.seasonalAvailability && <p><span className="font-medium">Availability:</span> {ops.seasonalAvailability}</p>}
           <p><span className="font-medium">Emergency available:</span> {ops?.emergencyAvailable ? "Yes" : "No"}</p>
         </SectionReview>
-        <SectionReview title="Services" step={3}>
-          {services.length === 0 ? <p className="text-slate-400">No services added</p>
-            : services.map((s) => <p key={s.id}>• {s.name}{s.basePrice ? ` — $${s.basePrice}` : ""}</p>)}
-        </SectionReview>
-        <SectionReview title="Pricing" step={4}>
-          {pricing?.laborRate && <p><span className="font-medium">Labor rate:</span> ${pricing.laborRate}/hr</p>}
-          {pricing?.minimumJobCost && <p><span className="font-medium">Minimum job:</span> ${pricing.minimumJobCost}</p>}
-          {pricing?.taxRate && <p><span className="font-medium">Tax rate:</span> {pricing.taxRate}%</p>}
-          {pricing?.depositRequired && <p><span className="font-medium">Deposit:</span> required</p>}
-        </SectionReview>
-        <SectionReview title="Policies" step={5}>
+        <SectionReview title="Policies" step={3}>
           {policies?.paymentTerms ? <p className="line-clamp-2">{policies.paymentTerms}</p>
             : <p className="text-slate-400">No policies entered</p>}
         </SectionReview>
       </div>
       <Separator />
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-sm font-medium text-slate-700">Two more things to set up after this</p>
+        <p className="text-xs text-slate-500 mt-1">
+          Your <span className="font-medium">Services</span> and <span className="font-medium">Pricing Rules</span> live on their own pages in the sidebar —
+          add them next so your BDA can quote accurately. They only unlock once you confirm below.
+        </p>
+      </div>
       <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-5 space-y-3">
         <p className="font-semibold text-emerald-800">Ready to confirm your Business Profile?</p>
-        <p className="text-sm text-emerald-700">Confirming unlocks the next onboarding steps and activates your BDA.</p>
+        <p className="text-sm text-emerald-700">This saves everything above and unlocks Services, Pricing Rules, and the rest of your setup in the sidebar.</p>
         <div className="flex gap-3">
           <Button type="button" variant="outline" onClick={onBack}><ChevronLeft className="h-4 w-4 mr-1" />Back</Button>
           <Button type="button" disabled={confirming}
@@ -1539,14 +1115,19 @@ export default function BusinessPage() {
   const [completed, setCompleted] = useState<Set<number>>(new Set());
 
   // Data fetching
-  const { data: biz, isLoading: bizLoading } = useGetBusiness();
-  const { data: ops, isLoading: opsLoading } = useGetBusinessOperations();
-  const { data: services = [], isLoading: svcsLoading } = useListServices();
-  const { data: pricing, isLoading: pricingLoading } = useGetPricing();
-  const { data: policies, isLoading: polsLoading } = useGetBusinessPolicies();
-  const { data: estimateRules, isLoading: estLoading } = useGetEstimateRules();
-  const { data: tone, isLoading: toneLoading } = useGetBusinessTone();
-  const { data: industriesData = [], isLoading: industriesLoading } = useListBusinessIndustries();
+  const { data: me } = useGetMe();
+  // A brand-new user has no business row yet — every business-scoped query
+  // below 404s until one exists, so they stay disabled until `me.business`
+  // shows up (right after Step 1 creates it).
+  const hasBusiness = !!me?.business;
+  const { data: biz, isLoading: bizLoading } = useGetBusiness({ query: { queryKey: getGetBusinessQueryKey(), enabled: hasBusiness } });
+  const { data: ops, isLoading: opsLoading } = useGetBusinessOperations({ query: { queryKey: getGetBusinessOperationsQueryKey(), enabled: hasBusiness } });
+  const { data: policies, isLoading: polsLoading } = useGetBusinessPolicies({ query: { queryKey: getGetBusinessPoliciesQueryKey(), enabled: hasBusiness } });
+  const { data: estimateRules, isLoading: estLoading } = useGetEstimateRules({ query: { queryKey: getGetEstimateRulesQueryKey(), enabled: hasBusiness } });
+  const { data: tone, isLoading: toneLoading } = useGetBusinessTone({ query: { queryKey: getGetBusinessToneQueryKey(), enabled: hasBusiness } });
+  const { data: industriesData = [], isLoading: industriesLoading } = useListBusinessIndustries({ query: { queryKey: getListBusinessIndustriesQueryKey(), enabled: hasBusiness } });
+
+  const isFirstTime = !hasBusiness;
 
   const initialIndustries: PickedIndustry[] = industriesData.map((i: BusinessIndustry) => ({
     industryCategory: i.industryCategory,
@@ -1555,29 +1136,31 @@ export default function BusinessPage() {
   }));
 
   // Mutations
+  const createBusiness = useCreateBusiness();
   const updateBusiness = useUpdateBusiness();
   const setBusinessIndustries = useSetBusinessIndustries();
   const saveOps = useSaveBusinessOperations();
-  const createService = useCreateService();
-  const updateService = useUpdateService();
-  const deleteService = useDeleteService();
-  const savePricing = useSavePricing();
   const savePolicies = useSaveBusinessPolicies();
   const saveEstimate = useSaveEstimateRules();
   const saveTone = useSaveBusinessTone();
   const aiDraft = useAiDraftPolicy();
   const confirmProfile = useConfirmBusinessProfile();
 
-  const isLoading = bizLoading || opsLoading || svcsLoading || pricingLoading || polsLoading || estLoading || toneLoading || industriesLoading;
+  const isLoading = !isFirstTime && (bizLoading || opsLoading || polsLoading || estLoading || toneLoading || industriesLoading);
 
   const markDone = (s: number) => setCompleted((prev) => new Set([...prev, s]));
-  const goNext = () => setStep((s) => Math.min(s + 1, 6));
+  const goNext = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   const goBack = () => setStep((s) => Math.max(s - 1, 1));
 
   const invalidate = (...keys: (() => readonly unknown[])[]) =>
     keys.forEach((k) => qc.invalidateQueries({ queryKey: k() }));
 
   const handleSave1 = async (d: S1, industries: PickedIndustry[], customIndustry: string, logoUrl: string | null) => {
+    if (!hasBusiness) {
+      await createBusiness.mutateAsync({
+        data: { ownerName: me?.user?.ownerName || "", businessName: d.name },
+      });
+    }
     await Promise.all([
       updateBusiness.mutateAsync({ data: { ...d, logoUrl } }),
       setBusinessIndustries.mutateAsync({ data: { industries, customIndustry: customIndustry || undefined } }),
@@ -1585,7 +1168,7 @@ export default function BusinessPage() {
     invalidate(getGetBusinessQueryKey, getGetMeQueryKey, getListBusinessIndustriesQueryKey);
     markDone(1);
     goNext();
-    toast({ title: "Basic info saved" });
+    toast({ title: "Business info saved" });
   };
 
   const handleSave2 = async (d: S2, hours: WeekHours) => {
@@ -1594,42 +1177,6 @@ export default function BusinessPage() {
     markDone(2);
     goNext();
     toast({ title: "Operations saved" });
-  };
-
-  const handleAddService = async (d: SvcForm) => {
-    await createService.mutateAsync({ data: d });
-    invalidate(getListServicesQueryKey);
-    toast({ title: `Service "${d.name}" added` });
-  };
-
-  const handleSaveService = async (id: number, d: SvcForm) => {
-    await updateService.mutateAsync({ id, data: d });
-    invalidate(getListServicesQueryKey);
-  };
-
-  const handleDeleteService = async (id: number) => {
-    await deleteService.mutateAsync({ id });
-    invalidate(getListServicesQueryKey);
-    toast({ title: "Service deleted" });
-  };
-
-  const handleNext3 = () => { markDone(3); goNext(); };
-
-  const handleSave4 = async (d: S4) => {
-    const toTags = (s?: string) =>
-      (s ?? "").split(",").map((t) => t.trim()).filter(Boolean);
-    const { priceIncreaseFactorsText, priceDecreaseFactorsText, ...rest } = d;
-    await savePricing.mutateAsync({
-      data: {
-        ...rest,
-        priceIncreaseFactors: toTags(priceIncreaseFactorsText),
-        priceDecreaseFactors: toTags(priceDecreaseFactorsText),
-      },
-    });
-    invalidate(getGetPricingQueryKey);
-    markDone(4);
-    goNext();
-    toast({ title: "Pricing saved" });
   };
 
   const handleAiDraft = async (field: string, current: string): Promise<string> => {
@@ -1643,7 +1190,7 @@ export default function BusinessPage() {
       saveEstimate.mutateAsync({ data: { ...e, requiredInfoBeforeQuoting: required, bdaQuestionsToAsk: questions } }),
     ]);
     invalidate(getGetBusinessPoliciesQueryKey, getGetEstimateRulesQueryKey);
-    markDone(5);
+    markDone(3);
     goNext();
     toast({ title: "Policies & estimate rules saved" });
   };
@@ -1657,8 +1204,8 @@ export default function BusinessPage() {
   const handleConfirm = async () => {
     await confirmProfile.mutateAsync(undefined);
     invalidate(getGetBusinessQueryKey, getGetMeQueryKey);
-    markDone(6);
-    toast({ title: "Business Profile confirmed!", description: "Next onboarding steps are now unlocked." });
+    markDone(4);
+    toast({ title: "Business Profile confirmed!", description: "Services and Pricing Rules are now unlocked in the sidebar." });
   };
 
   if (isLoading) return (
@@ -1672,44 +1219,38 @@ export default function BusinessPage() {
   return (
     <div className="max-w-3xl mx-auto animate-in fade-in duration-500">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Business Profile</h2>
-        <p className="text-slate-500 text-sm mt-1">Complete all 6 steps to activate your BDA.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+          {isFirstTime ? "Welcome to BDA — let's set up your business" : "Business Profile"}
+        </h2>
+        <p className="text-slate-500 text-sm mt-1">
+          {isFirstTime
+            ? "Just the basics to get started — takes about 5 minutes. You can add services and pricing right after."
+            : "Keep your business profile up to date so your BDA stays accurate."}
+        </p>
       </div>
       <WizardProgress step={step} completedSteps={completed} onJump={setStep} />
       <BdaHelperCard />
       <Card className="border-slate-200 shadow-sm">
         <CardHeader className="border-b border-slate-100 py-4">
-          <CardTitle className="text-base">Step {step}: {STEPS[step - 1]}</CardTitle>
+          <CardTitle className="text-base">Step {step} of {TOTAL_STEPS}: {STEPS[step - 1]}</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           {step === 1 && <Step1 biz={biz} initialIndustries={initialIndustries} onSave={handleSave1} />}
-          {step === 2 && <Step2 ops={ops} onSave={handleSave2} onBack={goBack} />}
+          {step === 2 && <Step2 ops={ops} onSave={handleSave2} onBack={goBack} onSkip={() => { goNext(); }} />}
           {step === 3 && (
-            <Step3
-              services={services}
-              onSave={handleSaveService}
-              onDelete={handleDeleteService}
-              onAdd={handleAddService}
-              onBack={goBack}
-              onNext={handleNext3}
-            />
-          )}
-          {step === 4 && <Step4 pricing={pricing} onSave={handleSave4} onBack={goBack} />}
-          {step === 5 && (
             <Step5
               policies={policies}
               estimateRules={estimateRules}
               onSave={handleSave5}
               onBack={goBack}
+              onSkip={() => { goNext(); }}
               aiDraft={handleAiDraft}
             />
           )}
-          {step === 6 && (
+          {step === 4 && (
             <Step6
               biz={biz}
               ops={ops}
-              services={services}
-              pricing={pricing}
               policies={policies}
               tone={tone}
               industryCount={initialIndustries.length}

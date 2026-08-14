@@ -30,7 +30,7 @@ export default function SignUpPage() {
     signup.mutate(
       { data: values },
       {
-        onSuccess: () => setLocation("/onboarding"),
+        onSuccess: () => setLocation("/business"),
         onError: (err: unknown) => {
           const message =
             err instanceof Error ? err.message : "Could not create your account.";

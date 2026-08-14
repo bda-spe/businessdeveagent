@@ -16,7 +16,6 @@ import ForgotPasswordPage from "./pages/forgot-password";
 import ResetPasswordPage from "./pages/reset-password";
 import PrivacyPage from "./pages/privacy";
 import TermsPage from "./pages/terms";
-import OnboardingPage from "./pages/onboarding";
 import AppShell from "./components/app-shell";
 import DashboardPage from "./pages/dashboard";
 import BusinessPage from "./pages/business";
@@ -65,12 +64,6 @@ function HomeRedirect() {
   return signedIn ? <Redirect to="/dashboard" /> : <LandingPage />;
 }
 
-function OnboardingGate() {
-  const { isLoading, signedIn } = useSession();
-  if (isLoading) return <FullPageSpinner />;
-  return signedIn ? <OnboardingPage /> : <Redirect to="/sign-in" />;
-}
-
 function ProtectedApp({ children }: { children: React.ReactNode }) {
   const { isLoading, signedIn } = useSession();
   if (isLoading) return <FullPageSpinner />;
@@ -93,7 +86,7 @@ function App() {
             <Route path="/privacy" component={PrivacyPage} />
             <Route path="/terms" component={TermsPage} />
 
-            <Route path="/onboarding" component={OnboardingGate} />
+            <Route path="/onboarding"><Redirect to="/business" /></Route>
 
             <Route path="/dashboard"><ProtectedApp><TrialLockGate><DashboardPage /></TrialLockGate></ProtectedApp></Route>
             <Route path="/business"><ProtectedApp><TrialLockGate><BusinessPage /></TrialLockGate></ProtectedApp></Route>

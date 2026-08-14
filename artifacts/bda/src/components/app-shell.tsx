@@ -69,11 +69,11 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && me) {
-      if (!me.business || !me.onboardingComplete) {
-        setLocation("/onboarding");
+      if ((!me.business || !me.onboardingComplete) && location !== "/business") {
+        setLocation("/business");
       }
     }
-  }, [me, isLoading, setLocation]);
+  }, [me, isLoading, location, setLocation]);
 
   // Only redirect for setup-step locks (not subscription locks — TrialLockGate handles those)
   const currentItem = allItems.find((item) => item.href === location);
@@ -95,7 +95,11 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
     );
   }
 
-  if (!me?.business || !me?.onboardingComplete) {
+  if (!me) {
+    return null;
+  }
+
+  if ((!me.business || !me.onboardingComplete) && location !== "/business") {
     return null;
   }
 
