@@ -121,6 +121,26 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
+// Catch-all error handler. Without this, Express's default handler dumps the
+// raw error stack (file paths, SQL, driver internals) as an HTML page
+// straight to the client — an information-disclosure bug, not just an ugly
+// error page. Log the full error (including drizzle's wrapped `.cause`,
+// which carries the actual Postgres error) server-side, and return a generic
+// message to the client.
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  const cause = err instanceof Error ? (err.cause as Error | undefined) : undefined;
+  req.log?.error(
+    {
+      err,
+      causeMessage: cause?.message,
+      causeCode: (cause as { code?: string } | undefined)?.code,
+    },
+    "Unhandled error",
+  );
+  if (res.headersSent) return;
+  res.status(500).json({ error: "Internal server error." });
+});
+
 // Trial ending reminder: runs every hour, sends an email exactly once per
 // business in the 24-25 hour window before trial_ends_at.
 (function scheduleTrialReminders() {
