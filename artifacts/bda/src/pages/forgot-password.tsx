@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { MailCheck } from "lucide-react";
+import LegalFooterLinks from "@/components/legal-footer-links";
 
 type ForgotPasswordValues = z.infer<typeof ForgotPasswordBody>;
 
@@ -82,6 +83,9 @@ export default function ForgotPasswordPage() {
           </>
         )}
       </Card>
+      <div className="fixed bottom-6 left-0 right-0 flex justify-center">
+        <LegalFooterLinks className="text-slate-400" />
+      </div>
     </div>
   );
 }

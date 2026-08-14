@@ -15,6 +15,17 @@ const router: IRouter = Router();
 export const publicStorageRouter: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
 
+// Every current caller of this endpoint uploads a logo image, so the
+// allow-list is intentionally narrow — widen it deliberately if a new
+// upload use case needs a different file type.
+const ALLOWED_UPLOAD_CONTENT_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/svg+xml",
+  "image/webp",
+]);
+const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
 /**
  * POST /storage/uploads/request-url
  *
@@ -29,10 +40,18 @@ router.post("/storage/uploads/request-url", async (req: Request, res: Response) 
     return;
   }
 
-  try {
-    const { name, size, contentType } = parsed.data;
+  const { name, size, contentType } = parsed.data;
+  if (!ALLOWED_UPLOAD_CONTENT_TYPES.has(contentType)) {
+    res.status(400).json({ error: "Unsupported file type. Please upload a PNG, JPG, SVG, or WEBP image." });
+    return;
+  }
+  if (size > MAX_UPLOAD_SIZE_BYTES) {
+    res.status(400).json({ error: "File is too large. Maximum size is 5MB." });
+    return;
+  }
 
-    const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+  try {
+    const uploadURL = await objectStorageService.getObjectEntityUploadURL(contentType);
     const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
 
     res.json(

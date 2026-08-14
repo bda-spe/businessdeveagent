@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, MessageSquare, Calculator, Zap, ArrowRight } from "lucide-react";
 import logoUrl from "@assets/8028a6ee-e049-488f-91c3-bb2de873b6cf.png";
+import LegalFooterLinks from "@/components/legal-footer-links";
 
 export default function LandingPage() {
   return (
@@ -97,18 +98,9 @@ export default function LandingPage() {
             &copy; {new Date().getFullYear()} Sean Pelillo Enterprises. All rights reserved.
           </div>
         </div>
-        <p className="text-center text-xs text-slate-400 mt-4 max-w-2xl mx-auto leading-relaxed">
-          Information regarding our Acceptable Use Policy, AI Disclosure, Legal Notices, Cookie Policy, Copyright & Intellectual Property, Data Processing & Security, Privacy Policy, and Terms of Service can be found{" "}
-          <a
-            href="https://spelillo.github.io/seanpelilloenterprises/bda.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline text-blue-400 hover:text-blue-300 cursor-pointer"
-          >
-            here
-          </a>
-          .
-        </p>
+        <div className="flex justify-center mt-4">
+          <LegalFooterLinks />
+        </div>
       </footer>
     </div>
   );

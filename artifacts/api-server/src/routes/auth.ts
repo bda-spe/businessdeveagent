@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import rateLimit from "express-rate-limit";
 import { eq } from "drizzle-orm";
 import { db, usersTable, sessionsTable, businessesTable } from "@workspace/db";
 import { computeSetupProgress } from "../lib/setupProgress";
@@ -27,6 +28,20 @@ import {
 import { sendPasswordResetEmail } from "../lib/system-emails";
 
 const router: IRouter = Router();
+
+// Auth endpoints are the classic brute-force / credential-stuffing / email-
+// enumeration target — keyed by IP, tight enough to slow down automated
+// attempts without tripping up a real user who mistypes a password a few
+// times.
+const authRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many attempts. Please try again later." },
+});
+
+router.use(authRateLimit);
 
 async function createSession(userId: number): Promise<string> {
   const token = generateSessionToken();

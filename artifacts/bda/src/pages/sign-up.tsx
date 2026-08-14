@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,7 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription, FormMessage } from "@/components/ui/form";
+import LegalFooterLinks from "@/components/legal-footer-links";
 
 type SignupValues = z.infer<typeof SignupBody>;
 
@@ -16,6 +19,7 @@ export default function SignUpPage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const signup = useSignup();
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const form = useForm<SignupValues>({
     resolver: zodResolver(SignupBody),
@@ -86,7 +90,31 @@ export default function SignUpPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={signup.isPending} data-testid="button-sign-up">
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="agree-to-terms"
+                  checked={agreedToTerms}
+                  onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+                  className="mt-0.5"
+                />
+                <label htmlFor="agree-to-terms" className="text-sm text-slate-600 leading-snug">
+                  I agree to the{" "}
+                  <Link href="/terms" target="_blank" className="font-medium text-slate-900 hover:underline">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" target="_blank" className="font-medium text-slate-900 hover:underline">
+                    Privacy Policy
+                  </Link>
+                  .
+                </label>
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={signup.isPending || !agreedToTerms}
+                data-testid="button-sign-up"
+              >
                 {signup.isPending ? "Creating account..." : "Create Account"}
               </Button>
             </form>
@@ -97,6 +125,9 @@ export default function SignUpPage() {
               Sign in
             </Link>
           </p>
+          <div className="mt-6 flex justify-center">
+            <LegalFooterLinks className="text-slate-400" />
+          </div>
         </CardContent>
       </Card>
     </div>

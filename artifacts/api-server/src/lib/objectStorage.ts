@@ -65,10 +65,20 @@ export interface StoredObject {
 export class ObjectStorageService {
   constructor() {}
 
-  /** Presigned PUT URL for a fresh private upload. Expires in 15 minutes. */
-  async getObjectEntityUploadURL(): Promise<string> {
+  /**
+   * Presigned PUT URL for a fresh private upload. Expires in 15 minutes.
+   * Binding contentType into the signature means S3 rejects the upload if
+   * the client actually PUTs a different Content-Type than it declared to
+   * the request-url endpoint, closing the gap between declared and real
+   * upload metadata.
+   */
+  async getObjectEntityUploadURL(contentType?: string): Promise<string> {
     const key = `uploads/${randomUUID()}`;
-    const command = new PutObjectCommand({ Bucket: getBucket(), Key: key });
+    const command = new PutObjectCommand({
+      Bucket: getBucket(),
+      Key: key,
+      ...(contentType ? { ContentType: contentType } : {}),
+    });
     return getSignedUrl(getClient(), command, { expiresIn: 900 });
   }
 

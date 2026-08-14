@@ -283,6 +283,13 @@
         config.greeting
       )
     );
+    body.appendChild(
+      text(
+        "p",
+        "margin:-6px 0 12px;font-size:11px;color:#94a3b8;",
+        "You're chatting with an AI assistant."
+      )
+    );
     var ta = el(
       "textarea",
       inputStyle() + "min-height:110px;resize:vertical;",

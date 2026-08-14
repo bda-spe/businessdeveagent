@@ -14,6 +14,8 @@ import SignInPage from "./pages/sign-in";
 import SignUpPage from "./pages/sign-up";
 import ForgotPasswordPage from "./pages/forgot-password";
 import ResetPasswordPage from "./pages/reset-password";
+import PrivacyPage from "./pages/privacy";
+import TermsPage from "./pages/terms";
 import OnboardingPage from "./pages/onboarding";
 import AppShell from "./components/app-shell";
 import DashboardPage from "./pages/dashboard";
@@ -88,6 +90,8 @@ function App() {
             <Route path="/sign-up" component={SignUpPage} />
             <Route path="/forgot-password" component={ForgotPasswordPage} />
             <Route path="/reset-password" component={ResetPasswordPage} />
+            <Route path="/privacy" component={PrivacyPage} />
+            <Route path="/terms" component={TermsPage} />
 
             <Route path="/onboarding" component={OnboardingGate} />
 

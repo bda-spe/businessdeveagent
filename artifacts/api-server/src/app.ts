@@ -1,12 +1,26 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { stripeWebhookHandler } from "./routes/stripe-webhook";
 import { logger } from "./lib/logger";
+import { SESSION_COOKIE_NAME } from "./lib/passwordAuth";
 
 const app: Express = express();
+
+// Security headers (CSP, X-Frame-Options, X-Content-Type-Options, HSTS, etc).
+// The API serves JSON only — no inline scripts/styles to allow — so the
+// default restrictive CSP is fine as-is.
+app.use(
+  helmet({
+    // This is a pure JSON API with no browser-rendered pages of its own, so
+    // cross-origin embedding restrictions that assume an HTML document
+    // (COEP) would only break the widget's third-party embed for no benefit.
+    crossOriginEmbedderPolicy: false,
+  }),
+);
 
 // Build an allowlist of trusted first-party origins for credentialed (cookie)
 // requests. In the Replit path-based routing setup the frontend and API are
@@ -81,6 +95,26 @@ app.post(
   express.raw({ type: "application/json" }),
   stripeWebhookHandler,
 );
+
+// CSRF defense-in-depth: the session cookie is SameSite=None in production
+// (required because the frontend and API are on different registrable
+// domains), which disables the browser-level CSRF protection SameSite
+// normally provides. For any state-changing request that carries the session
+// cookie, require a matching Origin — the same allowlist credentialed CORS
+// already trusts. Requests with no Origin header (non-browser clients, same
+// some legacy same-origin cases) are left to the CORS layer above.
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const isStateChanging = !["GET", "HEAD", "OPTIONS"].includes(req.method);
+  const hasSessionCookie = Boolean(req.cookies?.[SESSION_COOKIE_NAME]);
+  if (isStateChanging && hasSessionCookie) {
+    const origin = req.headers.origin;
+    if (origin && !allowedOrigins.has(origin)) {
+      res.status(403).json({ error: "Cross-site request rejected." });
+      return;
+    }
+  }
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

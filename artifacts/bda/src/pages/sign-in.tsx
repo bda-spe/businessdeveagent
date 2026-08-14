@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import LegalFooterLinks from "@/components/legal-footer-links";
 
 type LoginValues = z.infer<typeof LoginBody>;
 
@@ -86,6 +87,9 @@ export default function SignInPage() {
               Create one
             </Link>
           </p>
+          <div className="mt-6 flex justify-center">
+            <LegalFooterLinks className="text-slate-400" />
+          </div>
         </CardContent>
       </Card>
     </div>

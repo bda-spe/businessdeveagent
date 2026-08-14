@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AssistantChat from "@/components/assistant-chat";
+import LegalFooterLinks from "@/components/legal-footer-links";
 import logoUrl from "@assets/header-dashboard.png";
 import { isSubscriptionLocked } from "@/components/trial-lock-gate";
 
@@ -196,6 +197,9 @@ export default function AppShell({ children }: { children?: React.ReactNode }) {
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
+          <div className="mt-3 px-2">
+            <LegalFooterLinks />
+          </div>
         </div>
       </aside>
       {/* Main Content */}
