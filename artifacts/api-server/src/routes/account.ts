@@ -1,6 +1,5 @@
 import { Router, type IRouter } from "express";
 import { and, eq, inArray } from "drizzle-orm";
-import { clerkClient } from "@clerk/express";
 import {
   db,
   businessesTable,
@@ -232,19 +231,10 @@ router.delete("/account", requireBusiness, async (req, res): Promise<void> => {
       }
     }
 
-    // Deleting the user row cascades to the business row and every
-    // business-scoped table (services, leads, files, etc.) via FK ON DELETE
-    // CASCADE, wiping all product data immediately.
+    // Deleting the user row cascades to the business row, every
+    // business-scoped table (services, leads, files, etc.), and this user's
+    // sessions via FK ON DELETE CASCADE, wiping all product data immediately.
     await db.delete(usersTable).where(eq(usersTable.id, user.id));
-
-    try {
-      await clerkClient.users.deleteUser(user.clerkUserId);
-    } catch (err) {
-      console.error(
-        `[account] Failed to delete Clerk user ${user.clerkUserId} during account deletion:`,
-        err,
-      );
-    }
 
     res.json(DeleteAccountResponse.parse({ success: true }));
   } catch (err) {

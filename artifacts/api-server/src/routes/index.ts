@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
+import authRouter from "./auth";
 import storageRouter, { publicStorageRouter } from "./storage";
 import {
   requireAuth,
@@ -30,6 +31,7 @@ const router: IRouter = Router();
 
 // Public routes (no auth).
 router.use(healthRouter);
+router.use(authRouter);
 router.use(widgetPublicRouter);
 // Object serving is public: object paths are unguessable UUIDs and logos are
 // non-sensitive (they appear on customer PDFs), so <img> previews load without

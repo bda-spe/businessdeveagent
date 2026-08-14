@@ -88,6 +88,29 @@ export interface Account {
   setupProgress: SetupProgress;
 }
 
+export interface AuthSignupInput {
+  email: string;
+  /** @minLength 8 */
+  password: string;
+  ownerName: string;
+}
+
+export interface AuthLoginInput {
+  email: string;
+  password: string;
+}
+
+export interface AuthForgotPasswordInput {
+  email: string;
+}
+
+export interface AuthResetPasswordInput {
+  email: string;
+  code: string;
+  /** @minLength 8 */
+  newPassword: string;
+}
+
 export interface BusinessIndustry {
   id: number;
   businessId: number;
@@ -1101,7 +1124,7 @@ export interface WidgetSettings {
   primaryColor: string;
   /** Font key applied to the widget's text (inter, system, serif, rounded, mono) */
   font: string;
-  /** bottom-right or bottom-left */
+  /** top-right, top-left, bottom-right, or bottom-left */
   position: string;
   enabled: boolean;
 }
@@ -1271,6 +1294,18 @@ export interface ActivityEvent {
   description: string;
   createdAt: string;
 }
+
+export type Logout200 = {
+  success: boolean;
+};
+
+export type ForgotPassword200 = {
+  message: string;
+};
+
+export type ResetPassword200 = {
+  success: boolean;
+};
 
 export type DeleteAccount200 = {
   success: boolean;

@@ -117,6 +117,24 @@ function formatDate(isoOrDbString: string | null | undefined): string {
   return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
+export async function sendPasswordResetEmail(opts: {
+  to: string;
+  ownerName: string;
+  code: string;
+}): Promise<void> {
+  const body =
+    p(`Hi ${opts.ownerName},`) +
+    p("Use this code to reset your Business Development Agent password. It expires in 30 minutes and can only be used once.") +
+    `<p style="margin:0 0 16px;text-align:center;"><span style="display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:16px 24px;font-family:monospace;font-size:24px;font-weight:700;letter-spacing:4px;color:${NAVY};">${opts.code}</span></p>` +
+    p("If you didn't request this, you can safely ignore this email — your password won't change unless this code is used.");
+
+  await sendHtmlEmail({
+    to: opts.to,
+    subject: "Your Business Development Agent password reset code",
+    html: emailWrapper("Reset your password", body),
+  });
+}
+
 export async function sendWelcomeEmail(opts: {
   to: string;
   ownerName: string;

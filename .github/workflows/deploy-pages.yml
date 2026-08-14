@@ -40,9 +40,6 @@ jobs:
           PORT: "5173"
           # Points the deployed frontend at the Render backend.
           VITE_API_BASE_URL: https://businessdeveagent.onrender.com
-          # Publishable key — designed to be public, safe to embed in a
-          # client bundle (unlike CLERK_SECRET_KEY, which never appears here).
-          VITE_CLERK_PUBLISHABLE_KEY: pk_test_cHJlY2lzZS1yaGluby05OS5jbGVyay5hY2NvdW50cy5kZXYk
         run: pnpm run build
 
       - uses: actions/upload-pages-artifact@v3

@@ -12,10 +12,28 @@ import {
 
 export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
-  clerkUserId: text("clerk_user_id").notNull().unique(),
   ownerName: text("owner_name").notNull(),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
+  // Format: "<hex salt>:<hex scrypt hash>". Never store or log plaintext.
+  passwordHash: text("password_hash").notNull(),
+  // SHA-256 hash of the current password-reset code, if one is pending.
+  // Null when no reset is in flight. Always cleared (or replaced) together
+  // with passwordHash so a stale code never survives a password change.
+  resetCodeHash: text("reset_code_hash"),
+  resetCodeExpiresAt: timestamp("reset_code_expires_at", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const sessionsTable = pgTable("sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  // SHA-256 hash of the session token carried in the client's cookie — the
+  // raw token itself is never persisted.
+  tokenHash: text("token_hash").notNull().unique(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", { mode: "string" }).notNull(),
 });
 
 export const businessesTable = pgTable("businesses", {

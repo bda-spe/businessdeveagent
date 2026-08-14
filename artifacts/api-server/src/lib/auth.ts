@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
-import { getAuth, clerkClient } from "@clerk/express";
-import { eq } from "drizzle-orm";
-import { db, usersTable, businessesTable } from "@workspace/db";
+import { eq, gt, and } from "drizzle-orm";
+import { db, usersTable, businessesTable, sessionsTable } from "@workspace/db";
+import { sha256Hex, SESSION_COOKIE_NAME } from "./passwordAuth";
 
 type AppUser = typeof usersTable.$inferSelect;
 type AppBusiness = typeof businessesTable.$inferSelect;
@@ -10,53 +10,45 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      clerkUserId?: string;
       appUser?: AppUser;
       business?: AppBusiness | null;
     }
   }
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
-  const auth = getAuth(req);
-  const userId = auth?.userId;
-  if (!userId) {
+/**
+ * Reads the session cookie, resolves it to a user via sessionsTable, and
+ * attaches req.appUser. Unlike Clerk's JWT-based auth, this is a DB lookup
+ * per request — fine at this scale, and it means revoking a session (logout,
+ * password reset) takes effect immediately rather than waiting on token
+ * expiry.
+ */
+export async function requireAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const token = req.cookies?.[SESSION_COOKIE_NAME] as string | undefined;
+  if (!token) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  req.clerkUserId = userId;
-  next();
-}
 
-export async function getOrCreateUser(clerkUserId: string): Promise<AppUser> {
-  const [existing] = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.clerkUserId, clerkUserId));
-  if (existing) return existing;
+  const tokenHash = sha256Hex(token);
+  const now = new Date().toISOString();
+  const [row] = await db
+    .select({ user: usersTable })
+    .from(sessionsTable)
+    .innerJoin(usersTable, eq(sessionsTable.userId, usersTable.id))
+    .where(and(eq(sessionsTable.tokenHash, tokenHash), gt(sessionsTable.expiresAt, now)));
 
-  let ownerName = "Owner";
-  let email = "";
-  try {
-    const cu = await clerkClient.users.getUser(clerkUserId);
-    email =
-      cu.primaryEmailAddress?.emailAddress ??
-      cu.emailAddresses[0]?.emailAddress ??
-      "";
-    ownerName =
-      [cu.firstName, cu.lastName].filter(Boolean).join(" ") ||
-      cu.username ||
-      email ||
-      "Owner";
-  } catch {
-    // Clerk user lookup failed; fall back to defaults.
+  if (!row) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
-  const [created] = await db
-    .insert(usersTable)
-    .values({ clerkUserId, ownerName, email })
-    .returning();
-  return created;
+  req.appUser = row.user;
+  next();
 }
 
 /**
@@ -103,8 +95,7 @@ export async function loadContext(
   _res: Response,
   next: NextFunction,
 ): Promise<void> {
-  const user = await getOrCreateUser(req.clerkUserId as string);
-  req.appUser = user;
+  const user = req.appUser!;
   const [business] = await db
     .select()
     .from(businessesTable)

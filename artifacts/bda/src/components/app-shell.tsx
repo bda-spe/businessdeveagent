@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useClerk } from "@clerk/react";
-import { useGetMe } from "@workspace/api-client-react";
+import { useGetMe, useLogout, getGetMeQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   Wrench,
@@ -23,7 +23,16 @@ import { isSubscriptionLocked } from "@/components/trial-lock-gate";
 
 export default function AppShell({ children }: { children?: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const { signOut } = useClerk();
+  const queryClient = useQueryClient();
+  const logout = useLogout();
+  const signOut = ({ redirectUrl }: { redirectUrl: string }) => {
+    logout.mutate(undefined, {
+      onSuccess: () => {
+        queryClient.setQueryData(getGetMeQueryKey(), undefined);
+        setLocation(redirectUrl);
+      },
+    });
+  };
 
   const { data: me, isLoading } = useGetMe();
 

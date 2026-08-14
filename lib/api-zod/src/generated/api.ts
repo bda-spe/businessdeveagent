@@ -18,6 +18,172 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * Creates the user, hashes the password, and starts a session (sets the session cookie) — the caller is signed in immediately, same as after a login.
+ * @summary Create an account with email + password
+ */
+export const signupBodyPasswordMin = 8;
+
+
+
+export const SignupBody = zod.object({
+  "email": zod.string().email(),
+  "password": zod.string().min(signupBodyPasswordMin),
+  "ownerName": zod.string()
+})
+
+export const SignupResponse = zod.object({
+  "user": zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "ownerName": zod.string()
+}),
+  "business": zod.union([zod.object({
+  "id": zod.number(),
+  "clientId": zod.string(),
+  "name": zod.string(),
+  "industry": zod.string().nullish(),
+  "industryOther": zod.string().nullish(),
+  "primaryIndustryCategory": zod.string().nullish(),
+  "primaryIndustry": zod.string().nullish(),
+  "customIndustry": zod.string().nullish(),
+  "companySize": zod.string().nullish(),
+  "customerType": zod.string().nullish(),
+  "website": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "serviceArea": zod.string().nullish(),
+  "addressLine1": zod.string().nullish(),
+  "addressLine2": zod.string().nullish(),
+  "addressCity": zod.string().nullish(),
+  "addressState": zod.string().nullish(),
+  "addressZip": zod.string().nullish(),
+  "status": zod.string().describe('onboarding or active'),
+  "profileApproved": zod.boolean(),
+  "agentPreferencesConfirmed": zod.boolean().optional(),
+  "widgetReady": zod.boolean().optional(),
+  "active": zod.boolean().optional(),
+  "subscriptionStatus": zod.string().optional().describe('trialing, active, or expired'),
+  "trialStartedAt": zod.string().nullish(),
+  "trialEndsAt": zod.string().nullish(),
+  "planType": zod.string().optional(),
+  "buildFeePaid": zod.boolean().optional(),
+  "logoUrl": zod.string().nullish(),
+  "createdAt": zod.string().optional()
+}),zod.null()]).optional(),
+  "onboardingComplete": zod.boolean(),
+  "setupProgress": zod.object({
+  "businessProfile": zod.boolean(),
+  "services": zod.boolean(),
+  "pricing": zod.boolean(),
+  "invoiceFormatting": zod.boolean(),
+  "widget": zod.boolean(),
+  "widgetStyled": zod.boolean().describe('True once the business has saved widget styling at least once, regardless of whether the agent has been confirmed yet.'),
+  "testAgent": zod.boolean()
+})
+})
+
+
+/**
+ * @summary Sign in with email + password
+ */
+export const LoginBody = zod.object({
+  "email": zod.string().email(),
+  "password": zod.string()
+})
+
+export const LoginResponse = zod.object({
+  "user": zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "ownerName": zod.string()
+}),
+  "business": zod.union([zod.object({
+  "id": zod.number(),
+  "clientId": zod.string(),
+  "name": zod.string(),
+  "industry": zod.string().nullish(),
+  "industryOther": zod.string().nullish(),
+  "primaryIndustryCategory": zod.string().nullish(),
+  "primaryIndustry": zod.string().nullish(),
+  "customIndustry": zod.string().nullish(),
+  "companySize": zod.string().nullish(),
+  "customerType": zod.string().nullish(),
+  "website": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "serviceArea": zod.string().nullish(),
+  "addressLine1": zod.string().nullish(),
+  "addressLine2": zod.string().nullish(),
+  "addressCity": zod.string().nullish(),
+  "addressState": zod.string().nullish(),
+  "addressZip": zod.string().nullish(),
+  "status": zod.string().describe('onboarding or active'),
+  "profileApproved": zod.boolean(),
+  "agentPreferencesConfirmed": zod.boolean().optional(),
+  "widgetReady": zod.boolean().optional(),
+  "active": zod.boolean().optional(),
+  "subscriptionStatus": zod.string().optional().describe('trialing, active, or expired'),
+  "trialStartedAt": zod.string().nullish(),
+  "trialEndsAt": zod.string().nullish(),
+  "planType": zod.string().optional(),
+  "buildFeePaid": zod.boolean().optional(),
+  "logoUrl": zod.string().nullish(),
+  "createdAt": zod.string().optional()
+}),zod.null()]).optional(),
+  "onboardingComplete": zod.boolean(),
+  "setupProgress": zod.object({
+  "businessProfile": zod.boolean(),
+  "services": zod.boolean(),
+  "pricing": zod.boolean(),
+  "invoiceFormatting": zod.boolean(),
+  "widget": zod.boolean(),
+  "widgetStyled": zod.boolean().describe('True once the business has saved widget styling at least once, regardless of whether the agent has been confirmed yet.'),
+  "testAgent": zod.boolean()
+})
+})
+
+
+/**
+ * @summary End the current session
+ */
+export const LogoutResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * Always responds with a generic success message, whether or not the email is registered, so this endpoint can't be used to enumerate accounts. If the email exists, a fresh single-use reset code (30-minute expiry) is emailed to it.
+ * @summary Request a password reset code by email
+ */
+export const ForgotPasswordBody = zod.object({
+  "email": zod.string().email()
+})
+
+export const ForgotPasswordResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * On success, the reset code is invalidated and every existing session for the account is revoked (the user must sign in again with the new password).
+ * @summary Reset password using the emailed code
+ */
+export const resetPasswordBodyNewPasswordMin = 8;
+
+
+
+export const ResetPasswordBody = zod.object({
+  "email": zod.string().email(),
+  "code": zod.string(),
+  "newPassword": zod.string().min(resetPasswordBodyNewPasswordMin)
+})
+
+export const ResetPasswordResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
  * Returns a presigned GCS URL for direct upload. The client sends JSON
  * metadata here, then uploads the file directly to the returned URL.
  * @summary Request a presigned URL for file upload
@@ -1863,7 +2029,7 @@ export const GetWidgetSettingsResponse = zod.object({
   "greeting": zod.string(),
   "primaryColor": zod.string(),
   "font": zod.string().describe('Font key applied to the widget\'s text (inter, system, serif, rounded, mono)'),
-  "position": zod.string().describe('bottom-right or bottom-left'),
+  "position": zod.string().describe('top-right, top-left, bottom-right, or bottom-left'),
   "enabled": zod.boolean()
 })
 
@@ -1884,7 +2050,7 @@ export const SaveWidgetSettingsResponse = zod.object({
   "greeting": zod.string(),
   "primaryColor": zod.string(),
   "font": zod.string().describe('Font key applied to the widget\'s text (inter, system, serif, rounded, mono)'),
-  "position": zod.string().describe('bottom-right or bottom-left'),
+  "position": zod.string().describe('top-right, top-left, bottom-right, or bottom-left'),
   "enabled": zod.boolean()
 })
 
