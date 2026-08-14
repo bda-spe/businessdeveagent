@@ -10,6 +10,13 @@ import { SESSION_COOKIE_NAME } from "./lib/passwordAuth";
 
 const app: Express = express();
 
+// Render sits in front of this app behind a reverse proxy, so without this
+// Express doesn't trust the X-Forwarded-For header — req.ip falls back to
+// the proxy's own address, which breaks per-IP rate limiting (every request
+// looks like it came from the same client) and makes express-rate-limit warn
+// on every request.
+app.set("trust proxy", 1);
+
 // Security headers (CSP, X-Frame-Options, X-Content-Type-Options, HSTS, etc).
 // The API serves JSON only — no inline scripts/styles to allow — so the
 // default restrictive CSP is fine as-is.
